@@ -85,8 +85,19 @@ H.onStep((t, dt) => {
 const intro = document.getElementById('intro');
 const started = campaign.state.done.length > 0;
 document.getElementById('continue').hidden = !started;
-document.getElementById('continue').onclick = () => { intro.hidden = true; };
-document.getElementById('play').onclick = () => { if (started) campaign.reset(); intro.hidden = true; sfx.unlock(); cinema.start('C01'); };   // a new game opens on « Le village catastrophe »
+// the title buttons are cut stone: hovered, the letters hop one after the other and an ember glows; clicked, the
+// slab is struck, paper chips fly, then the game goes on
+const struck = (b, go) => {
+  b.innerHTML = [...b.textContent].map((c, i) => `<span class="pl" style="--i:${i}">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
+  b.onclick = () => {
+    if (b.classList.contains('hit')) return; sfx.unlock(); sfx.play('hit'); b.classList.add('hit');
+    for (let k = 0; k < 14; k++) { const c = document.createElement('i'), a = Math.random() * 6.283, d = 40 + Math.random() * 70; c.className = 'chip'; c.style.cssText = `--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d * 0.7 - 20}px;--r:${(Math.random() - 0.5) * 540}deg;--c:${['#e0a24a', '#fbf1de', '#9a3328', '#a9a2bc'][k % 4]}`; b.append(c); }
+    setTimeout(() => { b.classList.remove('hit'); b.querySelectorAll('.chip').forEach((c) => c.remove()); go(); }, 520);
+  };
+};
+struck(document.getElementById('continue'), () => { intro.hidden = true; });
+document.getElementById('play').classList.toggle('go', !started);
+struck(document.getElementById('play'), () => { if (started) campaign.reset(); intro.hidden = true; cinema.start('C01'); });   // a new game opens on « Le village catastrophe »
 addEventListener('keydown', (e) => { if (!intro.hidden) e.stopImmediatePropagation(); }, true);
 if (Q.has('capture')) { intro.hidden = true; for (const id of ['hud', 'tools']) document.getElementById(id).hidden = true; }
 // touch: the stone joystick sends the walking keys (8 ways, a dead zone), the red blob acts (E); it lights up when an
@@ -110,9 +121,14 @@ for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) actBtn.addEvent
 H.onStep(() => { actBtn.classList.toggle('off', document.getElementById('prompt').hidden); });
 // finding the way: the GPS ribbon, the beacons, the minimap, the conversation camera (nav.js)
 const nav = createNav({ world, campaign, ui, cinema }); world.navMap = nav.map; H.onStep((t, dt) => nav.step(t, dt));
-paperize(document.getElementById('mini'), { seed: 31, style: 'slip' });
+const mini = document.getElementById('mini'), tools = document.getElementById('tools');
+paperize(mini, { seed: 31, style: 'slip' });
+// the minimap hangs under the screen buttons, however many rows they wrap to (on a phone it sits at the bottom)
+const placeMini = () => { mini.style.top = matchMedia('(max-width: 640px)').matches ? '' : Math.ceil(tools.getBoundingClientRect().bottom + 22) + 'px'; };
+addEventListener('resize', placeMini); document.fonts.ready.then(placeMini); placeMini();
 // the game's statistics, sent to Supabase like the Village Talas (stats.js; read back on stats.html)
 const stats = createStats(campaign, { touch: matchMedia('(pointer: coarse)').matches, off: Q.has('capture') });
 window.__thaleo = { campaign, world, ui, cinema, sfx, talk, stats, nav };
-if (campaign.state.accident?.played) ui.open('death');   // a death screen left open: it comes back
+// a death waits for its answer: its screen stays (or comes back, after a reload) until Dylan respawns from it
+H.onStep(() => { if (campaign.state.accident?.played && ui.mode !== 'death' && !cinema.playing) ui.open('death'); });
 H.start();

@@ -6,25 +6,25 @@
 // Aucune bête n'entre dans le camp. Une attaque qui touche Dylan devient un accident du jeu (cinématique, analyse, reprise).
 
 const ROLE = {
-  smilodon: { role: 'predator', speed: 1.3, run: 6.2, detect: 14, leash: 26 }, wolf: { role: 'predator', speed: 1.4, run: 6.0, detect: 13, leash: 24 },
-  lion: { role: 'predator', speed: 1.1, run: 6.4, detect: 11, leash: 20 }, bear: { role: 'predator', speed: 1.0, run: 5.2, detect: 9, leash: 16 },
-  harpagornis: { role: 'flyer', speed: 2.2, run: 9, detect: 13, leash: 30 }, sarcosuchus: { role: 'lurker', speed: 0.4, run: 7, detect: 4.6, leash: 3 },
+  smilodon: { role: 'predator', speed: 1.5, run: 6.4, detect: 19, leash: 34 }, wolf: { role: 'predator', speed: 1.6, run: 6.2, detect: 18, leash: 32 },
+  lion: { role: 'predator', speed: 1.3, run: 6.6, detect: 16, leash: 28 }, bear: { role: 'predator', speed: 1.1, run: 5.4, detect: 13, leash: 22 },
+  harpagornis: { role: 'flyer', speed: 2.2, run: 9, detect: 17, leash: 34 }, sarcosuchus: { role: 'lurker', speed: 0.4, run: 7, detect: 4.6, leash: 3 },
   mammoth: { role: 'defender', speed: 0.6, run: 6.6, warn: 5, young: 8, leash: 12 }, rhino: { role: 'defender', speed: 0.6, run: 6.8, warn: 4.5, young: 7, leash: 10 },
   aurochs: { role: 'defender', speed: 0.7, run: 6.8, warn: 4.2, young: 7, leash: 12 }, megatherium: { role: 'defender', speed: 0.35, run: 4.4, warn: 3.4, young: 5, leash: 8 },
   diprotodon: { role: 'defender', speed: 0.5, run: 5.5, warn: 3.8, young: 6, leash: 10 }, glyptotherium: { role: 'defender', speed: 0.35, run: 4.0, warn: 3.0, young: 5, leash: 8 },
-  gastornis: { role: 'defender', speed: 0.8, run: 7.0, warn: 4.0, young: 6, leash: 12 },
+  gastornis: { role: 'predator', speed: 1.2, run: 6.8, detect: 16, leash: 26 },   // the terror bird hunts
   megaloceros: { role: 'shy', speed: 0.8, run: 7.5, flee: 9, leash: 14 }, horse: { role: 'shy', speed: 0.9, run: 8, flee: 10, leash: 14 }, archaeoindris: { role: 'shy', speed: 0.5, run: 4, flee: 6, leash: 8 },
   canariomys: { role: 'shy', speed: 0.7, run: 4, flee: 4, leash: 6 }, castoroides: { role: 'shy', speed: 0.4, run: 3, flee: 4, leash: 5 }, hare: { role: 'shy', speed: 1.0, run: 7, flee: 6, leash: 9 },
   tortoise: { role: 'shy', speed: 0.15, run: 0.25, flee: 2, leash: 3 }, hyracotherium: { role: 'shy', speed: 0.8, run: 6, flee: 7, leash: 10 },
 };
-// who lives where (outside the stakes; east of the river cannot be reached on foot), with their young
+// who lives where (outside the stakes, to the mountains' feet, and beyond the river for whoever wades it), with their young
 export const WILD = [
-  ['smilodon', [[-38, -30], [-31, -41]]], ['wolf', [[-37, 4], [-39.5, 6.5], [-35.5, 8]]], ['lion', [[-11, -38]]], ['bear', [[29, -36]]],
-  ['harpagornis', [[-20, -40], [12, -42]]], ['sarcosuchus', [[33.2, -18], [31.4, 1]]],
-  ['mammoth', [[-20, -37], [-14, -39], [6, -44]], 1], ['rhino', [[-28, -33]], 1], ['aurochs', [[-36, -19], [-38.5, -15.5], [-34, -23]], 1], ['megatherium', [[-42, -6]]],
-  ['diprotodon', [[16, -44]], 1], ['glyptotherium', [[-24, 21]], 1], ['gastornis', [[-42, 13], [-31, 19]]],
+  ['smilodon', [[-38, -30], [-31, -41], [-52, -12], [46, -40]]], ['wolf', [[-37, 4], [-39.5, 6.5], [-35.5, 8], [-48, -46], [-45, -49], [50, 20], [53, 23]]], ['lion', [[-11, -38], [-50, 26], [44, -6]]], ['bear', [[29, -36], [-30, -50], [52, -28]]],
+  ['harpagornis', [[-20, -40], [12, -42], [-46, 16], [46, 6]]], ['sarcosuchus', [[33.2, -18], [31.4, 1], [35.5, -38], [29.5, 24]]],
+  ['mammoth', [[-20, -37], [-14, -39], [6, -44], [-2, -50]], 1], ['rhino', [[-28, -33], [48, -48]], 1], ['aurochs', [[-36, -19], [-38.5, -15.5], [-34, -23]], 1], ['megatherium', [[-42, -6], [-54, 4]]],
+  ['diprotodon', [[16, -44], [50, -16]], 1], ['glyptotherium', [[-24, 21], [-46, 30]], 1], ['gastornis', [[-42, 13], [-31, 19], [-14, 29], [16, 30], [44, 30]]],
   ['megaloceros', [[39, -26], [41, -21]], 1], ['horse', [[37, 4], [39.5, 7], [36.5, 9.5]], 1], ['archaeoindris', [[-44, -21]]],
-  ['canariomys', [[-26, 14], [10, 22], [-6, -41], [24, -42]]], ['castoroides', [[28.6, -24], [27.8, 13]]], ['hare', [[-12, 20], [8, 18], [-44, -34], [20, -45]]],
+  ['canariomys', [[-26, 14], [10, 22], [-6, -41], [24, -42]]], ['castoroides', [[28.6, -24], [27.8, 13]]], ['hare', [[-12, 20], [8, 18], [-44, -34], [20, -45], [-55, -40], [55, 0]]],
   ['tortoise', [[-16, 23], [14, 24]]], ['hyracotherium', [[-6, 23], [-3, 24.5], [-8.5, 24.5]], 1],
 ];
 export const ROLE_OF = (kind) => ROLE[kind]?.role;
@@ -47,6 +47,7 @@ export function createWild({ H, world, campaign, cinema, popup, beast, ovalE, ri
     const st = Math.min(d, sp * dt), nx = a.x + dx / d * st, nz = a.z + dz / d * st;
     if (!outside(nx, nz) && a.role !== 'flyer') return d;   // the stakes are a line no beast crosses
     if (a.role !== 'flyer' && a.role !== 'lurker' && riverDist(nx, nz) < 2.8) return d;
+    if (a.role === 'lurker' && a.state === 'hunt' && riverDist(nx, nz) > 2.4) return d;   // it hunts in the water only
     a.x = nx; a.z = nz; a.ph += st * 2.2; if (Math.abs(dx) > 0.05) a.face = Math.sign(dx); return d;
   }
   function step(t, dt) {
@@ -79,8 +80,13 @@ export function createWild({ H, world, campaign, cinema, popup, beast, ovalE, ri
         else if (a.state === 'dive') { moveTo(a, hp.x, hp.z, a.run, dt); a.y = Math.max(1.4, a.y - dt * 6); if (dh < 1.4 && a.y < 2.2 && live) { onAttack(a, 'beast'); a.state = 'climb'; } else if (a.t <= 0 || !live) a.state = 'climb'; }
         else { a.y = Math.min(9, a.y + dt * 4); moveTo(a, a.home[0], a.home[1], a.speed * 2, dt); if (a.y >= 9) a.state = 'roam'; }
       } else if (a.role === 'lurker') {
+        // on the bank it waits for a careless step; Dylan in the water is heard from far off: it glides to him, eyes
+        // just above the surface, and lunges once close
+        const wet = riverDist(hp.x, hp.z) < 2.8;
         if (a.state !== 'lunge' && live && dh < a.detect) { a.state = 'lunge'; a.t = 0.9; sx()?.play('whoosh', { from: 200, to: 900, dur: 0.4, v: 0.4 }); }
-        if (a.state === 'lunge') { moveTo(a, hp.x, hp.z, a.run, dt); a.y = Math.min(0.2, a.y + dt * 2); if (dh < 1.6 && live) { onAttack(a, 'beast'); a.state = 'sink'; } else if (a.t <= 0) a.state = 'sink'; }
+        else if (a.state !== 'lunge' && a.state !== 'hunt' && live && wet && dh < 20) { a.state = 'hunt'; sx()?.play('grunt', { f0: 70, dur: 0.6, vowel: 'o', rough: 1, v: 0.25, bend: -0.2 }); }
+        if (a.state === 'hunt') { moveTo(a, hp.x, hp.z, 2.6, dt); a.y = -0.22 + 0.04 * Math.sin(t * 3 + a.seed); if (!wet || !live) a.state = 'sink'; }
+        else if (a.state === 'lunge') { moveTo(a, hp.x, hp.z, a.run, dt); a.y = Math.min(0.2, a.y + dt * 2); if (dh < 1.6 && live) { onAttack(a, 'beast'); a.state = 'sink'; } else if (a.t <= 0) a.state = 'sink'; }
         else { a.y = -0.45 + 0.06 * Math.sin(t * 0.8 + a.seed); if (a.state === 'sink' && moveTo(a, a.home[0], a.home[1], 1.2, dt) < 0.3) a.state = 'roam'; }
       }
       if (a.state === 'roam' && a.role !== 'young' && a.role !== 'flyer') { if (a.t <= 0) { a.t = 3 + Math.random() * 6; [a.tx, a.tz] = pick(a); } moveTo(a, a.tx, a.tz, a.speed, dt); }

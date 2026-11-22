@@ -61,14 +61,14 @@ const LOOK = {   // tunic, trim, hair, a prop: each villager in their own colour
 export function buildVillage(campaign) {
   const H = createHarness({ ground: C.ground, stock: '#f6ecdc', mood: 'crepuscule', moods: { crepuscule: CREPUSCULE }, play: true, clickFold: false,
     view: innerWidth < innerHeight ? { pitch: 47, dist: 78, target: [2, 1.5, -7], follow: [-1.5, -8] } : { pitch: 47, dist: 62, target: [0, 1.5, -8] },
-    walkArea: { x0: -46, x1: 46, z0: -48, z1: 26 } });
+    walkArea: { x0: -58, x1: 58, z0: -53, z1: 33 } });   // the wild reaches the mountains' feet
   const { walk } = H;
   const FIRES = [], TREES = [];   // the flames that flicker (three prints shown in turn), the pines the wind bends
   let rnd = P2.rng(301);
   const between = (a, b) => a + rnd() * (b - a);
   const base2 = (P, c, k = 0.1, felt = 0.5) => { P.gradient(sh(c, k), sh(c, -k), 0.5); P.felt(felt); };
   const shadeIn = (P, c, a = 0.35) => P.innerShade(sh(c, -0.6), { alpha: a, blurPx: 8 });
-  const RIVER = P2.pathLine([[36, -40], [32, -28], [34, -16], [30.5, -4], [33, 8], [30, 20]], { step: 0.6 });
+  const RIVER = P2.pathLine([[37.5, -62], [36, -40], [32, -28], [34, -16], [30.5, -4], [33, 8], [30, 20], [29, 38]], { step: 0.6 });
   // the palisade's oval: a point at angle a (0 = south), whether a point lies on the wall line, inside, in a gap
   const wallAt = (a, k = 1) => [WALL.cx + WALL.rx * k * Math.sin(a), WALL.cz + WALL.rz * k * Math.cos(a)];
   const ovalE = (x, z) => Math.hypot((x - WALL.cx) / WALL.rx, (z - WALL.cz) / WALL.rz);
@@ -77,7 +77,7 @@ export function buildVillage(campaign) {
 
   // ---- the printed ground: dry grass, the beaten square, paths, the wall's ditch, garden plots, the river -----------
   const PATHS = [[[0, 11], [0, 4], [0, -5]], [[0, -5], [0, -12], [0, -18]], [[0, -5], [-7, -3], [-15, -2], [-19, -11]], [[0, -5], [7, -4], [14, -6], [13, -17]],
-    [[0, 4], [6, 8], [12, 10]], [[0, 2], [-8, 4]],
+    [[0, 11], [6, 11.2], [12, 10]], [[0, 2], [-8, 4]],   // to the gathering point through the gate, never through the stakes
     // trails beyond the stakes: through the north-west gap to the western clearings, north from the hunt and the quarry, south from the gate
     [[-22, -29], [-30, -33], [-37, -25], [-39, -14]], [[-22, -29], [-14, -37]], [[22, -28], [28, -37]], [[0, 11], [-6, 18], [-20, 21], [-35, 9]], [[12, 10], [20, 13]], [[-39, -14], [-38, 2]], [[13, -17], [18, -22], [22, -28]], [[-19, -11], [-19, -21], [-22, -29]], [[0, -18], [-6, -19], [-11, -20]], [[0, -5], [-4, -9], [-11, -11.4]]];
   H.printGround(({ g, ppu, X, Z, rnd: r, washes, torn, bandOf, drifts, water }) => {
@@ -95,11 +95,13 @@ export function buildVillage(campaign) {
     for (let k = 0; k < 220; k++) { const x = SITES.bois_construction.x + (r() - 0.5) * 4.5, z = SITES.bois_construction.z - 1 + (r() - 0.5) * 3; g.fillStyle = rgba('#e0c08a', 0.7); g.fillRect(X(x), Z(z), 0.1 * ppu, 0.06 * ppu); }
     // garden plots behind the huts: rows of sprouts
     for (const [x0, z0] of [[17, 1], [-21, 1.5], [8, -27]]) for (let row = 0; row < 5; row++) for (let k = 0; k < 9; k++) { g.fillStyle = rgba(k % 2 ? '#6a7a3a' : '#8a9a4a', 0.9); g.beginPath(); g.ellipse(X(x0 + k * 0.55), Z(z0 + row * 0.7), 0.16 * ppu, 0.1 * ppu, 0, 0, 7); g.fill(); }
-    water(bandOf(RIVER.pts, 3.2), { colors: [C.water, sh(C.water, -0.2)], rim: '#e8d8b4', marks: 'none' });   // its strokes flow on a ribbon above (below)
+    water(bandOf(RIVER.pts, 3.2), { colors: [C.water, null], rim: '#e8d8b4', rimPts: bandOf(RIVER.pts, 3.75), marks: 'none' });   // one bed: its bank follows the course (a deep band's torn edges drew a second bed)   // its strokes flow on a ribbon above (below)
     drifts((x, y) => { g.strokeStyle = rgba(r() < 0.5 ? '#8a8a4a' : '#a09a5a', 0.75); g.lineWidth = 1.6; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - 0.5) * 3, y - 5 - r() * 5); g.stroke(); if (r() < 0.12) { g.fillStyle = r() < 0.5 ? '#c86a8a' : '#e0c050'; g.beginPath(); g.arc(x, y - 6, 1.7, 0, 7); g.fill(); } }, { n: 12000 });
     for (let k = 0; k < 14; k++) { const a = k / 14 * 6.283, x = SITES.rassemblement.x + Math.cos(a) * 2.8, z = SITES.rassemblement.z + Math.sin(a) * 2.2; g.fillStyle = '#efe4cc'; g.beginPath(); g.ellipse(X(x), Z(z), 0.32 * ppu, 0.22 * ppu, 0, 0, 7); g.fill(); }
   }, { seed: 12 });
-  walk.block((x, z) => RIVER.dist(x, z) < 2.6);
+  // the river can be waded, slowly, waist-deep: the sarcosuchus hunts whoever tries (wild.js)
+  const inRiver = (x, z) => RIVER.dist(x, z) < 2.8;
+  H.drag = (x, z) => (inRiver(x, z) ? 0.38 : 1);
   walk.block((x, z) => Math.abs(ovalE(x, z) - 1) < 0.035 && !inGap(angleOf(x, z)));   // the palisade, but its gate and gaps
 
   // ---- pieces ------------------------------------------------------------------------------------------------------
@@ -319,7 +321,8 @@ export function buildVillage(campaign) {
   // the village changes with the campaign: pieces built under a condition stay folded flat until it holds (built later
   // in the story), or stand until it holds and then fold away (what the tribe corrects)
   const STAGES = [];
-  const staged = (when, make, { undo = false, slot = null } = {}) => { const n0 = H.hinges.length; make(); const hs = H.hinges.slice(n0); if (!undo) for (const h of hs) h.held = true; STAGES.push({ when, hs, undo, on: undo, slot }); return hs; };
+  // a staged piece's solids stand only while it does: a folded-away hearth is no invisible wall
+  const staged = (when, make, { undo = false, slot = null } = {}) => { const n0 = H.hinges.length, s0 = walk.solids.length; make(); const hs = H.hinges.slice(n0), sol = walk.solids.slice(s0).map((q) => [q, q.r]); if (!undo) { for (const h of hs) h.held = true; for (const [q] of sol) q.r = 0; } STAGES.push({ when, hs, sol, undo, on: undo, slot }); return hs; };
   const quest = (id) => { const q = campaign.data.quests.find((x) => x.id === id); return () => !!q && campaign.questDone(q); };
   const flag = (k) => () => !!campaign.state.flags[k];
   const any = (...fs) => () => fs.some((f) => f());
@@ -482,17 +485,31 @@ export function buildVillage(campaign) {
   staged(quest('V17_OPERATIONS'), () => popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink(C.stone); D.rect(g, -0.9, 0, 1.8, 0.8, 0.08); g.fillStyle = ink(C.stoneB); D.poly(g, [[-0.5, 0.8], [0.5, 0.8], [0.42, 2.1], [-0.42, 2.1]]); D.ell(g, 0, 2.5, 0.38, 0.42); D.rect(g, -0.75, 1.35, 0.25, 0.7, 0.08); D.rect(g, 0.5, 1.35, 0.25, 0.7, 0.08); g.fillStyle = ink(sh(C.stone, -0.25), 'print'); D.ell(g, -0.12, 2.55, 0.05, 0.06); D.ell(g, 0.12, 2.55, 0.05, 0.06); D.poly(g, [[-0.25, 2.2], [0.25, 2.2], [0, 1.85]]); g.fillStyle = ink('#5a3a22'); for (const sd of [-1, 1]) D.rect(g, sd * 1.35 - 0.07, 0, 0.14, 3.4); g.fillStyle = ink('#c8402e'); D.poly(g, [[-1.7, 3.2], [1.7, 3.2], [1.5, 3.7], [-1.5, 3.7]]); g.fillStyle = ink('#e0a24a', 'print'); for (let k = 0; k < 6; k++) D.poly(g, [[-1.7 + k * 0.57, 3.2], [-1.42 + k * 0.57, 2.95], [-1.13 + k * 0.57, 3.2]]); }, { w: 3.8, h: 3.9, name: 'statue' }), { x: -5.8, z: -11.6 }));
   // the next cycle (C06): an immense stone wheel stands before the gate
   staged(quest('V17_IMPROVEMENT'), () => popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink(C.stone); D.ell(g, 0, 2.6, 2.5, 2.5); g.fillStyle = ink(sh(C.stone, 0.12)); D.ell(g, -0.2, 2.75, 2.0, 2.0); g.fillStyle = ink('#3a3448'); D.ell(g, 0, 2.6, 0.45, 0.45); g.fillStyle = ink(sh(C.stone, -0.3), 'print'); for (let k = 0; k < 8; k++) { const a = k / 8 * 6.283; D.poly(g, [[Math.cos(a) * 0.6, 2.6 + Math.sin(a) * 0.6], [Math.cos(a + 0.12) * 1.9, 2.6 + Math.sin(a + 0.12) * 1.9], [Math.cos(a - 0.12) * 1.9, 2.6 + Math.sin(a - 0.12) * 1.9]]); } g.fillStyle = ink('#5a3a22'); D.poly(g, [[-1.6, 0], [-0.6, 0], [-1.1, 0.5]]); D.poly(g, [[0.6, 0], [1.6, 0], [1.1, 0.5]]); }, { w: 5.4, h: 5.4, name: 'wheel' }), { x: -7, z: 10.5 })); mark(-7, 10.5, 5);
+  // the village answers its prosperity (campaign.tier: the decisions right or wrong, the dead): kept up it flowers,
+  // garlands over the doors and pots by the walls; let go, refuse heaps rot by the huts, hides hang torn on crooked
+  // stakes, stumps of cut trees nobody replants
+  const T = (...ts) => () => ts.includes(campaign.tier());
+  const refuse = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#6a5a42'); D.ell(g, 0, 0.3, 1.1, 0.35); g.fillStyle = ink('#e8dcc0'); for (const [x, y, a] of [[-0.6, 0.55, 0.4], [0.1, 0.7, -0.3], [0.6, 0.5, 0.2]]) { g.save(); g.translate(x, y); g.rotate(a); D.rect(g, -0.32, -0.05, 0.64, 0.1, 0.05); D.ell(g, -0.34, 0, 0.09, 0.09); D.ell(g, 0.34, 0, 0.09, 0.09); g.restore(); } g.fillStyle = ink('#a0583a'); D.poly(g, [[-0.2, 0.3], [0.25, 0.3], [0.3, 0.75], [0.05, 0.62], [-0.15, 0.8]]); g.fillStyle = ink('#3a3020', 'print'); for (let k = 0; k < 7; k++) D.ell(g, -0.8 + k * 0.27, 0.95 + (k % 3) * 0.12, 0.03, 0.03); }, { w: 2.4, h: 1.2, name: 'refuse' });
+  const tornHide = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); D.poly(g, [[-0.08, 0], [0.08, 0], [0.22, 2.4], [0.08, 2.4]]); g.fillStyle = ink('#a07a52'); D.poly(g, [[0.1, 2.3], [1.3, 2.1], [1.2, 1.5], [0.95, 1.65], [0.8, 1.1], [0.55, 1.4], [0.35, 0.95], [0.14, 1.3]]); g.fillStyle = ink('#3a2418', 'print'); D.ell(g, 0.7, 1.8, 0.12, 0.09); }, { w: 1.6, h: 2.6, name: 'tornHide' });
+  const stump = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#6a4a2a'); D.poly(g, [[-0.45, 0], [0.45, 0], [0.38, 0.6], [0.2, 0.75], [0.05, 0.6], [-0.15, 0.78], [-0.38, 0.6]]); g.fillStyle = ink('#c8a870', 'print'); D.ell(g, 0, 0.62, 0.22, 0.06); }, { w: 1.2, h: 1.0, name: 'stump' });
+  const flowerPots = () => P2.drawnPiece((g, ink) => { for (const [x, c] of [[-0.45, '#c84a2a'], [0.05, '#e0a24a'], [0.5, '#ead9b8']]) { g.fillStyle = ink('#a0583a'); D.poly(g, [[x - 0.2, 0], [x + 0.2, 0], [x + 0.25, 0.4], [x - 0.25, 0.4]]); g.fillStyle = ink('#5a7a32'); for (let k = -1; k <= 1; k++) D.poly(g, [[x + k * 0.08, 0.38], [x + k * 0.2, 0.85], [x + k * 0.04, 0.8]]); g.fillStyle = ink(c); for (let k = -1; k <= 1; k++) D.ell(g, x + k * 0.2, 0.88, 0.1, 0.1); } }, { w: 1.6, h: 1.1, name: 'pots' });
+  const NEAR = [[-6, -1.5], [6.5, -12.5], [-9.5, -14], [9.5, -2.5], [-3, -22], [4.5, 2.5], [-13.5, -6.5], [13.5, -12]];
+  NEAR.forEach(([x, z], k) => {
+    staged(T('fragile', 'delabre'), () => popup(...refuse(), { x, z, yaw: 0, scale: 0.9 + (k % 3) * 0.15 }));
+    if (k % 2) staged(T('delabre'), () => popup(...tornHide(), { x: x + 1.4, z: z - 0.6, yaw: 0 }));
+    else staged(T('delabre'), () => popup(...stump(), { x: x - 1.2, z: z + 0.4, yaw: 0 }));
+    staged(T('florissant', 'debout'), () => popup(...flowerPots(), { x: x + 0.6, z: z + 0.3, yaw: 0 }));
+  });
+  staged(T('florissant'), () => { popup(...bunting(7), { x: -9, z: -8.5 }); popup(...bunting(7), { x: 9, z: -8.5 }); popup(...bunting(6), { x: 0, z: 3.5 }); });
   // IX : the next cycle: bunting over the square, a watchtower by the wall
   staged(quest('V17_IMPROVEMENT'), () => { popup(...bunting(10), { x: 0, z: -9.6 }); popup(...tower(), { x: 16, z: -22 }); });
-  // the uprooted fire of the tent stays out (difference 1), kept clear of the walk
-  walk.solid(-11, -3.9, 1.2);
 
   // ---- torches: a bound stake, a cup of clay, a little fire that flickers and lights the path ---------------------
   const torchCard = P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); D.poly(g, [[-0.1, 0], [0.1, 0], [0.14, 2.5], [-0.14, 2.5]]); g.fillStyle = ink('#c8a870'); D.rect(g, -0.2, 2.2, 0.4, 0.14); D.rect(g, -0.2, 1.4, 0.4, 0.1); g.fillStyle = ink('#4a3030'); D.poly(g, [[-0.3, 2.45], [0.3, 2.45], [0.2, 2.85], [-0.2, 2.85]]); }, { w: 0.9, h: 3.0, name: 'torch' });
   const torchMat = H.printed(torchCard[0], torchCard[1]);
   const torchFire = [0, 1, 2].map((k) => { const [pts, paint] = tongues(77 + k * 5, 2.8, 0.42); return [pts, H.printed(pts, (P) => { paint(P); P.glow((g) => { g.fillStyle = '#fff'; g.fillRect(-1, 2.6, 2, 2); }); }, { cross: true })]; });
   for (const [x, z] of [[-4.6, 7.2], [4.6, 7.2], [-7.6, -8.8], [7.6, -8.4], [-3.4, -17.8], [7, -17.6], [-10.6, -1.4], [10.8, -9.8]]) {
-    popup(torchCard[0], null, { materials: torchMat, x, z, yaw: 0 }); walk.solid(x, z, 0.35);
+    popup(torchCard[0], null, { materials: torchMat, x, z, yaw: 0 });
     FIRES.push(torchFire.map(([pts, mat]) => { const f = popup(pts, null, { materials: mat, x, z, cross: true, sway: 0.5 }); H.glowing(f.group); return f; }));
     H.lamp(x, 3.0, z, 0.55, 7);
   }
@@ -532,11 +549,22 @@ export function buildVillage(campaign) {
   H.onStep(() => { for (const gv of graves.list) gv.h.group.visible = !gv.h.held || gv.h.p > 0.02; });
 
   // ---- outside the wall: the far ridge with mammoths, crimson pines in the woods, rocks; inside, tufts only ------------
-  for (const [x, z, s] of [[-30, -44, 1.4], [-10, -48, 1.2], [18, -46, 1.5]]) H.stack(x, z, [0, 1, 2].map((k) => ({ pts: P2.roughen(P2.shape.hill(rnd, { w: 26 - k * 4, h: 7 - k * 1.6, bumps: 2 }), rnd), paint: (P) => { base2(P, sh('#8a6a8a', -0.12 + k * 0.1), 0.08); shadeIn(P, '#8a6a8a', 0.25); }, d: k * 1.6 })), { scale: s });
+  // the relief round the plain: snow-capped mountains along the north (three ranks, the back one tallest and bluest),
+  // their foothills, and rolling hills of grass and ochre down the west and east edges; all beyond where Dylan walks
+  const peaks = (w, h, n) => { const pts = [[-w / 2, 0]], tops = []; for (let i = 0; i < n; i++) { const x0 = -w / 2 + w * i / n, x1 = -w / 2 + w * (i + 1) / n, px = x0 + (x1 - x0) * (0.35 + rnd() * 0.3), ph = h * (0.55 + 0.45 * rnd());
+    pts.push([x0 + (px - x0) * 0.45, ph * (0.42 + rnd() * 0.12)], [px - (x1 - x0) * 0.06, ph * 0.9], [px, ph], [px + (x1 - x0) * 0.08, ph * 0.86], [x1 - (x1 - px) * 0.3, ph * (0.36 + rnd() * 0.1)]); tops.push([px, ph, (x1 - x0) * 0.22]); }
+    pts.push([w / 2, h * 0.3], [w / 2, 0]); return { pts, tops }; };
+  const range = (x, z, sc, tint) => H.stack(x, z, [0, 1, 2].map((k) => { const { pts, tops } = peaks(30 - k * 5, 14 - k * 3.6, 4 - (k > 1 ? 1 : 0)), col = sh(tint, -0.16 + k * 0.12);
+    return { pts: P2.roughen(pts, rnd), d: k * 2.2, dx: (k - 1) * 3, paint: (P) => { base2(P, col, 0.07); shadeIn(P, tint, 0.28);
+      if (k < 2) P.layer((g) => { for (const [px, ph, sw] of tops) { g.beginPath(); g.moveTo(px - sw, ph - sw * 1.1); g.lineTo(px, ph); g.lineTo(px + sw * 0.9, ph - sw * 1.0); g.lineTo(px + sw * 0.35, ph - sw * 0.75); g.lineTo(px, ph - sw * 1.05); g.lineTo(px - sw * 0.45, ph - sw * 0.8); g.closePath(); g.fill(); } }, '#f4f0ea', { lip: 0.6 }); } }; }), { scale: sc, yaw: 0 });
+  for (const [x, z, sc] of [[-50, -60, 1.5], [-24, -61, 1.7], [4, -61.5, 1.55], [30, -61, 1.75], [54, -60, 1.5]]) range(x, z, sc, '#7a7a9a');
+  const hills = (x, z, sc, tint, yaw) => H.stack(x, z, [0, 1, 2].map((k) => ({ pts: P2.roughen(P2.shape.hill(rnd, { w: 22 - k * 4, h: 5.5 - k * 1.4, bumps: 2 + k }), rnd), d: k * 1.7, paint: (P) => { base2(P, sh(tint, -0.1 + k * 0.09), 0.08); shadeIn(P, tint, 0.22); } })), { scale: sc, yaw });
+  for (const [x, z, sc] of [[-40, -56.5, 1.1], [-8, -57, 1.0], [20, -57, 1.15], [46, -56.5, 1.0]]) hills(x, z, sc, '#8a8a5a', 0);   // the foothills
+  for (const z of [-44, -26, -8, 10, 26]) { hills(-62, z, 1.0 + rnd() * 0.3, rnd() < 0.5 ? '#9a8a4a' : '#7a8a4a', Math.PI / 2); hills(62, z + 7, 1.0 + rnd() * 0.3, rnd() < 0.5 ? '#9a8a4a' : '#7a8a4a', -Math.PI / 2); }
   const herd = [];
   for (const [, homes] of WILD) for (const [x, z] of homes) mark(x, z, 2.6);   // the beasts' grounds stay clear of pines
   const PV = Array.from({ length: 4 }, () => { const [pts, paint] = pine(); return [pts, H.printed(pts, paint, { cross: true })]; });
-  for (let gz = -42; gz <= 16; gz += 3.4) for (let gx = -42; gx <= 42; gx += 3.4) {
+  for (let gz = -52; gz <= 30; gz += 3.4) for (let gx = -57; gx <= 57; gx += 3.4) {
     const x = gx + (rnd() - 0.5) * 2.4, z = gz + (rnd() - 0.5) * 2.4, e = ovalE(x, z);
     if (!H.inReach(x, z, 0.05, 4) || !free(x, z, 0.5)) continue;
     if (e > 1.12 && (z < -24 || Math.abs(x) > 27 || z > 12) && rnd() < 0.8 && Math.hypot(x - SITES.rassemblement.x, z - SITES.rassemblement.z) > 5) { const [pts, mat] = PV[Math.floor(rnd() * PV.length)]; TREES.push(popup(pts, null, { materials: mat, x, z, cross: true, scale: 0.85 + rnd() * 0.3, sway: 0.3 })); mark(x, z, 2.6); }
@@ -548,8 +576,8 @@ export function buildVillage(campaign) {
   // the river, palms and cycads to the south, ginkgos to the north
   const plant = (k) => { const Pl = PLANTS[k]; return P2.drawnPiece((g, ink) => Pl.draw(g, ink, D, P2, C), { w: Pl.w, h: Pl.h, name: k }); };
   const PL = Object.fromEntries(Object.keys(PLANTS).map((k) => { const [pts, paint] = plant(k); return [k, [pts, H.printed(pts, paint, { cross: k !== 'horsetail' })]]; }));
-  for (let i = 0; i < 260; i++) {
-    const x = -46 + rnd() * 92, z = -48 + rnd() * 74; if (ovalE(x, z) < 1.16 || !free(x, z, 0.2)) continue;
+  for (let i = 0; i < 400; i++) {
+    const x = -58 + rnd() * 116, z = -53 + rnd() * 86; if (ovalE(x, z) < 1.16 || !free(x, z, 0.2)) continue;
     const rv = RIVER.dist(x, z), k = rv < 9 ? (rnd() < 0.5 ? 'horsetail' : 'treeFern') : z > 8 ? (rnd() < 0.5 ? 'palm' : 'cycad') : z < -28 ? (rnd() < 0.6 ? 'ginkgo' : 'treeFern') : ['cycad', 'treeFern', 'horsetail', 'palm'][Math.floor(rnd() * 4)];
     if (rnd() > 0.32) continue; const [pts, mat] = PL[k]; TREES.push(popup(pts, null, { materials: mat, x, z, cross: k !== 'horsetail', scale: 0.8 + rnd() * 0.5, sway: 0.35 })); mark(x, z, 1.8);
   }
@@ -588,7 +616,6 @@ export function buildVillage(campaign) {
       if (pr.prop === 'map') { card.position.x = -0.1; p.map = card; card.scale.x = 0.25; }
       if (pr.prop === 'staff') { p.smoke = new THREE.Object3D(); p.smoke.position.set(0, A.tip + 0.1, 0); g.add(p.smoke); }
     }
-    p.sol = { x, z, r: 0.42, base: -Infinity, top: Infinity }; walk.solids.push(p.sol);   // a body Dylan cannot walk through, wherever it goes
   }
   // Aurélien's deck chair beside him; Alban's ritual circle with its smoking bowl; Milena's lookout stone on the bank
   popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink('#a0683e'); D.poly(g, [[-0.9, 0], [-0.75, 0], [0.1, 1.5], [-0.08, 1.6]]); D.poly(g, [[0.5, 0], [0.65, 0], [0.35, 0.7], [0.2, 0.7]]); g.fillStyle = ink('#c8402e'); D.poly(g, [[-0.62, 0.55], [0.6, 0.6], [0.05, 1.45], [-0.15, 1.42]]); g.fillStyle = ink('#e0a24a', 'print'); for (let k = 0; k < 4; k++) D.rect(g, -0.4 + k * 0.22, 0.7 + k * 0.17, 0.08, 0.35); }, { w: 1.9, h: 1.8, name: 'transat' }), { x: SITES.aurelien.x - 1.4, z: SITES.aurelien.z - 0.5 });
@@ -677,12 +704,11 @@ export function buildVillage(campaign) {
   const RV = (() => { const pts = RIVER.pts, L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, L, len: L[L.length - 1] }; })();
   const along = (s) => { let i = 1; while (i < RV.L.length - 1 && RV.L[i] < s) i++; const [x0, z0] = RV.pts[i - 1], [x1, z1] = RV.pts[i], u = (s - RV.L[i - 1]) / Math.max(1e-6, RV.L[i] - RV.L[i - 1]), l = Math.hypot(x1 - x0, z1 - z0) || 1; return [x0 + (x1 - x0) * u, z0 + (z1 - z0) * u, (x1 - x0) / l, (z1 - z0) / l]; };
   const inkTex = (draw) => { const c = document.createElement('canvas'); c.width = 128; c.height = 64; const g = c.getContext('2d'); g.lineCap = 'round'; draw(g); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
-  // the river's strokes flow: the pale dashes and the foam lines along the banks are drawn on two ribbons laid on its
+  // the river's strokes flow: the pale dashes are drawn on two ribbons laid on its
   // bed, their print sliding downstream (the near layer faster), seamless along the course
-  const strokeTile = (seed, n, foam) => { const W = 512, c = document.createElement('canvas'); c.width = c.height = W; const g = c.getContext('2d'), r = P2.rng(seed); g.lineCap = 'round';
+  const strokeTile = (seed, n) => { const W = 512, c = document.createElement('canvas'); c.width = c.height = W; const g = c.getContext('2d'), r = P2.rng(seed); g.lineCap = 'round';
     const line = (x0, y0, x1, y1, col, w) => { for (const o of [-W, 0, W]) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(x0 + o, y0); g.lineTo(x1 + o, y1); g.stroke(); } };
     for (let k = 0; k < n; k++) { const x = r() * W, y = W * (0.12 + r() * 0.76), l = W * (0.035 + r() * 0.07), a = (r() - 0.5) * 0.2; line(x, y, x + Math.cos(a) * l, y + Math.sin(a) * l, r() < 0.78 ? 'rgba(250,244,228,0.85)' : 'rgba(70,82,130,0.55)', 5 + r() * 4); }
-    if (foam) for (const y of [W * 0.05, W * 0.95]) for (let x = 0; x < W; x += W / 6) line(x + r() * 20, y + (r() - 0.5) * 8, x + W / 10 + r() * 20, y + (r() - 0.5) * 8, 'rgba(244,234,212,0.75)', 10);
     const t = new THREE.CanvasTexture(c); t.wrapS = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; };
   const ribbon = (half, tex, y) => {
     const pos = [], uv = [], idx = [], TILE = 6; let s0 = 0;
@@ -693,7 +719,7 @@ export function buildVillage(campaign) {
     const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
     const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.15, depthWrite: false, roughness: 1, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 }));
     m.receiveShadow = true; H.scene.add(m); return tex; };
-  const FLOW = [[ribbon(2.7, strokeTile(77, 30, true), 0.03), 1.45], [ribbon(2.3, strokeTile(91, 12, false), 0.035), 0.85]];
+  const FLOW = [[ribbon(2.7, strokeTile(77, 30), 0.03), 1.45], [ribbon(2.3, strokeTile(91, 12), 0.035), 0.85]];
   H.onStep((t, dt) => { for (const [tex, sp] of FLOW) tex.offset.x -= sp * dt / 6; });
   const ringTex = inkTex((g) => { g.strokeStyle = '#e0dcf0'; g.lineWidth = 5; g.beginPath(); g.ellipse(64, 32, 52, 26, 0, 0, 7); g.stroke(); });
   const flatMat = (map) => new THREE.MeshStandardMaterial({ map, transparent: true, alphaTest: 0.25, depthWrite: false, roughness: 1, side: THREE.DoubleSide });
@@ -703,8 +729,10 @@ export function buildVillage(campaign) {
   const _o = new THREE.Object3D(); let ringAt = 0;
   H.onStep((t, dt) => {
     ringAt -= dt * (2 + 40 * weather.rain);
+    const hp = H.hero.group.position, wade = inRiver(hp.x, hp.z); let wakeAt = wade ? 1 : 0;   // Dylan wading: rings open round his legs
     G.forEach((g, i) => {
-      g.age += dt; if (g.age > g.life && ringAt <= 0 && weather.rain > 0.05) { ringAt += 1; const [x, z, tx, tz] = along(Math.random() * RV.len), off = (Math.random() - 0.5) * 2.6; Object.assign(g, { age: 0, x: x - tz * off, z: z + tx * off }); }
+      g.age += dt; if (g.age > g.life && wakeAt && Math.random() < dt * 6) { wakeAt = 0; Object.assign(g, { age: 0, life: 1.1, x: hp.x + (Math.random() - 0.5) * 0.8, z: hp.z + (Math.random() - 0.5) * 0.5 }); }
+      else if (g.age > g.life && ringAt <= 0 && weather.rain > 0.05) { ringAt += 1; const [x, z, tx, tz] = along(Math.random() * RV.len), off = (Math.random() - 0.5) * 2.6; Object.assign(g, { age: 0, life: 0.9, x: x - tz * off, z: z + tx * off }); }
       const u = Math.min(1, g.age / g.life), k = g.age < g.life ? 0.3 + 1.3 * u : 0.001;
       _o.position.set(g.x, 0.065, g.z); _o.rotation.set(-Math.PI / 2, 0, 0); _o.scale.set(k, k, 1); _o.updateMatrix(); rings.setMatrixAt(i, _o.matrix);
     });
@@ -743,7 +771,7 @@ export function buildVillage(campaign) {
     const bySlot = new Map();
     for (const st of STAGES) {
       const want = st.undo ? !st.when() : st.when(); if (want === st.on) continue;
-      st.on = want;
+      st.on = want; for (const [q, r] of st.sol) q.r = want ? r : 0;
       if (st.slot && booted) { const k = st.slot.i; if (!bySlot.has(k)) bySlot.set(k, { slot: st.slot, out: [], in: [] }); bySlot.get(k)[want ? 'in' : 'out'].push(st); continue; }
       if (want) st.hs.forEach((h, i) => { h.held = false; h.set(1, 0.2 + i * 0.07); }); else fold(st, 0);
     }
@@ -756,7 +784,8 @@ export function buildVillage(campaign) {
     });
     if (ctl.burn?.on && quest('V17_EMERGENCY')()) ctl.burn.stop();
     const engraved = quest(MENHIR_QUEST)();
-    if (!engraved) engraving.hideAll();
+    // before the ceremony, the menhir carries the trials already won in the duel (each one cut as it is won)
+    if (!engraved) { const cl = campaign.state.menhir?.cleared || []; if (!engraving.job) PICTO.forEach((_, k) => { if (!cl[k] && engraving.shown[k]) { engraving.shown[k] = false; paintGroove(k, 0); } }); }
     else if (!booted) engraving.showAll(false);
     else if (!engraving.shown.some(Boolean)) later(0.6, () => { if (!engraving.cine) engraving.showAll(true); });
     const pend = campaign.state.accident && !campaign.state.accident.played ? campaign.state.accident.victim : null;   // a death to come in its cinematic
@@ -775,7 +804,7 @@ export function buildVillage(campaign) {
   const bits = []; const bitGeo = new THREE.PlaneGeometry(1, 1);
   const bitMats = ['#b8202a', '#8e1a22', '#d84a3a', '#e0a24a'].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 1, side: THREE.DoubleSide }));
   function die(id, animate) {
-    const p = people[id], h = p.h, d = { t: animate ? 0 : 9, parts: [] }; deaths.set(id, d); if (p.sol) p.sol.r = 0; p.dying = d; p.busy = true; p.target = null; h.held = true;
+    const p = people[id], h = p.h, d = { t: animate ? 0 : 9, parts: [] }; deaths.set(id, d); p.dying = d; p.busy = true; p.target = null; h.held = true;
     const face = flatCard(...deadFace, 611); face.position.set(0, 2.0 * (id === 'petit_os' ? 0.7 : 1), 0.06); h.pivot.add(face); d.parts.push([h.pivot, face]);
     const splat = flatCard(...splatShape, 613); splat.rotation.x = -Math.PI / 2; splat.position.set(p.x, 0.03, p.z - 1.0); splat.scale.setScalar(animate ? 0.001 : 1); H.scene.add(splat); d.splat = splat; d.parts.push([H.scene, splat]);
     if (!animate) { h.reset(0); return; }
@@ -792,7 +821,7 @@ export function buildVillage(campaign) {
   function revive(id) {
     const p = people[id], d = deaths.get(id); deaths.delete(id);
     for (const [par, o] of d.parts) par.remove(o);
-    if (p.sol) p.sol.r = 0.42; p.dying = null; p.busy = false; p.acting = false; p.h.held = false; p.h.group.rotation.z = 0; p.h.group.scale.set(1, 1, 1); p.h.set(1, 0);
+    p.dying = null; p.busy = false; p.acting = false; p.h.held = false; p.h.group.rotation.z = 0; p.h.group.scale.set(1, 1, 1); p.h.set(1, 0);
   }
   // ---- the Grand Menhir engraved: the duel's five decisions cut into its face, one after the other, each a sunken
   // plaque with a pale edge and dark grooves: a hand over the flame (5.1), the policy tablet (5.2), the three roles
@@ -962,7 +991,7 @@ export function buildVillage(campaign) {
       }
       if (wait && (p.waitT = (p.waitT || 0) + dt) < 0.9) continue; if (!wait) p.waitT = 0;
       const al = Math.hypot(ax, az) || 1; ax /= al; az /= al;
-      const step = Math.min(d, pr.speed * (p.hurry ? 1.7 : 1) * dt); p.x += ax * step; p.z += az * step; p.ph += step / pr.step * Math.PI; if (p.sol) { p.sol.x = p.x; p.sol.z = p.z; }
+      const step = Math.min(d, pr.speed * (p.hurry ? 1.7 : 1) * dt); p.x += ax * step; p.z += az * step; p.ph += step / pr.step * Math.PI;
       h.group.position.x = p.x; h.group.position.z = p.z;
       if (Math.abs(dx) > 0.2) { const want = Math.sign(dx); if (want !== p.face) p.face = want; }
       h.pivot.scale.x = p.face;
@@ -1063,6 +1092,7 @@ export function buildVillage(campaign) {
   const chipMats = ['#8a5a32', '#a8885a', '#c8b090', '#e0a24a', '#c84a2a', '#f4e6c6'].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 1, side: THREE.DoubleSide }));
   const burst = (x, y, z, n, mats, up = 6, spread = 4) => { for (let i = 0; i < n; i++) { const m = new THREE.Mesh(bitGeo, chipMats[mats[i % mats.length]]); m.scale.set(0.12 + Math.random() * 0.12, 0.08 + Math.random() * 0.1, 1); m.position.set(x, y, z); H.scene.add(m); bits.push({ m, v: [(Math.random() - 0.5) * spread, up * (0.4 + Math.random() * 0.8), (Math.random() - 0.2) * 2], w: [Math.random() * 12, Math.random() * 12], life: 3 + Math.random() * 2, down: false }); } };
   H.onStep((t, dt) => { for (const f of Object.values(FX)) { if (f.t > f.dur) { if (f.m.scale.x > 0.001) f.m.scale.setScalar(0.001); continue; } f.t += dt; const u = Math.min(1, f.t / f.dur), k = u < 0.3 ? u / 0.3 * 1.15 : 1.15 - (u - 0.3) / 0.7 * 1.15; f.m.scale.setScalar(Math.max(0.001, k * f.s)); f.m.position.set(f.x, f.y, f.z); f.m.rotation.set(0, 0, f.a0 + u * (f === FX.swoosh ? -1.6 : 0.6)); } });
+  const _cw = new THREE.Vector3();
   function duelStep(dt, s, active) {
     const A = people.aurelien;
     shield.group.visible = !shield.held || shield.p > 0.02;
@@ -1070,7 +1100,7 @@ export function buildVillage(campaign) {
       dz.on = true; dz.back = H.heroAt(); A.busy = true; A.target = null;
       H.placeHero(ARENA.x - ARENA.d, ARENA.z);
       A.x = ARENA.x + ARENA.d; A.z = ARENA.z; A.h.group.position.x = A.x; A.h.group.position.z = A.z;
-      H.look(ARENA.x - 1.6, ARENA.z - 0.6, 17);
+      H.look(ARENA.x, ARENA.z - 0.6, 21);
       // the tribe comes to watch: a half-ring of spectators behind the fighters
       dz.crowd = ['mathieu', 'lorette', 'georges', 'neila', 'orok', 'sila', 'petit_os', 'mathilde', 'grumb'].filter((id) => people[id] && !people[id].h.held);
       dz.crowd.forEach((id, k) => { const p = people[id], a = -1.25 + k * 2.5 / (dz.crowd.length - 1); p.busy = true; p.target = [ARENA.x + Math.sin(a) * 6.2, ARENA.z - 2.2 - Math.cos(a) * 2.6]; });
@@ -1085,7 +1115,7 @@ export function buildVillage(campaign) {
     const t = s.t || 0, bump = (since, len) => { const u = since / len; return u >= 0 && u < 1 ? Math.sin(u * Math.PI) : 0; };
     const hit = bump(t - (s.lastHit ?? -9), 0.3), boss = bump(t - (s.lastBoss ?? -9), 0.45), jumping = t < (s.jumpUntil ?? 0), guarding = t < (s.guardUntil ?? 0);
     const down = s.phase === 'defeat', won = s.phase === 'victory';
-    doll.rotation.y = Math.PI / 2 - hero.group.rotation.y;
+    doll.rotation.y = -hero.group.rotation.y;   // the card faces the lens: turned toward the chief it would show its edges
     doll.position.x = hit * 1.1 - (guarding ? 0 : boss * 0.7);
     doll.position.y = jumping ? Math.sin(Math.min(1, (s.jumpUntil - t) / 0.6) * Math.PI) * 1.6 : 0;
     doll.rotation.z = down ? -1.35 : hit * 0.12 - (guarding ? 0 : boss * 0.4);
@@ -1103,7 +1133,12 @@ export function buildVillage(campaign) {
     if (won && !dz.won) { dz.won = true; burst(A.h.group.position.x, 3.2, dyz, 40, [3, 4, 5, 2], 9, 7); fx('gold', A.h.group.position.x, 2.6, dyz, 1.8); dz.shake = 0.3; }
     if (!won) dz.won = false;
     dz.shake = Math.max(0, dz.shake - dt * 1.4); const sk = dz.shake * dz.shake * 2.2;
-    H.look(ARENA.x - 1.6 + (Math.random() - 0.5) * sk, ARENA.z - 0.6 + (Math.random() - 0.5) * sk, 17);
+    // each trial won is cut into the Grand Menhir behind them at once: the lens turns to the stone, the burin bites, chips
+    // fly and the stone rumbles, then back to the fight
+    if (!engraving.job && (s.phase === 'combat' || s.phase === 'victory')) { const k = (s.cleared || []).findIndex((c, i) => c && !engraving.shown[i]);
+      if (k >= 0) { engraving.show(k, true, 1.9); dz.carve = 2.6; dz.carveK = k; H.sfx?.play('rumble', { dur: 1.4 }); H.sfx?.play('chant', { dur: 1.2 }); const c = engraving.cards[k]; c.getWorldPosition(_cw); fx('gold', _cw.x, _cw.y, _cw.z + 0.3, 1.3); burst(_cw.x, _cw.y, _cw.z + 0.2, 16, [0, 1, 2], 4, 3); } }
+    if (dz.carve > 0) { dz.carve -= dt; engraving.cards[dz.carveK].getWorldPosition(_cw); H.look(_cw.x, _cw.z, 17, _cw.y - 1.2); }
+    else H.look(ARENA.x + (Math.random() - 0.5) * sk, ARENA.z - 0.6 + (Math.random() - 0.5) * sk, 21);
     // the duel's sounds: skin drums while they fight, a bone crack on each blow, the chief's horn as he charges
     const sx = H.sfx; if (!sx) return;
     if ((s.lastHit ?? -9) !== dz.hitAt && s.lastHit != null) { dz.hitAt = s.lastHit; sx.play('hit'); }

@@ -28,13 +28,14 @@ export function createUI(campaign, world) {
   const mark = () => { for (const [m, id] of Object.entries(TOOL)) $(id).classList.toggle('sel', m === mode); };
   let opened = Math.floor(Math.random() * 997);
   const open = (m) => {
+    if (campaign.state.accident?.played) m = 'death';   // a death is answered before anything else: only its button lets Dylan go on
     const fresh = root.hidden || root.classList.contains('out');
     mode = m; root.classList.remove('out'); root.hidden = false;
     if (fresh) { root.classList.remove('in'); void root.offsetWidth; root.classList.add('in'); flap(true); body.scrollTop = 0; root.reseed?.(5 + (opened = (opened + 1) % 997) * 131); }   // never the same bones and feathers twice
     render(); mark();
   };
   const close = () => {
-    if (!mode) return; mode = null; mark(); flap(false);
+    if (!mode || (mode === 'death' && campaign.state.accident)) return; mode = null; $('fight').hidden = true; root.classList.remove('away', 'full'); document.body.classList.remove('dueling'); mark(); flap(false);
     root.classList.remove('in');
     if (still()) root.hidden = true; else root.classList.add('out');
   };
@@ -98,6 +99,7 @@ export function createUI(campaign, world) {
       + `</svg>`
       + `<b>${txt}</b><i class="chip"></i><i class="chip c2"></i></span>`;
   }
+  const TIER = { florissant: 'Florissant', debout: 'Debout', fragile: 'Fragile', delabre: 'Délabré' };
   function hud() {
     const q = campaign.frontier(), act = campaign.act(q);
     $('act').textContent = q ? clean(act ? act.title : '') : 'Le cycle continue';
@@ -108,6 +110,8 @@ export function createUI(campaign, world) {
     $('next').textContent = clean(title);
     const st = campaign.state.player, warn = campaign.warnings();
     $('vitals').innerHTML = [['Vie', st.life], ['Énergie', st.energy], ['Nourriture', st.food], ['Fatigue', st.fatigue]].map(([l, v]) => `<span>${l} ${meter(v, l === 'Fatigue' ? 'cold' : '')}</span>`).join('') + (warn.length ? `<b>${warn.join('  ')}</b>` : '');
+    // the village's prosperity: every decision, right or wrong, every villager lost moves it
+    const g = campaign.prosperity(), tr = campaign.tier(); $('prosper').innerHTML = `<span>Prospérité du village</span>${meter(g, tr)}<b class="${tr}">${TIER[tr]}</b>`;
     // the Council of the Sages comes in 45 minutes (the Unity game's own countdown, shown as it is there: it does not end the game)
     const left = Math.max(0, (campaign.data.durationSeconds || 2700) - campaign.state.wallSeconds), mins = Math.ceil(left / 60);
     const council = $('council'), secs = Math.ceil(left); if (council && council.dataset.s !== String(secs)) { council.dataset.s = String(secs); council.innerHTML = `${fuse(left / (campaign.data.durationSeconds || 2700), secs, `Le Conseil des Sages arrive dans ${mins} minutes`, 'council', 86)}<small>Conseil des Sages</small>`; }
@@ -159,14 +163,14 @@ export function createUI(campaign, world) {
   function renderActivity() {
     const a = campaign.current;
     if (!a) {   // finished: the outro and what the Carnet now holds
-      body.innerHTML = `<p class="kicker">Preuve vérifiée</p><h2>Carnet des Crânes</h2><p class="said">${esc(campaign.feedback)}</p>`;
+      body.innerHTML = `<p class="kicker">Preuve vérifiée</p><h2>Carnet des Crânes</h2><p class="said">${esc(campaign.feedback).replace(/\n/g, '<br>')}</p>`;
       body.append(btn('Continuer', close, 'go')); return;
     }
     const p = campaign.progress(a.id), tl = a.duration ? Math.max(0, a.duration - p.seconds) : 0, timer = a.duration ? `<p class="timer">${fuse(tl / a.duration, tl, `Il reste ${Math.ceil(tl)} secondes`, a.id, 92)}</p>` : '';
     body.innerHTML = header(a) + timer;
     if (campaign.guideOpen()) { body.append(speech('in:' + a.id, campaign.character(a.actor)?.name || 'Mathieu', a.intro || 'Observe, décide, puis vérifie sur le terrain. Les acquis restent conservés si tu t’interromps.')); body.append(btn('Commencer', () => campaign.dismissGuide(), 'go'), btn('Plus tard', suspend)); return; }
     if (campaign.timedOut) { body.insertAdjacentHTML('beforeend', `<p class="fb bad">${ico('cross', 's')}${esc(campaign.feedback)}</p>`); body.append(btn('Reprendre l’essai', () => campaign.retryTimer(), 'go')); return; }
-    const fb = campaign.feedback ? `<p class="fb">${esc(campaign.feedback)}</p>` : '';
+    const fb = campaign.feedback ? `<p class="fb${campaign.wrongLast ? ' bad' : ''}">${esc(campaign.feedback)}</p>` : '';
     if (a.mode === 'allocation') return allocation(a, p, fb);
     if (a.mode === 'assemble') return assemble(a, p, fb);
     if (a.mode === 'differences') return differences(a, p, fb);
@@ -238,30 +242,75 @@ export function createUI(campaign, world) {
   function suspend() { campaign.suspend(); close(); }
 
   // ---- the Duel des menhirs --------------------------------------------------------------------------------------------
+  // the fight is played in the village under a fighting-game HUD (#fight): the two lives face to face from the
+  // corners, Dylan's energy under his, the trials as stones in the middle, the call of the round in big cut letters,
+  // the moves at the bottom. The decisions themselves take the whole screen (#panel.full).
+  const fightEl = $('fight');
+  function fightHud(s) {
+    const d = campaign.duel;
+    if (!fightEl.firstChild) {
+      fightEl.innerHTML = `<div class="fbar l"><b class="who">Dylan</b><div class="life"><s></s><i></i></div><div class="nrg"><i></i></div><span class="face">D</span></div>
+        <div class="fmid"><p class="pips"></p><small>Épreuves</small></div>
+        <div class="fbar r"><b class="who">Aurélien</b><div class="life"><s></s><i></i></div><span class="face">A</span></div>
+        <p class="call"></p><p class="line"></p>
+        <div class="fpad"><div class="moves"></div><div class="go-row"></div></div>`;
+      const mv = fightEl.querySelector('.moves');
+      mv.append(btn('Frapper <kbd>J</kbd>', () => d.attack(false)), btn('Coup de pied <kbd>K</kbd>', () => d.attack(true)), btn('Garde <kbd>L</kbd>', () => d.guard()), btn('Sauter <kbd>Espace</kbd>', () => d.jump()));
+    }
+    const set = (sel, v) => { for (const el of fightEl.querySelectorAll(sel)) el.style.width = Math.max(0, Math.min(100, v)) + '%'; };
+    set('.l .life i', s.dylan); set('.l .life s', s.dylan); set('.l .nrg i', s.energy); set('.r .life i', s.chief); set('.r .life s', s.chief);
+    fightEl.querySelector('.l .life').classList.toggle('low', s.dylan < 30);
+    const pips = s.cleared.map((c, i) => `<i class="${c ? 'on' : i === s.question && s.phase === 'combat' ? 'now' : ''}"></i>`).join(''), pe = fightEl.querySelector('.pips'); if (pe.dataset.h !== pips) { pe.dataset.h = pips; pe.innerHTML = pips; }
+    const call = fightEl.querySelector('.call'); if (call.dataset.t !== s.banner) { call.dataset.t = s.banner; call.textContent = s.banner; call.classList.remove('pop'); void call.offsetWidth; call.classList.add('pop'); }
+    fightEl.querySelector('.line').textContent = s.caption || '';
+    fightEl.querySelector('.moves').hidden = s.phase !== 'combat';
+    const row = fightEl.querySelector('.go-row'), want = s.phase + (s.phase === 'combat' ? (d.canQuestion ? 1 : 0) : '');
+    if (row.dataset.k !== want) {
+      row.dataset.k = want; row.innerHTML = '';
+      if (s.phase === 'combat') { const q = btn(d.canQuestion ? 'Répondre à l’épreuve <kbd>E</kbd>' : 'Épreuve dans un instant…', () => d.openQuestion(), 'go'); q.disabled = !d.canQuestion; row.append(q); }
+      else if (s.phase === 'defeat') row.append(btn('Se relever et continuer', () => d.retry(), 'go'));
+      else if (s.phase === 'victory') row.append(btn('Continuer', close, 'go'));
+      if (s.phase !== 'victory') row.append(btn('Quitter le duel', () => { d.close(); close(); }, 'quiet'));
+    }
+  }
   function renderDuel() {
     const d = campaign.duel, s = d.s; if (!s) return close();
-    const bar = (label, v, cls) => `<div class="bar ${cls}"><span>${label}</span><i style="width:${Math.max(0, v)}%"></i></div>`;
+    const fighting = s.phase === 'combat' || s.phase === 'defeat' || s.phase === 'victory';
+    root.classList.toggle('away', fighting); root.classList.toggle('full', !fighting); fightEl.hidden = !fighting; document.body.classList.add('dueling');
+    if (fighting) { fightHud(s); body.innerHTML = ''; return; }
     body.innerHTML = `<p class="kicker">ISO 45001 5.1 à 5.4, Leadership</p><h2>LA POLITIQUE DU MENHIR</h2>`;
     if (s.phase === 'choose') {
       body.insertAdjacentHTML('beforeend', '<p class="said">Mathieu : « Cinq décisions. Les coups seuls ne valident aucune épreuve. »</p>');
-      ['Arcade : esquive, garde et décisions', 'Pédagogique : sans attaques automatiques', 'Avec indices : aide visible pour chaque décision'].forEach((l, i) => body.append(btn(l, () => d.choose(i), i === 0 ? 'go' : '')));
-      body.append(btn('Plus tard', () => { d.close(); close(); }, 'quiet')); return;
+      const row = document.createElement('div'); row.className = 'choices modes';
+      ['Arcade : esquive, garde et décisions', 'Pédagogique : sans attaques automatiques', 'Avec indices : aide visible pour chaque décision'].forEach((l, i) => row.append(btn(l, () => d.choose(i), i === 0 ? 'go' : '')));
+      body.append(row, btn('Plus tard', () => { d.close(); close(); }, 'quiet')); return;
     }
-    const pips = s.cleared.map((c) => `<i class="${c ? 'on' : ''}"></i>`).join('');
-    body.insertAdjacentHTML('beforeend', `${bar('Dylan', s.dylan, 'life')}${bar('Énergie', s.energy, 'energy')}${bar('Aurélien', s.chief, 'chief')}<p class="pips">${pips}</p>
-      <p class="banner">${esc(s.banner)}</p><p class="said">${esc(s.caption)}</p>${s.feedback ? `<p class="fb">${esc(s.feedback)}</p>` : ''}`);
-    if (s.phase === 'combat') {
-      const row = document.createElement('div'); row.className = 'choices duelpad';
-      row.append(btn('Frapper <kbd>J</kbd>', () => d.attack(false)), btn('Coup de pied <kbd>K</kbd>', () => d.attack(true)), btn('Garde <kbd>L</kbd>', () => d.guard()), btn('Sauter <kbd>Espace</kbd>', () => d.jump()));
-      body.append(row);
-      const q = btn(d.canQuestion ? 'Répondre à l’épreuve <kbd>E</kbd>' : 'Épreuve dans un instant…', () => d.openQuestion(), 'go'); q.disabled = !d.canQuestion; body.append(q);
-    } else if (s.phase === 'question') {
-      const q = d.question();
-      body.insertAdjacentHTML('beforeend', `<div class="card"><p class="small">${esc(q.clause)} : ${esc(q.title)}</p><p>${esc(q.question)}</p>${s.mode === 2 ? `<p class="small">Indice : ${esc(q.hint)}</p>` : ''}</div>`);
-      const row = document.createElement('div'); row.className = 'choices'; q.answers.forEach((a, i) => row.append(btn(esc(a.text), () => d.answer(i)))); body.append(row);
-    } else if (s.phase === 'defeat') body.append(btn('Reprendre l’épreuve', () => d.retry(), 'go'));
-    else if (s.phase === 'victory') body.append(btn('Continuer', close, 'go'));
-    if (s.phase !== 'victory') body.append(btn('Quitter le duel', () => { d.close(); close(); }, 'quiet'));
+    const q = d.question();
+    body.insertAdjacentHTML('beforeend', `<div class="card ask"><p class="small">Épreuve ${s.question + 1} sur ${s.cleared.length} · ${esc(q.clause)} : ${esc(q.title)}</p><p class="q">${esc(q.question)}</p>${s.mode === 2 && s.phase === 'question' ? `<p class="small">Indice : ${esc(q.hint)}</p>` : ''}</div>`);
+    const row = document.createElement('div'); row.className = 'choices answers';
+    q.answers.forEach((a, i) => { const b = btn(esc(a.text), () => d.answer(i)); if (s.phase === 'verdict') { b.disabled = true; b.classList.add(a.quality === 2 ? 'right' : i === s.picked ? 'wrong' : 'other'); } row.append(b); });
+    body.append(row);
+    if (s.phase === 'verdict') {
+      body.insertAdjacentHTML('beforeend', `<p class="banner">${esc(s.banner)}</p><p class="fb${q.answers[s.picked]?.quality < 2 ? ' bad' : ''}">${esc(s.feedback)}</p>`);
+      body.append(btn('Épreuve suivante', () => d.next(), 'go'));
+    }
+  }
+
+  // ---- the end of the campaign: four endings, by the prosperity the decisions left the village ----------------------
+  const ENDINGS = {
+    florissant: ['Le village florissant', 'Les huttes sont devenues des maisons, la politique est gravée droite sur le Grand Menhir et plus personne ne se fait écraser par un mammouth. Aurélien s’attribue tout le mérite. Mathieu le laisse dire, et remplit le registre.'],
+    debout: ['Le village tient debout', 'Les mesures sont en place, avec quelques ratures sur le menhir. Les accidents se font rares, les palabres aussi. Le Conseil des Sages hoche la tête : on verra à la prochaine lune.'],
+    fragile: ['Le village survit, de justesse', 'Des mesures à moitié appliquées, un registre plein de trous, un foyer qui fume encore dans une maison. Aurélien parle déjà de « culture sécurité » en se grattant la tête. Tout reste à refaire, mais tout le monde est là. Presque.'],
+    delabre: ['Le village se délabre', 'Les toits fuient, les bêtes rôdent jusqu’aux pieux, le cimetière s’agrandit plus vite que le village. Les derniers Crânes Fendus partent rejoindre la tribu d’à côté, qui, elle, a un registre. Aurélien reste. Seul. Sur son transat.'],
+  };
+  function renderEnding() {
+    const tr = campaign.tier(), [title, text] = ENDINGS[tr], t = campaign.state.tally || { right: 0, wrong: 0 }, lost = campaign.state.deathLog.filter((d) => d.victim !== 'dylan').length;
+    body.innerHTML = `<p class="kicker">Fin de la campagne</p><h2>${esc(title)}</h2>
+      <p class="ending-gauge"><span>Prospérité du village</span>${meter(campaign.prosperity(), tr)}<b class="${tr}">${campaign.prosperity()} / 100</b></p>
+      <p class="small">Décisions justes : ${t.right} · décisions corrigées : ${t.wrong} · villageois perdus : ${lost} · morts de Dylan : ${campaign.state.dylanDeaths}</p>`;
+    body.append(speech('end:' + tr, 'Mathieu', text));
+    const seen = () => { campaign.state.flags['ending:seen'] = true; campaign.save(); };
+    body.append(btn('Continuer à explorer', () => { seen(); close(); }, 'go'), btn('Nouvelle partie', () => { seen(); campaign.reset(); location.reload(); }, 'quiet'));
   }
 
   // ---- dialogues with choices (the shelter's roof) and the action in progress ----------------------------------------
@@ -361,7 +410,7 @@ export function createUI(campaign, world) {
       g += `<g class="site" data-site="${id}" style="cursor:pointer"><circle cx="${s.x}" cy="${s.z}" r="2.2" fill="transparent"/>${goal ? `<circle cx="${s.x}" cy="${s.z}" r="1.6" fill="#ffce60" stroke="#7a2e18" stroke-width=".3"/>` : `<circle cx="${s.x}" cy="${s.z}" r=".7" fill="#2a1a1e" opacity=".7"/>`}${mv.span < 70 ? `<text x="${s.x + 1.2}" y="${s.z - 1.0}" style="font-size:${(mv.span / 46).toFixed(2)}px">${esc(s.label)}</text>` : ''}</g>`;
     }
     g += `<g transform="translate(${hero.x.toFixed(2)} ${hero.z.toFixed(2)}) rotate(${(-world.H.hero.group.rotation.y * 180 / Math.PI + 180).toFixed(0)})"><path d="M0-1.5L1.1 1.1 0 .5-1.1 1.1z" fill="#a83a2a" stroke="#fbf1de" stroke-width=".25"/></g></svg>`;
-    body.innerHTML = `<p class="kicker">Écran Carte</p><h2>Le village des Crânes Fendus</h2><div class="bigmap">${g}<div class="zoom"><button class="btn" type="button" data-z="in" aria-label="Zoomer">+</button><button class="btn" type="button" data-z="out" aria-label="Dézoomer">−</button><button class="btn" type="button" data-z="me" aria-label="Revenir sur Dylan">◎</button></div></div><p class="small">La flèche rouge est Dylan, le rond doré la prochaine étape (le ruban y mène), les points rouges les dangers à examiner. Molette ou boutons pour zoomer, glisser pour se déplacer, un lieu choisi devient la destination.</p>`;
+    body.innerHTML = `<p class="kicker">Écran Carte</p><h2>Le village des Crânes Fendus</h2><div class="bigmap">${g}<div class="zoom"><button class="btn" type="button" data-z="in" aria-label="Zoomer"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v13M3.5 10h13"/></svg></button><button class="btn" type="button" data-z="out" aria-label="Dézoomer"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 10h13"/></svg></button><button class="btn" type="button" data-z="me" aria-label="Revenir sur Dylan"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><circle cx="10" cy="10" r="1.8" fill="currentColor"/></svg></button></div></div><p class="small">La flèche rouge est Dylan, le rond doré la prochaine étape (le ruban y mène), les points rouges les dangers à examiner. Molette ou boutons pour zoomer, glisser pour se déplacer, un lieu choisi devient la destination.</p>`;
     const box = body.querySelector('.bigmap'), svg = box.querySelector('svg'), set = () => svg.setAttribute('viewBox', vb());
     const zoom = (k, fx = 0.5, fy = 0.5) => { const ns = Math.max(14, Math.min(100, mv.span * k)), dx = (fx - 0.5) * (mv.span - ns), dz = (fy - 0.5) * (mv.span - ns) * aspect; mv.span = ns; mv.cx += dx; mv.cz += dz; set(); };
     box.querySelectorAll('[data-z]').forEach((b) => { b.onclick = (e) => { e.stopPropagation(); if (b.dataset.z === 'me') { mv.cx = hero.x; mv.cz = hero.z; set(); } else zoom(b.dataset.z === 'in' ? 0.7 : 1.4); }; });
@@ -431,12 +480,16 @@ export function createUI(campaign, world) {
 
   function render() {
     root.classList.toggle('runner', mode === 'activity' && !modal());
-    root.classList.toggle('duel', mode === 'duel');   // docked low: the fight itself is played in the village
-    if (mode === 'activity') renderActivity(); else if (mode === 'duel') renderDuel(); else if (mode === 'dialogue') renderDialogue(); else if (mode === 'death') renderDeath();
+    if (mode !== 'duel') { fightEl.hidden = true; root.classList.remove('away', 'full'); document.body.classList.remove('dueling'); }
+    if (mode === 'activity') renderActivity(); else if (mode === 'duel') renderDuel(); else if (mode === 'dialogue') renderDialogue(); else if (mode === 'death') renderDeath(); else if (mode === 'ending') renderEnding();
     else if (mode === 'quest') renderQuests(); else if (mode === 'journal') renderJournal();
     else if (mode === 'people') renderPeople(); else if (mode === 'map') renderMap(); else if (mode === 'inventory') renderInventory(); else if (mode === 'tech') renderTech();
     for (const h of body.querySelectorAll('h2')) cutLetters(h);   // titles cut out letter by letter
+    fit();
   }
+  // never a scroll bar: a sheet whose content would overflow is set a little smaller until it fits
+  function fit() { body.style.zoom = ''; let k = 1; while (k > 0.62 && body.scrollHeight > body.clientHeight + 2) { k -= 0.05; body.style.zoom = k; } }
+  addEventListener('resize', () => { if (mode) fit(); });
 
   // ---- keys: E acts, arrows during the briefing move the lanes, J K L Espace in the duel; WASD blocked behind a modal -
   addEventListener('keydown', (e) => {
@@ -461,7 +514,9 @@ export function createUI(campaign, world) {
   return {
     step(dt) {
       campaign.tick(dt); campaign.duel.tick(dt); stepLanes(dt);
+      if (mode === 'duel' && !fightEl.hidden && campaign.duel.s) fightHud(campaign.duel.s);   // the fight's bars and its call follow every frame
       if (campaign.state.dialogue && mode !== 'dialogue') open('dialogue');
+      if (campaign.state.ending && !campaign.state.flags['ending:seen'] && !mode && !document.body.classList.contains('cine-on')) open('ending');   // the end, once its cinematic is over
       const w = campaign.state.working; $('work').hidden = !w; if (w) $('work').querySelector('i').style.width = ((1 - w.left / w.total) * 100) + '%';
       // the evacuation: once the cards are answered, everybody walks to the gathering point and Dylan joins them
       const a = campaign.current;
