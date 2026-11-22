@@ -1,6 +1,8 @@
 Henny Penny : Copyright (c) 2012, Brownfox (gayaneh.b@gmail.com), with Reserved Font Name "Henny Penny".
 Chicle : Copyright (c) 2007 Angel Koziupa, Copyright (c) 2007 Alejandro Paul (sudtipos@sudtipos.com), with Reserved Font Name "Chicle".
 Shantell Sans : Copyright 2022 The Shantell Sans Project Authors (https://github.com/arrowtype/shantell-sans).
+Kavoon : Copyright (c) 2011-2012, Sorkin Type Co (www.sorkintype.com) with Reserved Font Name "Kavoon".
+Caveat Brush : Copyright 2015 Google Inc. All Rights Reserved.
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

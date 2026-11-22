@@ -5,6 +5,7 @@
 // la roue qui roule. Chaque cinématique se joue une fois (mémorisée avec la partie) ; Échap ou « Passer » l'abrège.
 import { clean } from './ui.js';
 import { cutLetters } from './paper-ui.js';
+import { voiceOf } from './talk.js';
 
 // where the cameras look: [x, z, distance] from, to; how long; who speaks (the line index in the shots of the data)
 const SCRIPTS = {
@@ -77,7 +78,8 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
     run.k++; run.t = 0; const sh = run.spec[run.k];
     if (!sh) return stop();
     const L = sh.line != null ? run.c.shots[sh.line] : null;
-    who.textContent = L ? clean(L.speaker || 'Le narrateur') : ''; line.textContent = L ? clean(L.subtitle) : '';
+    who.textContent = L ? clean(L.speaker || 'Le narrateur') : '';
+    if (L) world.talk?.say(line, clean(L.subtitle), { voice: voiceOf(L.speaker || 'narrateur', campaign.data.characters), fit: Math.max(1.2, sh.dur - 0.7) }); else { world.talk?.stop(line); line.textContent = ''; }
     root.classList.toggle('narrator', !!L && !L.speaker); root.querySelector('.sub').hidden = !L;
     sh.at?.(ctl); sh.act?.(ctl);
   }
@@ -88,7 +90,7 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
     world.H.unlook();
     if (queue.length) start(queue.shift());
   }
-  addEventListener('keydown', (e) => { if (!run) return; if (e.code === 'Escape' || e.code === 'Enter' || e.code === 'Space') stop(); e.stopImmediatePropagation(); e.preventDefault(); }, true);
+  addEventListener('keydown', (e) => { if (!run) return; if (e.code === 'Escape') stop(); else if ((e.code === 'Enter' || e.code === 'Space') && !e.repeat && !world.talk?.skip()) stop(); e.stopImmediatePropagation(); e.preventDefault(); }, true);   // Enter finishes the line, then skips
   $('cine-skip').onclick = stop;
   return {
     start, stop, tour, get playing() { return !!run; },

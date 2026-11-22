@@ -793,6 +793,7 @@ export function buildVillage(campaign) {
           if (u >= 1) { p.g = null; p.nextG = t + pr.every * (0.7 + Math.random() * 0.6); }
           else { o = p.g.k.at(u); const kn = o.knock || []; if (p.g.knocked < kn.length && u >= kn[p.g.knocked]) { p.g.knocked++; if (Math.hypot(p.x - H.hero.group.position.x, p.z - H.hero.group.position.z) < 14) H.sfx?.play('bone', { f: 700 + Math.random() * 500, v: 0.14 }); } }
         }
+        if (p.talkT > 0) { p.talkT -= dt; o = { ...o, y: (o.y || 0) + 0.07 * Math.abs(Math.sin(t * 19 + p.seed)), rz: (o.rz || 0) + 0.025 * Math.sin(t * 11) }; }   // speaking: the puppet bobs with its syllables
         h.group.position.y = p.y0 + (o.y || 0) + (p.perch || 0);
         if (p.carving) continue;
         h.group.rotation.z = p.beat ? 0.38 * Math.sin(t * 8 + p.seed) : 0.016 * Math.sin(t * 2.0 + p.seed) + 0.008 * Math.sin(t * 1.27 + p.seed * 2) - (o.rz || 0) * p.face;
@@ -960,5 +961,6 @@ export function buildVillage(campaign) {
   const firePlaces = [[SITES.foyer.x, SITES.foyer.z, 1], [-11, -3.9, 0.8], ...[[-4.6, 7.2], [4.6, 7.2], [-7.6, -8.8], [7.6, -8.4], [-3.4, -17.8], [7, -17.6], [-10.6, -1.4], [10.8, -9.8]].map(([x, z]) => [x, z, 0.35])];
   const fireNear = (x, z) => [...firePlaces, ...burn.lit.map((b) => [b.x, b.z, 1.6 * b.level])].reduce((m, [fx, fz, k]) => Math.max(m, Math.min(1.6, k * Math.max(0, 1 - Math.hypot(x - fx, z - fz) / 16))), 0);
   const onPath = (x, z) => Math.hypot((x - SITES.foyer.x) / 8.5, (z - SITES.foyer.z) / 5.8) < 1 || PATHS.some((pl) => P2.pathLine(pl, { step: 1 }).dist(x, z) < 1.2);
-  return { H, SITES, RIVER, people, hero, herds: HERD, burn, duelStep, weather, fireNear, riverNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
+  const talkPulse = (id, d) => { const p = people[id]; if (p && !p.dying) p.talkT = Math.max(p.talkT || 0, d + 0.05); };
+  return { H, SITES, RIVER, people, hero, herds: HERD, talkPulse, burn, duelStep, weather, fireNear, riverNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
 }

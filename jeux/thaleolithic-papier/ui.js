@@ -6,6 +6,7 @@
 import { STAGES, ITEMS, RECIPES, PRODUCTIONS, BEHAVIOUR } from './campaign.js';
 import { CLAUSES } from './knowledge.js';
 import { cutLetters } from './paper-ui.js';
+import { voiceOf } from './talk.js';
 
 const MODE_LABEL = { sort: 'Classer', pair: 'Associer', scope: 'Délimiter', assemble: 'Assembler', risk: 'Analyser le risque', vote: 'Voter', allocation: 'Répartir', briefing: 'Point sécurité',
   swipe: 'Trier les tablettes', differences: '15 différences', prepare: 'Préparer', runner: 'Évacuer', debrief: 'Retour d’expérience', dashboard: 'Mesurer', audit: 'Auditer', review: 'Revue', corrective: 'Corriger', improvement: 'Améliorer' };
@@ -71,6 +72,21 @@ export function createUI(campaign, world) {
   }
 
   // ---- the activity card -----------------------------------------------------------------------------------------------
+  // a spoken line on a slab of stone: the speaker's bone tag, the words painted in ochre as they are said (talk.js);
+  // kept across re-renders (the panel is redrawn often) so the line is not restarted
+  const speeches = new Map();
+  const speech = (key, who, text) => {
+    let sp = speeches.get(key);
+    if (!sp) {
+      sp = document.createElement('div'); sp.className = 'speech';
+      sp.innerHTML = `<span class="who">${esc(who)}</span><p class="line"></p>`;
+      speeches.clear(); speeches.set(key, sp);
+      const run = world.talk?.say(sp.querySelector('.line'), clean(text), { voice: voiceOf(who, campaign.data.characters) });
+      if (run) { sp.classList.add('busy'); run.cb = () => { sp.classList.remove('busy'); body.querySelectorAll('.wait').forEach((b) => b.classList.remove('wait')); }; }
+      else sp.querySelector('.line').textContent = clean(text);
+    }
+    return sp;
+  };
   const btn = (label, onclick, cls = '') => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ' + cls; b.innerHTML = label; b.onclick = onclick; return b; };
   function header(a) {
     const actor = campaign.character(a.actor);
@@ -84,7 +100,7 @@ export function createUI(campaign, world) {
     }
     const p = campaign.progress(a.id), timer = a.duration ? `<p class="timer">${Math.max(0, Math.ceil(a.duration - p.seconds))} s</p>` : '';
     body.innerHTML = header(a) + timer;
-    if (campaign.guideOpen()) { body.insertAdjacentHTML('beforeend', `<p class="said">${esc(a.intro || 'Observe, décide, puis vérifie sur le terrain. Les acquis restent conservés si tu t’interromps.')}</p>`); body.append(btn('Commencer', () => campaign.dismissGuide(), 'go'), btn('Plus tard', suspend)); return; }
+    if (campaign.guideOpen()) { body.append(speech('in:' + a.id, campaign.character(a.actor)?.name || 'Mathieu', a.intro || 'Observe, décide, puis vérifie sur le terrain. Les acquis restent conservés si tu t’interromps.')); body.append(btn('Commencer', () => campaign.dismissGuide(), 'go'), btn('Plus tard', suspend)); return; }
     if (campaign.timedOut) { body.insertAdjacentHTML('beforeend', `<p class="fb bad">${ico('cross', 's')}${esc(campaign.feedback)}</p>`); body.append(btn('Reprendre l’essai', () => campaign.retryTimer(), 'go')); return; }
     const fb = campaign.feedback ? `<p class="fb">${esc(campaign.feedback)}</p>` : '';
     if (a.mode === 'allocation') return allocation(a, p, fb);
@@ -187,8 +203,8 @@ export function createUI(campaign, world) {
   // ---- dialogues with choices (the shelter's roof) and the action in progress ----------------------------------------
   function renderDialogue() {
     const dl = campaign.dialogue(); if (!dl) { close(); return; }
-    body.innerHTML = `<p class="kicker">${esc(dl.speaker)}</p><h2>${esc(dl.text.split('\n')[0])}</h2>${dl.text.includes('\n') ? `<p class="said">${esc(dl.text.split('\n').slice(1).join('\n'))}</p>` : ''}`;
-    for (const c of dl.choices) body.append(btn(esc(c.text), () => campaign.choose(c.id)));
+    const sp = speech('dl:' + dl.id, dl.speaker, dl.text); body.innerHTML = ''; body.append(sp);
+    for (const c of dl.choices) body.append(btn(esc(c.text), () => campaign.choose(c.id), sp.classList.contains('busy') ? 'wait' : ''));
   }
 
   // ---- screens: the quests and the Carnet des Crânes -----------------------------------------------------------------

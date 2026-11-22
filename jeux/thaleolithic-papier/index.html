@@ -9,6 +9,8 @@
 <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
 <style>
   @font-face { font-family: 'Henny Penny'; src: url(fonts/henny-penny-latin-400-normal.woff2) format('woff2'); font-display: swap; }
+  @font-face { font-family: 'Kavoon'; src: url(fonts/kavoon-latin-400-normal.woff2) format('woff2'); font-display: swap; }
+  @font-face { font-family: 'Caveat Brush'; src: url(fonts/caveat-brush-latin-400-normal.woff2) format('woff2'); font-display: swap; }
   @font-face { font-family: 'Chicle'; src: url(fonts/chicle-latin-400-normal.woff2) format('woff2'); font-display: swap; }
   @font-face { font-family: 'Shantell Sans'; font-weight: 300 800; src: url(fonts/shantell-sans-latin-full-normal.woff2) format('woff2'); font-display: swap; }
   @font-face { font-family: 'Shantell Sans'; font-style: italic; font-weight: 300 800; src: url(fonts/shantell-sans-latin-full-italic.woff2) format('woff2'); font-display: swap; }
@@ -275,6 +277,30 @@
     outline: 2px dashed rgb(251 241 222 / .6); outline-offset: -9px; box-shadow: var(--cut), 3px 5px 0 #5a1a14, 6px 10px 12px rgb(var(--sh) / .4); transition: transform .2s cubic-bezier(.3, 1.8, .5, 1), opacity .2s; }
   .act-btn.off { opacity: .45; filter: saturate(.4); } .act-btn.on, .act-btn:active { transform: translate(2px, 4px) scale(.97); box-shadow: var(--cut), 1px 1px 0 #5a1a14; }
   @media (pointer: coarse) { .stick { display: block; } .act-btn { display: grid; } #prompt { left: 50%; right: auto; bottom: max(150px, calc(env(safe-area-inset-bottom) + 150px)); transform: translateX(-50%) rotate(.5deg); } }
+  /* ---- speech: a slab of grey stone, lashed by fibre cords at both ends, the speaker's name on a bone tag, the words
+     painted in ochre one letter at a time (talk.js) ---- */
+  :root { --cave: 'Caveat Brush', 'Shantell Sans', cursive; --rock: 'Kavoon', 'Chicle', serif; }
+  #cine .sub, .speech { padding: 26px 38px 18px; color: #3a140c;
+    background: radial-gradient(120% 90% at 24% 18%, rgb(255 248 236 / .32), transparent 55%), radial-gradient(80% 70% at 85% 95%, rgb(40 22 44 / .28), transparent 60%), var(--stone-t, none) #b1aabd;
+    border-radius: 22px 46px 18px 52px / 34px 20px 42px 24px;
+    box-shadow: inset 2px 3px 0 rgb(255 250 240 / .45), inset -3px -5px 0 rgb(58 40 70 / .45), inset 0 0 0 1px rgb(42 26 40 / .35), 0 0 0 1.5px #4a3a52, 4px 6px 0 #5a4e66, 8px 12px 16px rgb(var(--sh) / .45); }
+  #cine .sub::before, #cine .sub::after, .speech::before, .speech::after { content: ''; position: absolute; top: 14%; bottom: 14%; width: 11px; border-radius: 5px;
+    background: repeating-linear-gradient(-58deg, #c8a870 0 4px, #8a6a3a 4px 6px, #d8bc84 6px 9px); box-shadow: 1px 2px 0 rgb(42 26 30 / .45); }
+  #cine .sub::before, .speech::before { left: 12px; transform: rotate(-4deg); } #cine .sub::after, .speech::after { right: 12px; transform: rotate(3deg); }
+  #cine-who, .speech .who { position: absolute; top: -17px; left: 34px; margin: 0; padding: 4px 22px 6px; font: 400 18px/1.1 var(--rock); letter-spacing: .02em; color: #3a1a12;
+    background: radial-gradient(circle at 7px 7px, #f4e6c6 6px, transparent 6.5px), radial-gradient(circle at 7px calc(100% - 7px), #f4e6c6 6px, transparent 6.5px), radial-gradient(circle at calc(100% - 7px) 7px, #f4e6c6 6px, transparent 6.5px), radial-gradient(circle at calc(100% - 7px) calc(100% - 7px), #f4e6c6 6px, transparent 6.5px), linear-gradient(#f4e6c6, #e2cfa6) 8px 4px / calc(100% - 16px) calc(100% - 8px) no-repeat;
+    filter: drop-shadow(1px 2px 0 rgb(42 26 30 / .55)); transform: rotate(-2.5deg); }
+  #cine-who:empty { display: none; }
+  #cine-line, .speech .line { display: block; margin: 0; font: 400 25px/1.3 var(--cave); letter-spacing: .01em; text-shadow: 0 1px 0 rgb(255 244 228 / .4), 0 -1px 0 rgb(30 14 20 / .25); }
+  #cine.narrator #cine-line { font-style: normal; color: #2a1a3a; }
+  .speech { position: relative; margin: 26px 4px 18px; transform: rotate(-.6deg); }
+  .speech .line { min-height: 2.6em; }
+  .speech + .btn, .speech ~ .btn { transition: opacity .25s; } .btn.wait { opacity: .35; pointer-events: none; }
+  /* the letters: each a cut that lands (dropped a little, larger, tilted), then sits in place */
+  .talking .w, .speech .w, #cine-line .w { display: inline-block; white-space: nowrap; }
+  .l { display: inline-block; opacity: 0; transform: translateY(-.45em) scale(1.7) rotate(var(--r, 0deg)); }
+  .l.on { opacity: 1; transform: none; transition: transform .16s cubic-bezier(.2, 1.6, .4, 1), opacity .05s; }
+  @media (max-width: 640px) { #cine-line, .speech .line { font-size: 21px; } #cine .sub, .speech { padding: 24px 28px 14px; } }
 </style>
 <script type="importmap">{ "imports": { "three": "../../vendor/three-r187/three.module.js", "papercraft/": "./papercraft/" } }</script>
 </head>

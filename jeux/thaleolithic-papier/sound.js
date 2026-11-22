@@ -53,6 +53,20 @@ export const SFX = {
   ghost(ac, out, t, { v = 0.12, dur = 2.4 } = {}) { const o = osc(ac, 'sine', 320, t, dur); o.frequency.exponentialRampToValueAtTime(760, t + dur); const l = osc(ac, 'sine', 6.5, t, dur), lg = ac.createGain(); lg.gain.value = 22; chain(l, lg); lg.connect(o.frequency); chain(o, env(ac, t, 0.4, dur - 0.9, 0.5, v), out); },
   // water thrown on embers: a splash, then a long hiss of steam that dies away
   hiss(ac, out, t, { v = 0.3, dur = 1.4 } = {}) { chain(src(ac, t, 0.18, 0.8), filt(ac, 'lowpass', 900, 1), env(ac, t, 0.004, 0.03, 0.15, v * 0.9), out); const b = filt(ac, 'highpass', 3800, 0.7); chain(src(ac, t + 0.05, dur, 1.3), b, env(ac, t + 0.05, 0.06, dur * 0.2, dur * 0.8, v * 0.6), out); },
+  // a grunt, a mumble: one syllable of cave speech. A buzzing glottal saw at the speaker's pitch through two vowel
+  // formants (the syllable's own vowel, scaled by the speaker's size), a growl (a fast tremor) for the rough voices, a
+  // waver for the old, a breath of noise; the pitch falls (a statement) or rises (a question)
+  grunt(ac, out, t, { f0 = 120, dur = 0.16, vowel = 'a', v = 0.2, rough = 0, trem = 0, breath = 0.15, bend = -0.12, size = 1, closed = false } = {}) {
+    const F = { a: [760, 1250], e: [520, 1800], i: [330, 2250], o: [500, 880], u: [350, 760], y: [330, 1900] }[vowel] || [600, 1300];
+    const o = osc(ac, 'sawtooth', f0, t, dur + 0.1); o.frequency.exponentialRampToValueAtTime(Math.max(40, f0 * (1 + bend)), t + dur);
+    if (trem) { const l = osc(ac, 'sine', 6.5, t, dur + 0.1), lg = ac.createGain(); lg.gain.value = f0 * trem; chain(l, lg); lg.connect(o.frequency); }
+    const g = env(ac, t, 0.012, dur * 0.55, dur * 0.45 + 0.04, v);
+    if (rough) { const am = osc(ac, 'square', 31 + Math.random() * 12, t, dur + 0.1), ag = ac.createGain(); ag.gain.value = v * rough * 0.7; chain(am, ag); ag.connect(g.gain); }
+    for (const [k, [ff, q, lv]] of [[0, [F[0] * size, 7, 1]], [1, [F[1] * size, 9, 0.55]]].entries()) { const b = filt(ac, 'bandpass', ff, q), bg = ac.createGain(); bg.gain.value = lv * (closed ? (k ? 0.25 : 0.8) : 1) * 3.2; chain(o, b, bg, g); }
+    if (closed) { const lp = filt(ac, 'lowpass', 380, 1), lg = ac.createGain(); lg.gain.value = 0.9; chain(o, lp, lg, g); }
+    g.connect(out);
+    if (breath) chain(src(ac, t, dur, 1.2), filt(ac, 'bandpass', F[1] * size * 1.3, 2), env(ac, t, 0.01, dur * 0.3, dur * 0.5, v * breath), out);
+  },
   // a slide whistle down: beaten
   slide(ac, out, t, { v = 0.15 } = {}) { const o = osc(ac, 'triangle', 1300, t, 1.0); o.frequency.exponentialRampToValueAtTime(240, t + 0.9); chain(o, env(ac, t, 0.02, 0.6, 0.3, v), out); },
   // the tribe shouts and sings: a short vowel chord

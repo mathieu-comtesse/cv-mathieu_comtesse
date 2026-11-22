@@ -5,6 +5,7 @@ import { createUI } from './ui.js';
 import { installTiles, paperize, cutLetters } from './paper-ui.js';
 import { createSound } from './sound.js';
 import { createCinema } from './cine.js';
+import { createTalk } from './talk.js';
 
 // the windows are printed on the village's own paper: tiles for the small pieces, a printed card behind each sheet
 installTiles();
@@ -30,6 +31,9 @@ const { H } = world;
 
 // sound: unlocked by the first gesture (browsers ask it), N mutes; the beds follow the weather and the nearest fire
 const sfx = createSound(); H.sfx = sfx;
+// speech: the lines write themselves letter by letter and the speaker grunts each syllable as it lands (talk.js)
+const talk = createTalk({ sfx, onSyllable: (id, d) => world.talkPulse(id, d) }); world.talk = talk;
+addEventListener('pointerdown', (e) => { if (e.target.closest('.speech, #cine .sub')) talk.skip(); });
 const cinema = createCinema({ campaign, world, ui, sfx, data: base, menhir });
 addEventListener('pointerdown', () => sfx.unlock(), { capture: true }); addEventListener('keydown', (e) => { sfx.unlock(); if (e.code === 'KeyN' && !e.repeat) sfx.mute(); }, { capture: true });
 document.addEventListener('click', (e) => { if (e.target.closest('.btn')) sfx.play('bone', { f: 1500 + Math.random() * 700, v: 0.2 }); });
@@ -54,6 +58,7 @@ let last = H.hero.group.position.clone();
 H.onStep((t, dt) => {
   cinema.step(dt);
   ui.step(dt);
+  talk.step(dt);
   // the village lives: the tribe's needs and tasks (not during the evacuation, which leads everyone itself), Dylan's survival
   if (!world.evacuating && dt > 0) { campaign.villageStep(dt, world.arrivedAt, world.moving); world.lead(campaign); }
   const p = H.hero.group.position, dist = p.distanceTo(last), moved = dist > 1e-4; last.copy(p);
@@ -100,5 +105,5 @@ for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) stick.add
 actBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); actBtn.classList.add('on'); dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', bubbles: true })); });
 for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) actBtn.addEventListener(ev, () => { actBtn.classList.remove('on'); dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyE', bubbles: true })); });
 H.onStep(() => { actBtn.classList.toggle('off', document.getElementById('prompt').hidden); });
-window.__thaleo = { campaign, world, ui, cinema, sfx };
+window.__thaleo = { campaign, world, ui, cinema, sfx, talk };
 H.start();
