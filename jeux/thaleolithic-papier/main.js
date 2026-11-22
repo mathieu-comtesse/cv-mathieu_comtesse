@@ -2,6 +2,17 @@
 import { createCampaign } from './campaign.js';
 import { buildVillage } from './scene.js';
 import { createUI } from './ui.js';
+import { installTiles, paperize } from './paper-ui.js';
+
+// the windows are printed on the village's own paper: tiles for the small pieces, a printed card behind each sheet
+installTiles();
+paperize(document.getElementById('hud'), { seed: 3 });
+paperize(document.getElementById('panel'), { seed: 5, frame: true });
+paperize(document.querySelector('#intro .paper'), { seed: 7, frame: true });
+paperize(document.getElementById('prompt'), { seed: 9, tear: 0.8 });
+paperize(document.getElementById('pin'), { seed: 13, tear: 0.6 });
+paperize(document.getElementById('work'), { seed: 17, tear: 0.8 });
+document.querySelectorAll('#tools .btn').forEach((b, i) => paperize(b, { seed: 20 + i, color: '#fdf6e8', tear: 0.6 }));
 
 const RES = '../../thaleolithic/Source/Resources/';
 const load = (f) => fetch(RES + f).then((r) => { if (!r.ok) throw new Error(f + ' : ' + r.status); return r.json(); });

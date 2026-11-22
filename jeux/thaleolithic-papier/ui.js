@@ -255,7 +255,7 @@ export function createUI(campaign, world) {
     // printed like an atlas plate: graticule, neatline, the river in ink and wash, the target as an inked ring with a
     // cross, Dylan as the one red pin, a compass
     let svg = `<svg class="map" viewBox="0 0 496 368" role="img" aria-label="Carte du village"><defs><pattern id="grat" width="31" height="23" patternUnits="userSpaceOnUse"><path d="M31 0V23H0" fill="none" stroke="#2a1a1e" stroke-opacity=".08"/></pattern></defs>
-      <rect width="496" height="368" fill="#f4ead6"/><rect width="496" height="368" fill="url(#grat)"/>
+      <rect width="496" height="368" fill="url(#grat)"/>
       <rect x="6" y="6" width="484" height="356" fill="none" stroke="#2a1a1e" stroke-opacity=".7" stroke-width="1.2"/><rect x="10" y="10" width="476" height="348" fill="none" stroke="#2a1a1e" stroke-opacity=".35" stroke-width=".6"/>
       <path d="${river}" stroke="#6f7fb0" stroke-width="24" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".42"/><path d="${river}" stroke="#2a1a1e" stroke-opacity=".5" stroke-width="1.1" stroke-dasharray="7 5" fill="none"/>`;
     for (const [id, s] of Object.entries(S)) {
