@@ -18,6 +18,7 @@ import { createLife } from 'papercraft/lib/paper-life.js';
 import { createHarness } from './harness.js';
 import { MENHIR_QUEST } from './campaign.js';
 import { PROFILE, DEFAULT, GESTURE, PROPS, dress, dressTop } from './characters.js';
+import { BEASTS, HERDS, PIECES } from './fauna.js';
 
 export const C = {
   ground: '#a6a274', dirt: '#c8a47c', grassA: '#9a9a66', grassB: '#aca676', pine: '#b8402e', pineDeep: '#8e2f2a', trunk: '#4a2c24',
@@ -334,6 +335,28 @@ export function buildVillage(campaign) {
   for (const [dx, dz, w] of [[0, -2, 4.2], [3, 0, 3.4], [-2.5, 0.6, 3]]) popup(...rock(w), { x: SITES.pierre_carriere.x + dx, z: SITES.pierre_carriere.z + dz });
   mark(SITES.chasse_clairiere.x, SITES.chasse_clairiere.z, 4); mark(SITES.pierre_carriere.x, SITES.pierre_carriere.z, 4.5);
   totem(SITES.rassemblement.x + 3.2, SITES.rassemblement.z - 1); mark(SITES.rassemblement.x, SITES.rassemblement.z, 3.6);
+  // ---- the trades as the Unity game has them: the knapper's bench and heat pit, the woodcutters' sawhorse, woodpile
+  // and stump, the quarry's sledge, the tanners' beam and pit outside the wall, the smoking rack, the kitchen's oven and
+  // quern, the potter's plank and kiln, the stores' baskets; the folds: the wattle fold of goats and sheep south-west of
+  // the gate, the pigs' sty, the hens' coop on stilts by the stores
+  const piece = (name) => { const Pc = PIECES[name]; return P2.drawnPiece((g, ink) => Pc.draw(g, ink, D, P2, C), { w: Pc.w, h: Pc.h, name }); };
+  const beast = (kind, v) => { const B = BEASTS[kind]; return P2.drawnPiece((g, ink) => B.draw(g, ink, D, P2, C, v), { w: B.w, h: B.h, name: kind }); };
+  popup(...piece('flintBench'), { x: A.x - 3.4, z: A.z - 0.6 }); popup(...piece('heatPit'), { x: A.x + 2.8, z: A.z - 2.8 }); mark(A.x - 3.4, A.z - 0.6, 2.6);
+  popup(...piece('sawhorse'), { x: B.x + 0.4, z: B.z + 1.7 }); popup(...piece('woodpile'), { x: B.x - 3.4, z: B.z - 0.6, solid: 1.2 }); popup(...piece('stumpAxe'), { x: B.x + 2.6, z: B.z + 0.6 }); mark(B.x - 3.4, B.z - 0.6, 2.4);
+  popup(...piece('quarrySledge'), { x: SITES.pierre_carriere.x - 3.2, z: SITES.pierre_carriere.z + 1.8 });
+  popup(...piece('scrapeBeam'), { x: -27.4, z: -12.6 }); popup(...piece('tanPit'), { x: -25.2, z: -14.2 }); mark(-26.5, -13.4, 3);
+  const SMOKER = [20.6, -7.6]; popup(...piece('smokeRack'), { x: SMOKER[0], z: SMOKER[1], solid: 1.2 }); mark(SMOKER[0], SMOKER[1], 2.8);
+  popup(...piece('oven'), { x: 10.8, z: -9.4, solid: 1 }); popup(...piece('quern'), { x: 12.8, z: -9.0 }); mark(11.8, -9.3, 2.6);
+  popup(...piece('pottery'), { x: -21, z: -15.4 }); mark(-21, -15.4, 2.6);
+  popup(...piece('baskets'), { x: 12.2, z: -3.4 });
+  const FOLD = { x: -17.3, z: 11.1, rx: 3.6, rz: 2.5 };
+  for (let k = 0; k < 9; k++) { const a = k / 9 * 6.283, x = FOLD.x + Math.sin(a) * FOLD.rx, z = FOLD.z + Math.cos(a) * FOLD.rz, tx = FOLD.rx * Math.cos(a), tz = -FOLD.rz * Math.sin(a); let yaw = Math.atan2(-tz, tx); if (Math.cos(yaw) < 0) yaw += Math.PI; popup(...piece('hurdle'), { x, z, yaw, scale: Math.cos(a) > 0.5 ? 0.75 : 0.9 }); walk.solid(x, z, 0.5); }
+  mark(FOLD.x, FOLD.z, 5);
+  popup(...piece('sty'), { x: -25.6, z: 4.4 }); for (const [x, z, yaw] of [[-27.4, 7.6, 0.4], [-24.0, 8.2, -0.3]]) popup(...piece('hurdle'), { x, z, yaw, scale: 0.8 }); mark(-25.6, 6, 3.6);
+  popup(...piece('coop'), { x: 21.2, z: -3.6, solid: 1.3 }); mark(21, -2, 3.2);
+  // the herds: tame and wild, each a card of its kind (a few coats), set free to graze, peck, nap or keep away
+  const HERD = [];
+  for (const hd of HERDS) hd.at.forEach(([x, z], v) => { HERD.push({ hd, x, z, h: popup(...beast(hd.kind, v), { x, z, scale: hd.scale }) }); if (hd.wild) mark(x, z, 3.2); });
   // ---- the palisade: four printed panels stamped all round the oval; the gate's posts; the wall grows with the story --
   const PANELS = [0, 1, 2, 3].map((k) => { const [pts, paint] = stakes(700 + k); return [pts, H.printed(pts, paint)]; });
   const segs = [];
@@ -476,6 +499,8 @@ export function buildVillage(campaign) {
   life.flock({ size: 5, height: 4, colors: ['#3a2a3a', '#f0e0d0'] });
   life.flyers({ count: 8, colors: ['#f4ecd8', '#e9c64a', '#d88aa0'], anchors: [[-6, -3], [8, 3], [-6, -20], [18, -10], [-20, 2]], roam: 1.6 });
   for (const m of herd) life.critter(m.group, { behaviour: 'graze', roam: 1.0 });
+  for (const a of HERD) life.critter(a.h.group, { behaviour: a.hd.behaviour, roam: a.hd.roam, speed: a.hd.speed ?? 0.6, home: [a.x, a.z], hero: H.hero.group.position });
+  life.puffs({ at: [[SMOKER[0], 0.8, SMOKER[1]]], perEmitter: 3, life: 4, rise: 0.5, size: [0.25, 0.45], colors: ['#c8c0c8', '#b8b0b8'] });
   life.fallers({ count: 24, cut: 'leaf', colors: ['#c8402e', '#e07a3a', '#8e2f2a', '#e0a24a'], size: [0.1, 0.16], fall: [0.6, 1.0], sway: 0.6, land: 8 });
   const rain = life.fallers({ count: 700, cut: 'streak', streak: true, colors: ['#c8b8d0', '#a898b8'], size: [0.18, 0.32], fall: [11, 13], sway: 0, tumble: 0, wind: 2.8, land: 0.12, day: 0, night: 0 });
   life.cloudShadows({ count: 4, alpha: 0.13 });
@@ -935,5 +960,5 @@ export function buildVillage(campaign) {
   const firePlaces = [[SITES.foyer.x, SITES.foyer.z, 1], [-11, -3.9, 0.8], ...[[-4.6, 7.2], [4.6, 7.2], [-7.6, -8.8], [7.6, -8.4], [-3.4, -17.8], [7, -17.6], [-10.6, -1.4], [10.8, -9.8]].map(([x, z]) => [x, z, 0.35])];
   const fireNear = (x, z) => [...firePlaces, ...burn.lit.map((b) => [b.x, b.z, 1.6 * b.level])].reduce((m, [fx, fz, k]) => Math.max(m, Math.min(1.6, k * Math.max(0, 1 - Math.hypot(x - fx, z - fz) / 16))), 0);
   const onPath = (x, z) => Math.hypot((x - SITES.foyer.x) / 8.5, (z - SITES.foyer.z) / 5.8) < 1 || PATHS.some((pl) => P2.pathLine(pl, { step: 1 }).dist(x, z) < 1.2);
-  return { H, SITES, RIVER, people, hero, burn, duelStep, weather, fireNear, riverNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
+  return { H, SITES, RIVER, people, hero, herds: HERD, burn, duelStep, weather, fireNear, riverNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
 }
