@@ -21,7 +21,7 @@ const PLATES = ['#f4e6c6', '#f3c878', '#dfe3b4', '#d8d2e6', '#f4e6c6', '#f3c878'
 document.querySelectorAll('#tools .btn').forEach((b, i) => paperize(b, { seed: 20 + i, style: 'tag', color: PLATES[i] }));
 cutLetters(document.querySelector('#intro h1'), { chips: true });
 
-const RES = '../../thaleolithic/Source/Resources/';
+const RES = 'Source/Resources/';
 const load = (f) => fetch(RES + f).then((r) => { if (!r.ok) throw new Error(f + ' : ' + r.status); return r.json(); });
 const [v17, menhir, base, legacy] = await Promise.all(['CampaignV17.json', 'MenhirDuel.json', 'UngaBungaCampaign.json', 'UngaBungaQuests.json'].map(load));
 let storage = null; try { storage = localStorage; localStorage.getItem('x'); } catch { storage = null; }

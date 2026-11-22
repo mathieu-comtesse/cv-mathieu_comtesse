@@ -1,8 +1,8 @@
-// Joue toute la campagne de THALEOLITHIC papier avec la logique portée (jeux/thaleolithic-papier/campaign.js) et les
+// Joue toute la campagne de THALEOLITHIC papier avec la logique portée (thaleolithic/campaign.js) et les
 // données du jeu Unity : chaque quête s'ouvre, chaque mini-jeu se termine selon ses propres règles, le duel se gagne.
 // Vérifie aussi quelques refus attendus (mauvaise réponse, budget, différences incomplètes, rassemblement incomplet).
 import { readFileSync } from 'node:fs';
-import { createCampaign, MENHIR_ACTION } from '../jeux/thaleolithic-papier/campaign.js';
+import { createCampaign, MENHIR_ACTION } from '../thaleolithic/campaign.js';
 const R = (f) => JSON.parse(readFileSync(new URL('../thaleolithic/Source/Resources/' + f, import.meta.url), 'utf8'));
 const c = createCampaign({ v17: R('CampaignV17.json'), menhir: R('MenhirDuel.json'), base: R('UngaBungaCampaign.json'), legacy: R('UngaBungaQuests.json') });
 const fail = [], check = (ok, msg) => { if (!ok) fail.push(msg); };

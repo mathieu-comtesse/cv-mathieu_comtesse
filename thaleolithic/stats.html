@@ -7,7 +7,7 @@
 <meta name="description" content="THALEOLITHIC en papier : les statistiques anonymes des parties, les morts par accident et par victime, la progression dans la campagne ISO 45001.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#2a1830">
-<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="ui.css">
 <style>
   /* the game's own interface (ui.css), laid out as a book of sheets pinned on the dusk: the village's paper, its cut
@@ -67,12 +67,12 @@
   <a class="back" href="./">Retour au village</a>
 </main>
 <div id="tip" role="status"></div>
-<script src="../talas-config.js?v=2"></script>
+<script src="../jeux/talas-config.js?v=2"></script>
 <script type="module">
   import { installTiles, paperize, cutLetters } from './paper-ui.js';
   import { createTalk, voiceOf } from './talk.js';
   installTiles();
-  const SB = window.THALEO_SB || window.TALAS_SB, RES = '../../thaleolithic/Source/Resources/';
+  const SB = window.THALEO_SB || window.TALAS_SB, RES = 'Source/Resources/';
   const $ = (id) => document.getElementById(id), tip = $('tip');
   const KIND = { tree: 'Arbre abattu', rock: 'Bloc de carrière', mammoth: 'Mammouth', hut: 'Toiture effondrée', fire: 'Feu', stock: 'Pile des réserves', river: 'Berge', workshop: 'Poste de l’atelier', beast: 'Bête sauvage (prédateur)', trample: 'Grand herbivore effrayé' };
   const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
