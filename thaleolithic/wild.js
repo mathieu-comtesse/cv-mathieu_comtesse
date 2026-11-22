@@ -47,6 +47,7 @@ export function createWild({ H, world, campaign, cinema, popup, beast, ovalE, ri
     const st = Math.min(d, sp * dt), nx = a.x + dx / d * st, nz = a.z + dz / d * st;
     if (!outside(nx, nz) && a.role !== 'flyer') return d;   // the stakes are a line no beast crosses
     if (a.role !== 'flyer' && a.role !== 'lurker' && riverDist(nx, nz) < 2.8) return d;
+    if (a.role === 'lurker' && a.state === 'hunt' && riverDist(nx, nz) > 2.4) return d;   // it hunts in the water only
     a.x = nx; a.z = nz; a.ph += st * 2.2; if (Math.abs(dx) > 0.05) a.face = Math.sign(dx); return d;
   }
   function step(t, dt) {
@@ -79,8 +80,13 @@ export function createWild({ H, world, campaign, cinema, popup, beast, ovalE, ri
         else if (a.state === 'dive') { moveTo(a, hp.x, hp.z, a.run, dt); a.y = Math.max(1.4, a.y - dt * 6); if (dh < 1.4 && a.y < 2.2 && live) { onAttack(a, 'beast'); a.state = 'climb'; } else if (a.t <= 0 || !live) a.state = 'climb'; }
         else { a.y = Math.min(9, a.y + dt * 4); moveTo(a, a.home[0], a.home[1], a.speed * 2, dt); if (a.y >= 9) a.state = 'roam'; }
       } else if (a.role === 'lurker') {
+        // on the bank it waits for a careless step; Dylan in the water is heard from far off: it glides to him, eyes
+        // just above the surface, and lunges once close
+        const wet = riverDist(hp.x, hp.z) < 2.8;
         if (a.state !== 'lunge' && live && dh < a.detect) { a.state = 'lunge'; a.t = 0.9; sx()?.play('whoosh', { from: 200, to: 900, dur: 0.4, v: 0.4 }); }
-        if (a.state === 'lunge') { moveTo(a, hp.x, hp.z, a.run, dt); a.y = Math.min(0.2, a.y + dt * 2); if (dh < 1.6 && live) { onAttack(a, 'beast'); a.state = 'sink'; } else if (a.t <= 0) a.state = 'sink'; }
+        else if (a.state !== 'lunge' && a.state !== 'hunt' && live && wet && dh < 20) { a.state = 'hunt'; sx()?.play('grunt', { f0: 70, dur: 0.6, vowel: 'o', rough: 1, v: 0.25, bend: -0.2 }); }
+        if (a.state === 'hunt') { moveTo(a, hp.x, hp.z, 2.6, dt); a.y = -0.22 + 0.04 * Math.sin(t * 3 + a.seed); if (!wet || !live) a.state = 'sink'; }
+        else if (a.state === 'lunge') { moveTo(a, hp.x, hp.z, a.run, dt); a.y = Math.min(0.2, a.y + dt * 2); if (dh < 1.6 && live) { onAttack(a, 'beast'); a.state = 'sink'; } else if (a.t <= 0) a.state = 'sink'; }
         else { a.y = -0.45 + 0.06 * Math.sin(t * 0.8 + a.seed); if (a.state === 'sink' && moveTo(a, a.home[0], a.home[1], 1.2, dt) < 0.3) a.state = 'roam'; }
       }
       if (a.state === 'roam' && a.role !== 'young' && a.role !== 'flyer') { if (a.t <= 0) { a.t = 3 + Math.random() * 6; [a.tx, a.tz] = pick(a); } moveTo(a, a.tx, a.tz, a.speed, dt); }

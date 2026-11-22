@@ -151,10 +151,34 @@ export const BEASTS = {
     g.fillStyle = ink('#5a4a40'); for (const sd of [-1, 1]) P2.fillLimb(g, sd * 0.35, 1.0, sd * 0.45, 0.5, sd * 0.4, 0.05, 0.24, 0.18); D.ell(g, 0, 1.55, 0.7, 0.85); for (const sd of [-1, 1]) P2.fillLimb(g, sd * 0.6, 2.0, sd * 1.0, 1.4, sd * 0.95, 0.6, 0.18, 0.13);
     g.fillStyle = ink('#3a2e2a'); D.ell(g, 0, 2.6, 0.42, 0.4); g.fillStyle = ink('#d8c8a8'); D.ell(g, 0, 2.5, 0.24, 0.2); for (const sd of [-1, 1]) D.ell(g, sd * 0.36, 2.85, 0.14, 0.12); eye(g, ink, D, -0.12, 2.65, 0.07); eye(g, ink, D, 0.12, 2.65, 0.07);
   } },
-  sarcosuchus: { w: 6.0, h: 1.2, draw: (g, ink, D, P2, C) => {   // the giant crocodile, low in the water
-    g.fillStyle = ink('#4a5a3a'); g.beginPath(); g.moveTo(-2.9, 0.35); g.quadraticCurveTo(-1.5, 0.55, 0, 0.62); g.lineTo(1.6, 0.55); g.lineTo(2.9, 0.38); g.quadraticCurveTo(3.0, 0.25, 2.8, 0.2); g.lineTo(1.6, 0.18); g.lineTo(-1.0, 0.1); g.quadraticCurveTo(-2.2, 0.12, -2.9, 0.35); g.fill();
-    g.fillStyle = ink('#3a4a2e', 'print'); for (let k = 0; k < 12; k++) D.poly(g, [[-1.8 + k * 0.28, 0.58], [-1.68 + k * 0.28, 0.78], [-1.56 + k * 0.28, 0.58]]);
-    g.fillStyle = ink('#f4ecdc'); for (let k = 0; k < 9; k++) D.poly(g, [[1.8 + k * 0.11, 0.3], [1.85 + k * 0.11, 0.2], [1.9 + k * 0.11, 0.3]]); D.ell(g, 2.45, 0.68, 0.12, 0.1); g.fillStyle = ink('#c8a020'); D.ell(g, 1.5, 0.66, 0.08, 0.07);
+  sarcosuchus: { w: 6.4, h: 1.7, draw: (g, ink, D, P2, C) => {   // the giant crocodile: a long thin snout with its bulb at the tip, raised eyes, two rows of armour plates
+    const top = (x) => x < -0.9 ? 0.46 + 0.5 * (x + 3.0) / 2.1 : x < 0.9 ? 0.96 - 0.04 * Math.abs(x) : x < 1.7 ? 0.92 - (x - 0.9) * 0.08 : 0.82 - (x - 1.7) * 0.18;
+    // sprawled legs under the flanks (they reach well into the body), webbed clawed feet
+    for (const [hx, fx, back] of [[-0.85, -1.15, 1], [0.7, 0.95, 0]]) {
+      g.fillStyle = ink(back ? '#3e4a2c' : '#46532f'); P2.fillLimb(g, hx, 0.62, hx + (fx - hx) * 0.4, 0.3, fx, 0.06, back ? 0.3 : 0.24, 0.13);
+      g.fillStyle = ink('#3a4428'); D.ell(g, fx + 0.1, 0.07, 0.24, 0.08); g.fillStyle = ink('#e8dcc0'); for (let k = 0; k < 3; k++) D.poly(g, [[fx + 0.16 + k * 0.08, 0.04], [fx + 0.28 + k * 0.08, 0.0], [fx + 0.2 + k * 0.08, 0.1]]);
+    }
+    // the tail, thick at the hips, thin and slightly raised at the tip; then the body, the neck, the broad skull
+    g.fillStyle = ink('#4e5c34'); g.beginPath(); g.moveTo(-0.6, 0.98); g.quadraticCurveTo(-1.9, 0.8, -3.1, 0.52); g.quadraticCurveTo(-1.9, 0.5, -0.7, 0.34); g.fill();
+    D.ell(g, 0.05, 0.64, 1.15, 0.36);
+    g.beginPath(); g.moveTo(0.8, 0.96); g.quadraticCurveTo(1.35, 0.98, 1.75, 0.86); g.lineTo(1.82, 0.62); g.quadraticCurveTo(1.3, 0.38, 0.8, 0.36); g.fill();
+    // the snout: long and narrow, ending in the bulb (the bulla) that gave it its name
+    g.beginPath(); g.moveTo(1.7, 0.88); g.lineTo(2.85, 0.68); g.lineTo(2.88, 0.6); g.lineTo(1.75, 0.64); g.fill();
+    D.ell(g, 2.98, 0.68, 0.2, 0.15);
+    // the lower jaw, a little open, and the teeth that cross outside it
+    g.fillStyle = ink('#6a7444'); g.beginPath(); g.moveTo(1.6, 0.6); g.lineTo(2.9, 0.53); g.quadraticCurveTo(3.05, 0.5, 2.98, 0.44); g.lineTo(1.65, 0.42); g.fill();
+    g.fillStyle = ink('#3a1e1a'); g.beginPath(); g.moveTo(1.7, 0.62); g.lineTo(2.9, 0.58); g.lineTo(2.9, 0.54); g.lineTo(1.7, 0.56); g.fill();
+    g.fillStyle = ink('#f4ecdc'); for (let k = 0; k < 12; k++) { const x = 1.78 + k * 0.095; D.poly(g, [[x, 0.615], [x + 0.03, 0.54], [x + 0.06, 0.615]]); if (k % 2) D.poly(g, [[x + 0.02, 0.55], [x + 0.05, 0.63], [x + 0.08, 0.55]]); }
+    // the pale belly and throat, the darker bands across the tail
+    g.fillStyle = ink('#b8ae7a'); D.ell(g, 0.05, 0.42, 1.0, 0.13); g.beginPath(); g.moveTo(0.9, 0.42); g.quadraticCurveTo(1.3, 0.38, 1.7, 0.44); g.lineTo(0.9, 0.5); g.fill();
+    g.fillStyle = ink('#34402a', 'print'); for (let k = 0; k < 6; k++) { const x = -1.0 - k * 0.33; D.poly(g, [[x, top(x) - 0.02], [x - 0.12, top(x - 0.12) - 0.02], [x - 0.08, 0.5 + (x + 3) * 0.02], [x + 0.04, 0.5 + (x + 3) * 0.02]]); }
+    // two rows of armour plates along the back, the tail's double crest, the raised eye with its slit
+    for (let x = -2.8; x < 1.5; x += 0.19) { const y = top(x), big = x < -0.9 ? 0.07 + 0.08 * (x + 2.8) / 1.9 : 0.12;
+      g.fillStyle = ink('#3a4628'); D.poly(g, [[x - 0.08, y - 0.03], [x + 0.02, y + big], [x + 0.11, y - 0.03]]);
+      g.fillStyle = ink('#6c7a46', 'print'); D.ell(g, x + 0.02, y - 0.1, 0.07, 0.04); }
+    g.fillStyle = ink('#4a5630'); D.ell(g, 1.55, 0.98, 0.14, 0.1);
+    g.fillStyle = ink('#e0b020'); D.ell(g, 1.57, 1.0, 0.075, 0.055); g.fillStyle = ink('#1a1210'); D.ell(g, 1.57, 1.0, 0.016, 0.05);
+    g.fillStyle = ink('#2a3020'); D.ell(g, 3.06, 0.76, 0.04, 0.025);   // the nostril on the bulb
   } },
   canariomys: { w: 1.2, h: 0.6, draw: (g, ink, D, P2, C) => { g.fillStyle = ink('#7a6250'); D.ell(g, 0, 0.25, 0.38, 0.2); D.ell(g, 0.36, 0.3, 0.16, 0.13); D.ell(g, 0.3, 0.44, 0.06, 0.06); g.strokeStyle = ink('#c8947a'); g.lineWidth = 0.05; g.beginPath(); g.moveTo(-0.36, 0.22); g.quadraticCurveTo(-0.6, 0.1, -0.55, 0.32); g.stroke(); g.fillStyle = ink('#2a1a1e'); D.ell(g, 0.42, 0.33, 0.025, 0.025); } },
   castoroides: { w: 2.0, h: 1.0, draw: (g, ink, D, P2, C) => { g.fillStyle = ink('#6a4a32'); D.ell(g, 0, 0.42, 0.7, 0.38); D.ell(g, 0.68, 0.48, 0.26, 0.22); g.fillStyle = ink('#3a2a22'); D.ell(g, -0.82, 0.18, 0.3, 0.1); g.fillStyle = ink('#e0a24a'); D.rect(g, 0.86, 0.3, 0.08, 0.14); eye(g, ink, D, 0.75, 0.55, 0.035); } },

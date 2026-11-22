@@ -68,7 +68,7 @@ export function buildVillage(campaign) {
   const between = (a, b) => a + rnd() * (b - a);
   const base2 = (P, c, k = 0.1, felt = 0.5) => { P.gradient(sh(c, k), sh(c, -k), 0.5); P.felt(felt); };
   const shadeIn = (P, c, a = 0.35) => P.innerShade(sh(c, -0.6), { alpha: a, blurPx: 8 });
-  const RIVER = P2.pathLine([[36, -40], [32, -28], [34, -16], [30.5, -4], [33, 8], [30, 20]], { step: 0.6 });
+  const RIVER = P2.pathLine([[37.5, -62], [36, -40], [32, -28], [34, -16], [30.5, -4], [33, 8], [30, 20], [29, 38]], { step: 0.6 });
   // the palisade's oval: a point at angle a (0 = south), whether a point lies on the wall line, inside, in a gap
   const wallAt = (a, k = 1) => [WALL.cx + WALL.rx * k * Math.sin(a), WALL.cz + WALL.rz * k * Math.cos(a)];
   const ovalE = (x, z) => Math.hypot((x - WALL.cx) / WALL.rx, (z - WALL.cz) / WALL.rz);
@@ -99,7 +99,9 @@ export function buildVillage(campaign) {
     drifts((x, y) => { g.strokeStyle = rgba(r() < 0.5 ? '#8a8a4a' : '#a09a5a', 0.75); g.lineWidth = 1.6; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - 0.5) * 3, y - 5 - r() * 5); g.stroke(); if (r() < 0.12) { g.fillStyle = r() < 0.5 ? '#c86a8a' : '#e0c050'; g.beginPath(); g.arc(x, y - 6, 1.7, 0, 7); g.fill(); } }, { n: 12000 });
     for (let k = 0; k < 14; k++) { const a = k / 14 * 6.283, x = SITES.rassemblement.x + Math.cos(a) * 2.8, z = SITES.rassemblement.z + Math.sin(a) * 2.2; g.fillStyle = '#efe4cc'; g.beginPath(); g.ellipse(X(x), Z(z), 0.32 * ppu, 0.22 * ppu, 0, 0, 7); g.fill(); }
   }, { seed: 12 });
-  walk.block((x, z) => RIVER.dist(x, z) < 2.6);
+  // the river can be waded, slowly, waist-deep: the sarcosuchus hunts whoever tries (wild.js)
+  const inRiver = (x, z) => RIVER.dist(x, z) < 2.8;
+  H.drag = (x, z) => (inRiver(x, z) ? 0.38 : 1);
   walk.block((x, z) => Math.abs(ovalE(x, z) - 1) < 0.035 && !inGap(angleOf(x, z)));   // the palisade, but its gate and gaps
 
   // ---- pieces ------------------------------------------------------------------------------------------------------
@@ -492,7 +494,7 @@ export function buildVillage(campaign) {
   const torchMat = H.printed(torchCard[0], torchCard[1]);
   const torchFire = [0, 1, 2].map((k) => { const [pts, paint] = tongues(77 + k * 5, 2.8, 0.42); return [pts, H.printed(pts, (P) => { paint(P); P.glow((g) => { g.fillStyle = '#fff'; g.fillRect(-1, 2.6, 2, 2); }); }, { cross: true })]; });
   for (const [x, z] of [[-4.6, 7.2], [4.6, 7.2], [-7.6, -8.8], [7.6, -8.4], [-3.4, -17.8], [7, -17.6], [-10.6, -1.4], [10.8, -9.8]]) {
-    popup(torchCard[0], null, { materials: torchMat, x, z, yaw: 0 }); walk.solid(x, z, 0.35);
+    popup(torchCard[0], null, { materials: torchMat, x, z, yaw: 0 });
     FIRES.push(torchFire.map(([pts, mat]) => { const f = popup(pts, null, { materials: mat, x, z, cross: true, sway: 0.5 }); H.glowing(f.group); return f; }));
     H.lamp(x, 3.0, z, 0.55, 7);
   }
@@ -588,7 +590,6 @@ export function buildVillage(campaign) {
       if (pr.prop === 'map') { card.position.x = -0.1; p.map = card; card.scale.x = 0.25; }
       if (pr.prop === 'staff') { p.smoke = new THREE.Object3D(); p.smoke.position.set(0, A.tip + 0.1, 0); g.add(p.smoke); }
     }
-    p.sol = { x, z, r: 0.42, base: -Infinity, top: Infinity }; walk.solids.push(p.sol);   // a body Dylan cannot walk through, wherever it goes
   }
   // Aurélien's deck chair beside him; Alban's ritual circle with its smoking bowl; Milena's lookout stone on the bank
   popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink('#a0683e'); D.poly(g, [[-0.9, 0], [-0.75, 0], [0.1, 1.5], [-0.08, 1.6]]); D.poly(g, [[0.5, 0], [0.65, 0], [0.35, 0.7], [0.2, 0.7]]); g.fillStyle = ink('#c8402e'); D.poly(g, [[-0.62, 0.55], [0.6, 0.6], [0.05, 1.45], [-0.15, 1.42]]); g.fillStyle = ink('#e0a24a', 'print'); for (let k = 0; k < 4; k++) D.rect(g, -0.4 + k * 0.22, 0.7 + k * 0.17, 0.08, 0.35); }, { w: 1.9, h: 1.8, name: 'transat' }), { x: SITES.aurelien.x - 1.4, z: SITES.aurelien.z - 0.5 });
@@ -677,12 +678,11 @@ export function buildVillage(campaign) {
   const RV = (() => { const pts = RIVER.pts, L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, L, len: L[L.length - 1] }; })();
   const along = (s) => { let i = 1; while (i < RV.L.length - 1 && RV.L[i] < s) i++; const [x0, z0] = RV.pts[i - 1], [x1, z1] = RV.pts[i], u = (s - RV.L[i - 1]) / Math.max(1e-6, RV.L[i] - RV.L[i - 1]), l = Math.hypot(x1 - x0, z1 - z0) || 1; return [x0 + (x1 - x0) * u, z0 + (z1 - z0) * u, (x1 - x0) / l, (z1 - z0) / l]; };
   const inkTex = (draw) => { const c = document.createElement('canvas'); c.width = 128; c.height = 64; const g = c.getContext('2d'); g.lineCap = 'round'; draw(g); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
-  // the river's strokes flow: the pale dashes and the foam lines along the banks are drawn on two ribbons laid on its
+  // the river's strokes flow: the pale dashes are drawn on two ribbons laid on its
   // bed, their print sliding downstream (the near layer faster), seamless along the course
-  const strokeTile = (seed, n, foam) => { const W = 512, c = document.createElement('canvas'); c.width = c.height = W; const g = c.getContext('2d'), r = P2.rng(seed); g.lineCap = 'round';
+  const strokeTile = (seed, n) => { const W = 512, c = document.createElement('canvas'); c.width = c.height = W; const g = c.getContext('2d'), r = P2.rng(seed); g.lineCap = 'round';
     const line = (x0, y0, x1, y1, col, w) => { for (const o of [-W, 0, W]) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(x0 + o, y0); g.lineTo(x1 + o, y1); g.stroke(); } };
     for (let k = 0; k < n; k++) { const x = r() * W, y = W * (0.12 + r() * 0.76), l = W * (0.035 + r() * 0.07), a = (r() - 0.5) * 0.2; line(x, y, x + Math.cos(a) * l, y + Math.sin(a) * l, r() < 0.78 ? 'rgba(250,244,228,0.85)' : 'rgba(70,82,130,0.55)', 5 + r() * 4); }
-    if (foam) for (const y of [W * 0.05, W * 0.95]) for (let x = 0; x < W; x += W / 6) line(x + r() * 20, y + (r() - 0.5) * 8, x + W / 10 + r() * 20, y + (r() - 0.5) * 8, 'rgba(244,234,212,0.75)', 10);
     const t = new THREE.CanvasTexture(c); t.wrapS = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; };
   const ribbon = (half, tex, y) => {
     const pos = [], uv = [], idx = [], TILE = 6; let s0 = 0;
@@ -693,7 +693,7 @@ export function buildVillage(campaign) {
     const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
     const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.15, depthWrite: false, roughness: 1, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 }));
     m.receiveShadow = true; H.scene.add(m); return tex; };
-  const FLOW = [[ribbon(2.7, strokeTile(77, 30, true), 0.03), 1.45], [ribbon(2.3, strokeTile(91, 12, false), 0.035), 0.85]];
+  const FLOW = [[ribbon(2.7, strokeTile(77, 30), 0.03), 1.45], [ribbon(2.3, strokeTile(91, 12), 0.035), 0.85]];
   H.onStep((t, dt) => { for (const [tex, sp] of FLOW) tex.offset.x -= sp * dt / 6; });
   const ringTex = inkTex((g) => { g.strokeStyle = '#e0dcf0'; g.lineWidth = 5; g.beginPath(); g.ellipse(64, 32, 52, 26, 0, 0, 7); g.stroke(); });
   const flatMat = (map) => new THREE.MeshStandardMaterial({ map, transparent: true, alphaTest: 0.25, depthWrite: false, roughness: 1, side: THREE.DoubleSide });
@@ -703,8 +703,10 @@ export function buildVillage(campaign) {
   const _o = new THREE.Object3D(); let ringAt = 0;
   H.onStep((t, dt) => {
     ringAt -= dt * (2 + 40 * weather.rain);
+    const hp = H.hero.group.position, wade = inRiver(hp.x, hp.z); let wakeAt = wade ? 1 : 0;   // Dylan wading: rings open round his legs
     G.forEach((g, i) => {
-      g.age += dt; if (g.age > g.life && ringAt <= 0 && weather.rain > 0.05) { ringAt += 1; const [x, z, tx, tz] = along(Math.random() * RV.len), off = (Math.random() - 0.5) * 2.6; Object.assign(g, { age: 0, x: x - tz * off, z: z + tx * off }); }
+      g.age += dt; if (g.age > g.life && wakeAt && Math.random() < dt * 6) { wakeAt = 0; Object.assign(g, { age: 0, life: 1.1, x: hp.x + (Math.random() - 0.5) * 0.8, z: hp.z + (Math.random() - 0.5) * 0.5 }); }
+      else if (g.age > g.life && ringAt <= 0 && weather.rain > 0.05) { ringAt += 1; const [x, z, tx, tz] = along(Math.random() * RV.len), off = (Math.random() - 0.5) * 2.6; Object.assign(g, { age: 0, life: 0.9, x: x - tz * off, z: z + tx * off }); }
       const u = Math.min(1, g.age / g.life), k = g.age < g.life ? 0.3 + 1.3 * u : 0.001;
       _o.position.set(g.x, 0.065, g.z); _o.rotation.set(-Math.PI / 2, 0, 0); _o.scale.set(k, k, 1); _o.updateMatrix(); rings.setMatrixAt(i, _o.matrix);
     });
@@ -775,7 +777,7 @@ export function buildVillage(campaign) {
   const bits = []; const bitGeo = new THREE.PlaneGeometry(1, 1);
   const bitMats = ['#b8202a', '#8e1a22', '#d84a3a', '#e0a24a'].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 1, side: THREE.DoubleSide }));
   function die(id, animate) {
-    const p = people[id], h = p.h, d = { t: animate ? 0 : 9, parts: [] }; deaths.set(id, d); if (p.sol) p.sol.r = 0; p.dying = d; p.busy = true; p.target = null; h.held = true;
+    const p = people[id], h = p.h, d = { t: animate ? 0 : 9, parts: [] }; deaths.set(id, d); p.dying = d; p.busy = true; p.target = null; h.held = true;
     const face = flatCard(...deadFace, 611); face.position.set(0, 2.0 * (id === 'petit_os' ? 0.7 : 1), 0.06); h.pivot.add(face); d.parts.push([h.pivot, face]);
     const splat = flatCard(...splatShape, 613); splat.rotation.x = -Math.PI / 2; splat.position.set(p.x, 0.03, p.z - 1.0); splat.scale.setScalar(animate ? 0.001 : 1); H.scene.add(splat); d.splat = splat; d.parts.push([H.scene, splat]);
     if (!animate) { h.reset(0); return; }
@@ -792,7 +794,7 @@ export function buildVillage(campaign) {
   function revive(id) {
     const p = people[id], d = deaths.get(id); deaths.delete(id);
     for (const [par, o] of d.parts) par.remove(o);
-    if (p.sol) p.sol.r = 0.42; p.dying = null; p.busy = false; p.acting = false; p.h.held = false; p.h.group.rotation.z = 0; p.h.group.scale.set(1, 1, 1); p.h.set(1, 0);
+    p.dying = null; p.busy = false; p.acting = false; p.h.held = false; p.h.group.rotation.z = 0; p.h.group.scale.set(1, 1, 1); p.h.set(1, 0);
   }
   // ---- the Grand Menhir engraved: the duel's five decisions cut into its face, one after the other, each a sunken
   // plaque with a pale edge and dark grooves: a hand over the flame (5.1), the policy tablet (5.2), the three roles
@@ -962,7 +964,7 @@ export function buildVillage(campaign) {
       }
       if (wait && (p.waitT = (p.waitT || 0) + dt) < 0.9) continue; if (!wait) p.waitT = 0;
       const al = Math.hypot(ax, az) || 1; ax /= al; az /= al;
-      const step = Math.min(d, pr.speed * (p.hurry ? 1.7 : 1) * dt); p.x += ax * step; p.z += az * step; p.ph += step / pr.step * Math.PI; if (p.sol) { p.sol.x = p.x; p.sol.z = p.z; }
+      const step = Math.min(d, pr.speed * (p.hurry ? 1.7 : 1) * dt); p.x += ax * step; p.z += az * step; p.ph += step / pr.step * Math.PI;
       h.group.position.x = p.x; h.group.position.z = p.z;
       if (Math.abs(dx) > 0.2) { const want = Math.sign(dx); if (want !== p.face) p.face = want; }
       h.pivot.scale.x = p.face;

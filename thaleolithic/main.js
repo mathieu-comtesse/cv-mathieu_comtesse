@@ -110,9 +110,14 @@ for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) actBtn.addEvent
 H.onStep(() => { actBtn.classList.toggle('off', document.getElementById('prompt').hidden); });
 // finding the way: the GPS ribbon, the beacons, the minimap, the conversation camera (nav.js)
 const nav = createNav({ world, campaign, ui, cinema }); world.navMap = nav.map; H.onStep((t, dt) => nav.step(t, dt));
-paperize(document.getElementById('mini'), { seed: 31, style: 'slip' });
+const mini = document.getElementById('mini'), tools = document.getElementById('tools');
+paperize(mini, { seed: 31, style: 'slip' });
+// the minimap hangs under the screen buttons, however many rows they wrap to (on a phone it sits at the bottom)
+const placeMini = () => { mini.style.top = matchMedia('(max-width: 640px)').matches ? '' : Math.ceil(tools.getBoundingClientRect().bottom + 22) + 'px'; };
+addEventListener('resize', placeMini); document.fonts.ready.then(placeMini); placeMini();
 // the game's statistics, sent to Supabase like the Village Talas (stats.js; read back on stats.html)
 const stats = createStats(campaign, { touch: matchMedia('(pointer: coarse)').matches, off: Q.has('capture') });
 window.__thaleo = { campaign, world, ui, cinema, sfx, talk, stats, nav };
-if (campaign.state.accident?.played) ui.open('death');   // a death screen left open: it comes back
+// a death waits for its answer: its screen stays (or comes back, after a reload) until Dylan respawns from it
+H.onStep(() => { if (campaign.state.accident?.played && ui.mode !== 'death' && !cinema.playing) ui.open('death'); });
 H.start();

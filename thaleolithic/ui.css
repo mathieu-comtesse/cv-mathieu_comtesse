@@ -299,7 +299,7 @@
   /* the big map: the same plate, zoomable and draggable */
   .bigmap { position: relative; overflow: hidden; height: min(52vh, 420px); margin: 8px 0; border-radius: 3px 8px 4px 9px; box-shadow: var(--cut), inset 0 0 0 1px rgb(var(--sh) / .4); cursor: grab; touch-action: none; background: #c8b48a; }
   .bigmap svg { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
-  .bigmap .zoom { position: absolute; right: 8px; top: 8px; display: grid; gap: 6px; z-index: 2; } .bigmap .zoom .btn { width: 38px; height: 38px; padding: 0; font: 400 22px/1 var(--caps); }
+  .bigmap .zoom { position: absolute; right: 8px; top: 8px; display: grid; gap: 6px; z-index: 2; } .bigmap .zoom .btn { display: grid; place-items: center; width: 38px; height: 38px; margin: 0; padding: 0; } .bigmap .zoom svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
   .bigmap .site text { font: 400 11px/1 var(--caps); fill: #2a1a1e; paint-order: stroke; stroke: #fbf1de; stroke-width: 3px; }
 
   /* the prehistoric timer: a sun-stone with a burning wick round its rim and the time carved in the middle */

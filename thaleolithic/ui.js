@@ -28,13 +28,14 @@ export function createUI(campaign, world) {
   const mark = () => { for (const [m, id] of Object.entries(TOOL)) $(id).classList.toggle('sel', m === mode); };
   let opened = Math.floor(Math.random() * 997);
   const open = (m) => {
+    if (campaign.state.accident?.played) m = 'death';   // a death is answered before anything else: only its button lets Dylan go on
     const fresh = root.hidden || root.classList.contains('out');
     mode = m; root.classList.remove('out'); root.hidden = false;
     if (fresh) { root.classList.remove('in'); void root.offsetWidth; root.classList.add('in'); flap(true); body.scrollTop = 0; root.reseed?.(5 + (opened = (opened + 1) % 997) * 131); }   // never the same bones and feathers twice
     render(); mark();
   };
   const close = () => {
-    if (!mode) return; mode = null; mark(); flap(false);
+    if (!mode || (mode === 'death' && campaign.state.accident)) return; mode = null; mark(); flap(false);
     root.classList.remove('in');
     if (still()) root.hidden = true; else root.classList.add('out');
   };
@@ -361,7 +362,7 @@ export function createUI(campaign, world) {
       g += `<g class="site" data-site="${id}" style="cursor:pointer"><circle cx="${s.x}" cy="${s.z}" r="2.2" fill="transparent"/>${goal ? `<circle cx="${s.x}" cy="${s.z}" r="1.6" fill="#ffce60" stroke="#7a2e18" stroke-width=".3"/>` : `<circle cx="${s.x}" cy="${s.z}" r=".7" fill="#2a1a1e" opacity=".7"/>`}${mv.span < 70 ? `<text x="${s.x + 1.2}" y="${s.z - 1.0}" style="font-size:${(mv.span / 46).toFixed(2)}px">${esc(s.label)}</text>` : ''}</g>`;
     }
     g += `<g transform="translate(${hero.x.toFixed(2)} ${hero.z.toFixed(2)}) rotate(${(-world.H.hero.group.rotation.y * 180 / Math.PI + 180).toFixed(0)})"><path d="M0-1.5L1.1 1.1 0 .5-1.1 1.1z" fill="#a83a2a" stroke="#fbf1de" stroke-width=".25"/></g></svg>`;
-    body.innerHTML = `<p class="kicker">Écran Carte</p><h2>Le village des Crânes Fendus</h2><div class="bigmap">${g}<div class="zoom"><button class="btn" type="button" data-z="in" aria-label="Zoomer">+</button><button class="btn" type="button" data-z="out" aria-label="Dézoomer">−</button><button class="btn" type="button" data-z="me" aria-label="Revenir sur Dylan">◎</button></div></div><p class="small">La flèche rouge est Dylan, le rond doré la prochaine étape (le ruban y mène), les points rouges les dangers à examiner. Molette ou boutons pour zoomer, glisser pour se déplacer, un lieu choisi devient la destination.</p>`;
+    body.innerHTML = `<p class="kicker">Écran Carte</p><h2>Le village des Crânes Fendus</h2><div class="bigmap">${g}<div class="zoom"><button class="btn" type="button" data-z="in" aria-label="Zoomer"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v13M3.5 10h13"/></svg></button><button class="btn" type="button" data-z="out" aria-label="Dézoomer"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 10h13"/></svg></button><button class="btn" type="button" data-z="me" aria-label="Revenir sur Dylan"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><circle cx="10" cy="10" r="1.8" fill="currentColor"/></svg></button></div></div><p class="small">La flèche rouge est Dylan, le rond doré la prochaine étape (le ruban y mène), les points rouges les dangers à examiner. Molette ou boutons pour zoomer, glisser pour se déplacer, un lieu choisi devient la destination.</p>`;
     const box = body.querySelector('.bigmap'), svg = box.querySelector('svg'), set = () => svg.setAttribute('viewBox', vb());
     const zoom = (k, fx = 0.5, fy = 0.5) => { const ns = Math.max(14, Math.min(100, mv.span * k)), dx = (fx - 0.5) * (mv.span - ns), dz = (fy - 0.5) * (mv.span - ns) * aspect; mv.span = ns; mv.cx += dx; mv.cz += dz; set(); };
     box.querySelectorAll('[data-z]').forEach((b) => { b.onclick = (e) => { e.stopPropagation(); if (b.dataset.z === 'me') { mv.cx = hero.x; mv.cz = hero.z; set(); } else zoom(b.dataset.z === 'in' ? 0.7 : 1.4); }; });

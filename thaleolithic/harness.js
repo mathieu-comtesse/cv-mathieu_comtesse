@@ -554,8 +554,9 @@ export function createHarness({ bounds = { x0: -64, x1: 64, z0: -62, z1: 38 }, g
       const il = Math.hypot(ix, iz), wx = il ? ix / il : 0, wz = il ? iz / il : 0;
       if (il && !moved) { moved = true; if (focus && !focusAt) { focusFrom.copy(post.focus); focusBlend = 0; } }   // the lens eases from the overview's subject to him
       // velocity: a constant-rate approach to the wanted one
-      const dvx = wx * SPEED - vel.x, dvz = wz * SPEED - vel.z, dvl = Math.hypot(dvx, dvz), maxDv = ACCEL * dt;
-      if (dvl <= maxDv) vel.set(wx * SPEED, 0, wz * SPEED); else { vel.x += dvx / dvl * maxDv; vel.z += dvz / dvl * maxDv; }
+      const SP = SPEED * (H.drag ? H.drag(heroPos.x, heroPos.z) : 1);   // H.drag(x, z): a speed factor where he stands (wading)
+      const dvx = wx * SP - vel.x, dvz = wz * SP - vel.z, dvl = Math.hypot(dvx, dvz), maxDv = ACCEL * dt;
+      if (dvl <= maxDv) vel.set(wx * SP, 0, wz * SP); else { vel.x += dvx / dvl * maxDv; vel.z += dvz / dvl * maxDv; }
       const sp = Math.hypot(vel.x, vel.z);
       // heading: toward the input (or the remaining velocity while coasting), smoothed
       let dh = 0;
