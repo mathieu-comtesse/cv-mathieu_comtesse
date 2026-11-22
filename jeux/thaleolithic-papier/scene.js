@@ -41,6 +41,7 @@ export const SITES = {
   aurelien: { x: -4, z: -10, label: 'Aurélien' }, mathieu: { x: 5, z: -2, label: 'Mathieu' }, lorette: { x: -9, z: -13, label: 'Lorette' },
   nork: { x: -11, z: -20, label: 'Ouways' }, alban: { x: 5, z: -17, label: 'Alban' },
   repos: { x: -8, z: 4, label: 'L’infirmerie' }, bois_construction: { x: -19, z: -11, label: 'Bûcherons' },
+  berge_observation: { x: 27.8, z: -12.5, label: 'La berge' }, cimetiere: { x: 21.5, z: 14, label: 'Le cimetière' },
 };
 export const WALL = { cx: 0, cz: -9, rx: 25, rz: 17.5, gates: [[0, 0.13], [2.41, 0.15], [-2.44, 0.15]] };   // angle 0 = south (toward the camera)
 // where each villager stands (the givers stand on their own site)
@@ -432,6 +433,40 @@ export function buildVillage(campaign) {
     H.lamp(x, 3.0, z, 0.55, 7);
   }
 
+  // ---- the cemetery, outside the wall by the gathering point: a ring of stones, a gate of two tusks; a mound and a
+  // standing slab for each villager the tribe has lost (the slab carries the pictogram of their trade, a red hand, their
+  // offerings), Dylan's cenotaph that counts his deaths in notches; a little paper ghost wanders above each grave
+  const CEM = SITES.cimetiere; mark(CEM.x, CEM.z, 6);
+  for (let k = 0; k < 16; k++) { const a = k / 16 * 6.283; if (Math.abs(Math.sin(a)) < 0.2 && Math.cos(a) > 0) continue; popup(...rock(0.9), { x: CEM.x + Math.sin(a) * 5, z: CEM.z + Math.cos(a) * 3.4, scale: 0.45, yaw: 0 }); }
+  for (const sd of [-1, 1]) popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink(C.bone); P2.fillLimb(g, 0, 0, sd * -0.6, 1.8, sd * 0.4, 3.0, 0.3, 0.1); }, { w: 1.8, h: 3.2, name: 'tusk' }), { x: CEM.x + sd * 1.1, z: CEM.z + 3.6, yaw: 0 });
+  const GLYPH = { georges: 'maul', eliott: 'spear', neila: 'pot', orok: 'flame', alban: 'staff', milena: 'eye', uma: 'hut', tarek: 'axe' };
+  const glyph = (g, k) => { g.lineCap = g.lineJoin = 'round'; g.beginPath();
+    if (k === 'maul') { g.moveTo(0, 0.5); g.lineTo(0, 1.4); g.rect(-0.3, 1.4, 0.6, 0.3); } else if (k === 'spear') { g.moveTo(0, 0.4); g.lineTo(0, 1.4); g.moveTo(-0.18, 1.35); g.lineTo(0, 1.75); g.lineTo(0.18, 1.35); }
+    else if (k === 'pot') { g.ellipse(0, 1.0, 0.35, 0.4, 0, 0, 6.283); g.moveTo(-0.2, 1.45); g.lineTo(0.2, 1.45); } else if (k === 'flame') { g.moveTo(0, 0.5); g.quadraticCurveTo(-0.45, 1.0, 0, 1.7); g.quadraticCurveTo(0.45, 1.0, 0, 0.5); }
+    else if (k === 'staff') { g.moveTo(0, 0.4); g.lineTo(0, 1.6); g.arc(0.12, 1.6, 0.12, Math.PI, 0); } else if (k === 'eye') { g.moveTo(-0.4, 1.05); g.quadraticCurveTo(0, 1.45, 0.4, 1.05); g.quadraticCurveTo(0, 0.65, -0.4, 1.05); g.moveTo(0.1, 1.05); g.arc(0, 1.05, 0.1, 0, 6.283); }
+    else if (k === 'hut') { g.moveTo(-0.45, 0.5); g.quadraticCurveTo(-0.45, 1.6, 0, 1.65); g.quadraticCurveTo(0.45, 1.6, 0.45, 0.5); } else { g.moveTo(-0.1, 0.4); g.lineTo(0.15, 1.6); g.moveTo(0.1, 1.35); g.lineTo(0.45, 1.5); g.lineTo(0.4, 1.15); g.lineTo(0.12, 1.2); }
+    g.stroke(); };
+  const graveArt = (id) => P2.drawnPiece((g, ink) => {
+    g.fillStyle = ink('#7a5a3a'); D.ell(g, 0, 0.18, 1.3, 0.3);                             // the mound
+    g.fillStyle = ink(C.stoneB); D.poly(g, [[-0.55, 0.15], [0.55, 0.15], [0.6, 1.7], [0.1, 2.05], [-0.5, 1.8]]);   // the slab
+    g.strokeStyle = ink('#2e2a3c', 'print'); g.lineWidth = 0.09; g.save(); g.translate(-0.02, 0.05); glyph(g, GLYPH[id]); g.restore();
+    g.fillStyle = ink('#b8402e', 'print'); D.ell(g, 0.3, 0.42, 0.1, 0.12); for (let f = 0; f < 5; f++) { const a = -0.9 + f * 0.45; D.ell(g, 0.3 + Math.sin(a) * 0.17, 0.42 + Math.cos(a) * 0.17, 0.03, 0.07, -a); }
+    g.fillStyle = ink('#e0a24a'); D.ell(g, -0.95, 0.3, 0.16, 0.12); g.fillStyle = ink('#c86a8a'); D.ell(g, 0.9, 0.32, 0.12, 0.1); D.ell(g, 1.05, 0.38, 0.1, 0.08);
+  }, { w: 2.8, h: 2.3, name: 'grave ' + id });
+  const GRAVE_IDS = Object.keys(GLYPH), graveAt = (k) => [CEM.x - 3.0 + (k % 4) * 2.0, CEM.z - 1.6 + Math.floor(k / 4) * 2.4];
+  const graves = { list: GRAVE_IDS.map((id, k) => { const [x, z] = graveAt(k), h = popup(...graveArt(id), { x, z, yaw: 0 }); h.held = true; h.set(0, 0); return { id, h, x, z }; }) };
+  // Dylan's cenotaph: a tall stone, a skull, and a notch cut for each time he died (a canvas on its face)
+  const ceno = popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink(C.stone); D.poly(g, [[-0.7, 0], [0.7, 0], [0.6, 3.1], [0, 3.5], [-0.62, 3.0]]); g.fillStyle = ink(C.bone, 'print'); D.ell(g, 0, 2.7, 0.32, 0.28); D.rect(g, -0.17, 2.35, 0.34, 0.2, 0.04); g.fillStyle = ink('#2a1a1e', 'print'); D.ell(g, -0.12, 2.72, 0.08, 0.09); D.ell(g, 0.12, 2.72, 0.08, 0.09); }, { w: 1.6, h: 3.6, name: 'cenotaph' }), { x: CEM.x + 3.6, z: CEM.z - 2.2, yaw: 0, solid: 0.6 });
+  const tally = (() => { const c = document.createElement('canvas'); c.width = 200; c.height = 260; const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 1.5), new THREE.MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -4 })); m.position.set(0, 1.2, 0.05); ceno.pivot.add(m);
+    let n = -1; return (k) => { if (k === n) return; n = k; const g = c.getContext('2d'); g.clearRect(0, 0, 200, 260); g.lineCap = 'round'; for (let i = 0; i < k; i++) { const grp = Math.floor(i / 5), j = i % 5, x0 = 22 + (grp % 3) * 60, y0 = 20 + Math.floor(grp / 3) * 80; g.strokeStyle = '#2e2a3c'; g.lineWidth = 11; g.beginPath(); if (j < 4) { g.moveTo(x0 + j * 13, y0); g.lineTo(x0 + j * 13, y0 + 66); } else { g.moveTo(x0 - 8, y0 + 56); g.lineTo(x0 + 48, y0 + 8); } g.stroke(); } tex.needsUpdate = true; }; })();
+  graves.sync = () => {
+    const st = campaign.state, pend = st.accident && !st.accident.played ? st.accident.victim : null;
+    for (const gv of graves.list) { const want = st.dead.includes(gv.id) && gv.id !== pend; if (want === !gv.h.held) continue; gv.h.held = !want; gv.h.set(want ? 1 : 0, want && booted ? 0.4 : 0); if (!booted && want) gv.h.reset?.(1); }
+    tally(st.dylanDeaths || 0);
+  };
+  H.onStep(() => { for (const gv of graves.list) gv.h.group.visible = !gv.h.held || gv.h.p > 0.02; });
+
   // ---- outside the wall: the far ridge with mammoths, crimson pines in the woods, rocks; inside, tufts only ------------
   for (const [x, z, s] of [[-30, -44, 1.4], [-10, -48, 1.2], [18, -46, 1.5]]) H.stack(x, z, [0, 1, 2].map((k) => ({ pts: P2.roughen(P2.shape.hill(rnd, { w: 26 - k * 4, h: 7 - k * 1.6, bumps: 2 }), rnd), paint: (P) => { base2(P, sh('#8a6a8a', -0.12 + k * 0.1), 0.08); shadeIn(P, '#8a6a8a', 0.25); }, d: k * 1.6 })), { scale: s });
   const herd = [];
@@ -619,7 +654,9 @@ export function buildVillage(campaign) {
     if (!engraved) engraving.hideAll();
     else if (!booted) engraving.showAll(false);
     else if (!engraving.shown.some(Boolean)) later(0.6, () => { if (!engraving.cine) engraving.showAll(true); });
-    for (const id of campaign.state.dead) if (people[id] && !deaths.has(id)) die(id, booted);
+    const pend = campaign.state.accident && !campaign.state.accident.played ? campaign.state.accident.victim : null;   // a death to come in its cinematic
+    for (const id of campaign.state.dead) if (people[id] && !deaths.has(id) && id !== pend) die(id, booted);
+    graves?.sync();
     for (const id of [...deaths.keys()]) if (!campaign.state.dead.includes(id)) revive(id);
   }
   // ---- death, grotesque and paper: the villager shudders, its eyes turn to crosses and its tongue lolls; it falls flat,
@@ -650,7 +687,7 @@ export function buildVillage(campaign) {
   function revive(id) {
     const p = people[id], d = deaths.get(id); deaths.delete(id);
     for (const [par, o] of d.parts) par.remove(o);
-    p.dying = null; p.busy = false; p.h.held = false; p.h.group.rotation.z = 0; p.h.set(1, 0);
+    p.dying = null; p.busy = false; p.acting = false; p.h.held = false; p.h.group.rotation.z = 0; p.h.group.scale.set(1, 1, 1); p.h.set(1, 0);
   }
   // ---- the Grand Menhir engraved: the duel's five decisions cut into its face, one after the other, each a sunken
   // plaque with a pale edge and dark grooves: a hand over the flame (5.1), the policy tablet (5.2), the three roles
@@ -781,7 +818,7 @@ export function buildVillage(campaign) {
       // its trade (the chief's pose, the rites' staff, Milena scanning and unrolling her map...); walking, its gait is set
       // from the distance covered (never from time): its own speed, stride, hop, rock and lean, flipping to face the way
       // it goes (never seen edge-on); the mascot scampers about its home
-      if (p.dying) continue;
+      if (p.dying || p.acting) continue;
       const pr = p.pr, h = p.h;
       if (!p.target) {
         p.ph = 0;
@@ -958,9 +995,113 @@ export function buildVillage(campaign) {
     if (s.phase === 'combat') { dz.beat = (dz.beat ?? 0) - dt; if (dz.beat <= 0) { dz.beat = 0.3; dz.n = (dz.n ?? 0) + 1; sx.play('drum', { f: dz.n % 4 === 0 ? 62 : dz.n % 2 ? 96 : 80, v: dz.n % 4 === 0 ? 0.32 : 0.16, slap: 0.4 }); } }
   }
 
+  // ---- the accidents of the Unity game, staged in paper (AccidentDirector: tree, rock, mammoth, hut, fire, stock,
+  // river, workshop). begin(): the props stand ready, the victim walks to the spot; strike(): what goes wrong, then the
+  // grotesque death (crushed flat, launched, set alight, swept away), the splat, the eyes, the ghost; clear(): Dylan is
+  // put back on his feet (the game takes up again before the decision), the props go away.
+  const ACC = { cur: null, t: -1, killed: false };
+  const keepProp = (h) => { h.held = true; h.set(0, 0); h.group.visible = false; return h; };
+  const P = {
+    tree: keepProp(popup(...pine(9.5), { x: 0, z: 0, yaw: 0 })),
+    rock: keepProp(popup(...rock(3.2), { x: 0, z: 0, yaw: 0 })),
+    mammoth: keepProp(popup(...mammoth(), { x: 0, z: 0, yaw: 0, scale: 1.35 })),
+    roof: keepProp(popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink('#8a5a3a'); g.beginPath(); g.ellipse(0, 0, 2.6, 2.4, 0, Math.PI, 0, true); g.fill(); g.strokeStyle = ink(C.bone); g.lineWidth = 0.28; for (const sd of [-1.2, 0, 1.2]) { g.beginPath(); g.ellipse(sd, 0, 1.0, 2.2, 0, Math.PI, 0, true); g.stroke(); } g.fillStyle = ink('#a0683e', 'print'); for (let k = 0; k < 4; k++) D.rect(g, -1.8 + k * 1.0, 0.4 + (k % 2) * 0.6, 0.6, 0.4, 0.05); }, { w: 5.6, h: 2.8, name: 'fallen roof' }), { x: 0, z: 0, yaw: 0 })),
+    pile: keepProp(popup(...wobblyPile(), { x: 0, z: 0, yaw: 0, scale: 1.1 })),
+    beam: keepProp(popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink('#6a4024'); D.rect(g, -0.15, 0, 3.6, 0.42, 0.12); g.fillStyle = ink('#c8a870', 'print'); for (const x of [0.6, 1.6, 2.6]) D.rect(g, x, 0.02, 0.1, 0.38); g.fillStyle = ink(C.stone); D.poly(g, [[2.9, 0.4], [3.3, 0.4], [3.1, 0.9]]); }, { w: 3.9, h: 1.0, name: 'beam' }), { x: 0, z: 0, yaw: 0 })),
+    posts: keepProp(popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); D.rect(g, -0.12, 0, 0.24, 3.3); D.rect(g, 3.38, 0, 0.24, 3.3); g.fillStyle = ink('#c8a870', 'print'); D.rect(g, -0.15, 2.9, 0.3, 0.12); }, { w: 4.0, h: 3.5, name: 'posts' }), { x: 0, z: 0, yaw: 0 })),
+    bank: keepProp(popup(...rock(2.4), { x: 0, z: 0, yaw: 0 })),
+  };
+  const fireOn = BIG.map(([pts, mat]) => { const f = popup(pts, null, { materials: mat, x: 0, z: 0, cross: true, sway: 0.8, scale: 0.45 }); f.held = true; f.set(0, 0); f.group.visible = false; H.glowing(f.group); return f; });
+  const show = (h, x, z, y = 0) => { h.group.position.set(x, y, z); h.group.rotation.set(0, 0, 0); h.group.visible = true; h.held = false; h.set(1, 0); h.reset?.(1); };
+  const hide = (h) => { h.group.visible = false; h.held = true; h.set(0, 0); };
+  // the victim: a villager card or Dylan's 3D doll
+  const vic = (id) => id === 'dylan'
+    ? { id, get x() { return hero.group.position.x; }, get z() { return hero.group.position.z; }, put(x, z) { H.placeHero(x, z); }, node: doll, pose(rz = 0, y = 0, sq = 1) { doll.rotation.z = rz; doll.position.y = y; doll.scale.set(1 + (1 - sq) * 0.6, sq, 1); } }
+    : { id, get x() { return people[id].x; }, get z() { return people[id].z; }, put(x, z) { const p = people[id]; p.x = x; p.z = z; p.h.group.position.x = x; p.h.group.position.z = z; }, node: people[id].h.group,
+      pose(rz = 0, y = 0, sq = 1) { const p = people[id]; p.h.group.rotation.z = rz; p.h.group.position.y = p.y0 + y; p.h.group.scale.set(1 + (1 - sq) * 0.6, sq, 1); } };
+  // Dylan's own grotesque death (the villagers have die()): the crossed-out face, the splat, eyes, confetti, the ghost
+  const heroGore = [];
+  function dieHero() {
+    const x = hero.group.position.x, z = hero.group.position.z;
+    const face = flatCard(...deadFace, 621); face.position.set(0, 1.88, 0.1); doll.add(face); heroGore.push([doll, face]);
+    const splat = flatCard(...splatShape, 623); splat.rotation.x = -Math.PI / 2; splat.position.set(x, 0.03, z - 1.0); splat.scale.setScalar(0.001); H.scene.add(splat); heroGore.push([H.scene, splat]);
+    const ghost = flatCard(...ghostShape, 627); ghost.position.set(x, 0.5, z); ghost.scale.setScalar(0.001); H.scene.add(ghost); heroGore.push([H.scene, ghost]);
+    ACC.gore = { t: 0, splat, ghost, x, z };
+    for (let k = 0; k < 40; k++) { const m = new THREE.Mesh(bitGeo, bitMats[k % 4]); const rb = k % 5 === 0; m.scale.set(rb ? 0.12 : 0.22, rb ? 0.7 : 0.22, 1); m.position.set(x, 1.6, z); H.scene.add(m); const a = Math.random() * 6.283, sp = 2 + Math.random() * 4; bits.push({ m, v: [Math.cos(a) * sp, 6 + Math.random() * 6, Math.sin(a) * sp * 0.6], w: [Math.random() * 9, Math.random() * 9], life: 9 + Math.random() * 3, down: false }); }
+    for (const sd of [-1, 1]) { const eye = new THREE.Group(), white = new THREE.Mesh(new THREE.CircleGeometry(0.17, 16), new THREE.MeshStandardMaterial({ color: '#f4ecdc', roughness: 1, side: THREE.DoubleSide })), pupil = new THREE.Mesh(new THREE.CircleGeometry(0.07, 12), new THREE.MeshStandardMaterial({ color: '#2a1a1e', roughness: 1, side: THREE.DoubleSide })); pupil.position.z = 0.01; eye.add(white, pupil); eye.position.set(x + sd * 0.15, 2.2, z + 0.1); H.scene.add(eye); bits.push({ m: eye, v: [sd * (1.5 + Math.random()), 7 + Math.random() * 2, 1.5], w: [Math.random() * 6, Math.random() * 6], life: 10, down: false, bounce: 1 }); }
+    H.sfx?.play('death'); weather.death = { at: [x, z], t: 0 };
+  }
+  const kill = () => {
+    if (ACC.killed) return; ACC.killed = true; const c = ACC.cur;
+    if (c.victim === 'dylan') dieHero(); else { const p = people[c.victim]; p.acting = false; die(c.victim, true); }
+  };
+  const S_ = (spec) => { const s0 = SITES[spec.site] || SITES.foyer; return spec.kind === 'river' ? [30.6, -12.2] : [s0.x + 1.2, s0.z + 1.4]; };
+  const accident = {
+    get spot() { return ACC.cur?.spot || null; }, spotOf: (spec) => S_(spec),
+    begin(spec, victim) {
+      accident.clear(true); const spot = S_(spec), v = vic(victim);
+      ACC.cur = { spec, victim, v, spot, kind: spec.kind, from: [spot[0] - 3.4, spot[1] + 2.6] }; ACC.t = -1; ACC.walk = 0; ACC.killed = false;
+      if (victim !== 'dylan') { const p = people[victim]; p.acting = true; p.busy = true; p.target = null; } else ACC.back = H.heroAt();
+      v.put(...ACC.cur.from); v.pose();
+      const [x, z] = spot, k = spec.kind;
+      if (k === 'tree') show(P.tree, x - 3.0, z - 0.3);
+      if (k === 'mammoth') { show(P.mammoth, x - 13, z - 0.2); P.mammoth.group.scale.x = 1; }
+      if (k === 'hut') { show(P.roof, x, z + 0.1, 3.2); show(P.posts, x - 1.8, z - 0.2); }
+      if (k === 'stock') show(P.pile, x + 1.4, z - 0.5);
+      if (k === 'workshop') { show(P.posts, x - 1.6, z - 0.4); show(P.beam, x - 1.6, z - 0.3, 3.1); }
+      if (k === 'river') show(P.bank, x - 0.2, z + 0.2);
+    },
+    strike() { if (ACC.cur && ACC.t < 0) { ACC.t = 0; H.sfx?.play('grunt', { f0: 260, dur: 0.35, vowel: 'o', bend: 0.5, v: 0.22 }); } },
+    clear(quiet = false) {
+      for (const h of Object.values(P)) hide(h); for (const f of fireOn) { f.group.visible = false; f.held = true; }
+      const c = ACC.cur; ACC.cur = null; ACC.t = -1;
+      if (c?.victim === 'dylan') { for (const [par, o] of heroGore) par.remove(o); heroGore.length = 0; ACC.gore = null; doll.rotation.set(0, 0, 0); doll.position.set(0, 0, 0); doll.scale.set(1, 1, 1); for (const f of fireOn) if (f.group.parent !== H.scene) H.scene.add(f.group); const s0 = SITES[c.spec.site] || SITES.foyer; if (!quiet) H.placeHero(s0.x, s0.z + 4.5); }
+      else if (c && !ACC.killed) { const p = people[c.victim]; p.acting = false; p.busy = false; p.target = p.home.slice(); }
+    },
+  };
+  H.onStep((t, dt) => {
+    const g = ACC.gore; if (g) { g.t += dt; const u = Math.min(1, Math.max(0, (g.t - 0.1) / 0.25)); g.splat.scale.setScalar(Math.max(0.001, u * (1 + 0.07 * Math.sin(u * Math.PI)))); const w = Math.max(0, g.t - 0.5), k = Math.min(1, w * 2) * (w > 4.5 ? Math.max(0, 1 - (w - 4.5) / 0.6) : 1); g.ghost.scale.setScalar(Math.max(0.001, k)); g.ghost.position.set(g.x + Math.sin(w * 2.4) * 0.5, 0.5 + w * 1.5, g.z); g.ghost.rotation.z = Math.sin(w * 3.1) * 0.2; }
+    const c = ACC.cur; if (!c) return;
+    const [x, z] = c.spot, v = c.v;
+    if (ACC.t < 0) {   // the walk in, unaware
+      ACC.walk = Math.min(1, ACC.walk + dt / 2.2); const e = ACC.walk, px = c.from[0] + (x - c.from[0]) * e, pz = c.from[1] + (z - c.from[1]) * e;
+      v.put(px, pz); if (e < 1) v.pose(0.05 * Math.sin(e * 30), 0.06 * Math.abs(Math.sin(e * 30))); else v.pose(0.02 * Math.sin(t * 3));
+      if (c.victim === 'dylan') doll.userData.stride?.(e * 6, e < 1 ? 1 : 0);
+      if (c.kind === 'tree') P.tree.group.rotation.z = -0.03 * Math.sin(t * 2.3);   // it creaks
+      if (c.kind === 'stock') P.pile.group.rotation.z = 0.05 * Math.sin(t * 3.1);
+      return;
+    }
+    ACC.t += dt; const T = ACC.t, k = c.kind, sx = H.sfx;
+    const once = (key, at, fn) => { if (T >= at && !c[key]) { c[key] = true; fn(); } };
+    const crush = (at) => once('crushed', at, () => { v.pose(0, 0, 0.22); kill(); burst(x, 0.6, z + 0.3, 16, [0, 1, 2], 4, 5); sx?.play('hit', { v: 0.6 }); sx?.play('squelch'); });
+    if (k === 'tree') { const u = Math.min(1, T / 1.0); P.tree.group.rotation.z = -(u * u) * 1.48; once('creak', 0, () => { sx?.play('log'); sx?.play('crumple', { v: 0.4 }); }); once('thud', 1.0, () => { sx?.play('rumble', { dur: 1.2 }); burst(x, 1.0, z, 24, [1, 2, 3], 5, 6); }); crush(1.0); }
+    if (k === 'rock') { once('show', 0, () => { show(P.rock, x, z + 0.2, 10); sx?.play('whoosh', { from: 900, to: 200, dur: 0.8 }); }); const y = Math.max(0, 10 - 11 * T * T); P.rock.group.position.y = y; if (y <= 0) P.rock.group.position.y = 0.25 * Math.abs(Math.sin((T - 0.95) * 9)) * Math.max(0, 1 - (T - 0.95) * 2); crush(0.95); once('dust', 0.95, () => sx?.play('rumble', { dur: 1 })); }
+    if (k === 'mammoth') {
+      P.mammoth.group.position.x = x - 13 + 15 * T; P.mammoth.group.position.y = 0.25 * Math.abs(Math.sin(T * 14));
+      once('trump', 0, () => { sx?.play('trumpet'); sx?.play('rumble', { dur: 2 }); });
+      if (T > 0.85) { const f = T - 0.85, fx = x + 7 * f, fy = Math.max(0, 9 * f - 11 * f * f); if (!c.landed) { v.put(fx, z - 0.4 * f); v.pose(-f * 11, fy); } once('launch', 0.85, () => { sx?.play('hit', { v: 0.7 }); sx?.play('whoosh'); }); if (f > 0.82 && !c.landed) { c.landed = true; v.pose(-1.5, 0, 0.6); kill(); sx?.play('log'); } }
+      if (T > 2.6) P.mammoth.group.visible = false;
+    }
+    if (k === 'hut') { once('snap', 0, () => { sx?.play('crumple', { v: 0.5 }); sx?.play('log'); }); const u = Math.min(1, T / 0.55); P.roof.group.position.y = 3.2 * (1 - u * u); P.roof.group.rotation.z = 0.25 * u; P.posts.group.rotation.z = -0.9 * u; crush(0.55); once('dust', 0.55, () => burst(x, 0.5, z, 20, [0, 1, 5], 4, 7)); }
+    if (k === 'stock') { const u = Math.min(1, T / 0.75); P.pile.group.rotation.z = 1.45 * u * u; once('tip', 0, () => sx?.play('crumple', { v: 0.5 })); crush(0.75); once('pots', 0.75, () => { burst(x, 1.0, z, 26, [3, 4, 0, 2], 6, 6); sx?.play('bone', { f: 1100, v: 0.4 }); }); }
+    if (k === 'workshop') { const u = Math.min(1, T / 0.6); P.beam.group.rotation.z = -1.1 * u * u; once('crack', 0, () => { sx?.play('log'); sx?.play('bone', { f: 2400, v: 0.4 }); }); crush(0.6); once('shards', 0.6, () => { const w = new THREE.Vector3(x, 1.2, z); for (let i = 0; i < 22; i++) { const m = new THREE.Mesh(bitGeo, stoneMats[i % 3]); m.scale.set(0.14, 0.1, 1); m.position.copy(w); H.scene.add(m); bits.push({ m, v: [(Math.random() - 0.5) * 7, 3 + Math.random() * 5, (Math.random() - 0.3) * 4], w: [Math.random() * 14, Math.random() * 14], life: 4, down: false }); } }); }
+    if (k === 'fire') {
+      once('ignite', 0, () => { fireOn.forEach((f, i) => { v.node.add(f.group); f.group.position.set(0, 1.0 + i * 0.25, 0.1); f.group.visible = true; f.held = false; f.set(1, 0); }); sx?.play('whoosh', { from: 200, to: 1400, dur: 0.5 }); sx?.play('grunt', { f0: 420, dur: 1.6, vowel: 'a', bend: 0.3, rough: 0.3, v: 0.25 }); });
+      const fr = Math.floor(t * 8); fireOn.forEach((f, i) => { f.group.visible = !c.burnt && i === fr % 3; });
+      if (T < 2.2) { const a = T * 5.5; v.put(x + Math.cos(a) * 1.6, z + Math.sin(a) * 1.0); v.pose(0.3 * Math.sin(T * 22), 0.35 * Math.abs(Math.sin(T * 13))); if (Math.random() < dt * 20) burst(v.x, 1.6, v.z, 1, [3, 4], 3, 1); }
+      once('char', 2.2, () => { c.burnt = true; kill(); sx?.play('hiss', { v: 0.3, dur: 1.4 }); burst(v.x, 1.2, v.z, 18, [4, 3, 2], 4, 3); });
+    }
+    if (k === 'river') {
+      once('break', 0, () => { sx?.play('crumple', { v: 0.5 }); sx?.play('rumble', { dur: 0.8 }); });
+      P.bank.group.position.y = -Math.min(1.2, T * 1.5); P.bank.group.rotation.z = Math.min(0.6, T);
+      if (T < 0.6) { v.put(x + T * 2.6, z); v.pose(-T * 1.2, -T * 0.4); }
+      else if (T < 3.4) { once('splash', 0.6, () => { burst(x + 1.6, 0.4, z, 24, [0, 1], 6, 4); sx?.play('whoosh', { from: 300, to: 120, dur: 0.6, v: 0.5 }); }); const f = T - 0.6; v.put(x + 1.6 + f * 0.4, z + f * 2.4); v.pose(0.5 * Math.sin(f * 7), -0.5 + 0.15 * Math.sin(f * 5) - f * 0.2); if (Math.random() < dt * 6) H.sfx?.play('grunt', { f0: 300, dur: 0.2, vowel: 'u', bend: 0.4, v: 0.18 }); }
+      once('sink', 3.4, () => kill());
+    }
+  });
   const firePlaces = [[SITES.foyer.x, SITES.foyer.z, 1], [-11, -3.9, 0.8], ...[[-4.6, 7.2], [4.6, 7.2], [-7.6, -8.8], [7.6, -8.4], [-3.4, -17.8], [7, -17.6], [-10.6, -1.4], [10.8, -9.8]].map(([x, z]) => [x, z, 0.35])];
   const fireNear = (x, z) => [...firePlaces, ...burn.lit.map((b) => [b.x, b.z, 1.6 * b.level])].reduce((m, [fx, fz, k]) => Math.max(m, Math.min(1.6, k * Math.max(0, 1 - Math.hypot(x - fx, z - fz) / 16))), 0);
   const onPath = (x, z) => Math.hypot((x - SITES.foyer.x) / 8.5, (z - SITES.foyer.z) / 5.8) < 1 || PATHS.some((pl) => P2.pathLine(pl, { step: 1 }).dist(x, z) < 1.2);
   const talkPulse = (id, d) => { const p = people[id]; if (p && !p.dying) p.talkT = Math.max(p.talkT || 0, d + 0.05); };
-  return { H, SITES, RIVER, people, hero, herds: HERD, talkPulse, burn, duelStep, weather, fireNear, riverNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
+  return { H, SITES, RIVER, people, hero, herds: HERD, talkPulse, accident, burn, duelStep, weather, fireNear, riverNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
 }

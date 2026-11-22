@@ -53,9 +53,22 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     return { ...q, giverId: q.giverId === 'ouways' ? 'nork' : q.giverId };
   });
   const acts = base.acts.map((a, i) => ({ ...a, title: ACT_TITLES[i] || a.title }));
+  // ---- les 16 accidents du jeu Unity (AccidentDirector) : 8 pour Dylan (D01 à D08), 8 pour des habitants (NPC_*) ------
+  // un point d'exposition par lieu dangereux s'ouvre quand le jeu du chapitre a étudié ce risque ; Mathieu avertit
+  // (WARN_D0x) : suspendre, maintenir (Dylan meurt, on reprend avant la décision) ou envoyer un habitant à sa place
+  // (lui meurt pour de bon) ; les alertes des chapitres (D_*_A_ALERTE, « maintenir ») tuent aussi leur habitant
+  const nameOf = (id) => characters.find((c) => c.id === id)?.name || String(id).split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const ACCIDENTS = legacy.accidents.map((a) => ({ ...a }));
+  const accident = (id) => ACCIDENTS.find((a) => a.id === id) || null;
+  const UNLOCK = { D01: 'V17_RESOURCES', D02: 'V17_RISK_QUARRY', D03: 'V17_RISK_HUNT', D04: 'M_V_ABRI_1', D05: 'V17_RISK_FIRE', D06: 'V17_RISK_STORAGE', D07: 'V17_PARTIES', D08: 'V17_RISK_SILEX' };
+  const EXPOSURES = legacy.actions.filter((a) => /^EXPOSURE_D0\d$/.test(a.id)).map((a) => ({ id: a.id, acc: a.id.slice(9), site: a.targetBindingId, title: a.title, dialogueId: a.dialogueId, unlock: UNLOCK[a.id.slice(9)] }));
+  for (const d of legacy.dialogues.filter((x) => /^WARN_D0\d$/.test(x.id))) {
+    const acc = accident(d.id.slice(5)), others = ACCIDENTS.filter((a) => a.id.startsWith('NPC_') && a.site === acc?.site);
+    dialogues.set(d.id, { ...d, choices: [...d.choices, ...others.map((o) => ({ id: d.id + '_SEND_' + o.victimId, victim: o.victimId, text: `Envoyer ${nameOf(o.victimId)} à ma place, malgré le danger.`, effects: [{ kind: 'character', target: o.victimId + '.alive', value: 0 }] }))] });
+  }
 
   // ---- état sauvegardé --------------------------------------------------------------------------------------------
-  const fresh = () => ({ version: 1, flags: {}, done: [], evidence: [], progress: {}, menhir: null, ending: false, wallSeconds: 0, risks: {}, dead: [], buildings: {}, dialogue: null, working: null,
+  const fresh = () => ({ version: 1, flags: {}, done: [], evidence: [], progress: {}, menhir: null, ending: false, wallSeconds: 0, risks: {}, dead: [], buildings: {}, dialogue: null, working: null, accident: null, deathLog: [], dylanDeaths: 0,
     resources: { ...Object.fromEntries(base.resources.map((r) => [r.id, r.value])), flint: 0, tool: 0, clay: 0, straw: 0, knowledge: 0 }, equipped: '', reserve: {}, tasks: [],
     player: Object.fromEntries(base.stats.map((x) => [x.id, x.value])),
     // l'état de chaque habitant (CharacterState) : compétence 15 pour Dylan, 10 pour le Petit Os, 70 pour les autres
@@ -211,8 +224,20 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     else if (e.kind === 'evidence') { if (!state.evidence.some((x) => x.id === e.target)) state.evidence.push({ id: e.target, name: e.text || e.target, clause: '', activity: '', stage: 3, result: e.text || '', verification: 'Conséquence enregistrée' }); }
     else if (e.kind === 'risk') state.risks[e.target] = e.value;
     else if (e.kind === 'building' && (e.requiredFlags || []).every(flag)) state.buildings[e.target] = e.value;
-    else if (e.kind === 'character' && e.target.endsWith('.alive') && !e.value) { const who = e.target.split('.')[0]; if (!state.dead.includes(who)) state.dead.push(who); }
+    else if (e.kind === 'accident') { const a = accident(e.target); if (a) { state.accident = { id: a.id, victim: 'dylan', played: false }; state.dylanDeaths++; logDeath(a, 'dylan'); } }
+    else if (e.kind === 'character' && e.target.endsWith('.alive') && !e.value) {
+      const who = e.target.split('.')[0]; if (state.dead.includes(who)) return;
+      if (who === 'dylan') { const a = accident('D01'); state.accident = { id: a.id, victim: 'dylan', played: false }; state.dylanDeaths++; logDeath(a, 'dylan'); return; }   // Dylan never stays dead: the scene is replayed from before the decision
+      state.dead.push(who); const a = accident('NPC_' + who); if (a) { state.accident = { id: a.id, victim: who, played: false }; logDeath(a, who); }
+    }
   }
+  function logDeath(a, who) { state.deathLog.push({ id: a.id, kind: a.kind, victim: who, site: a.site, quest: frontier()?.id || null, at: Math.round(state.wallSeconds) }); }
+  // the exposure points open (their chapter's game done), and those standing where Dylan is
+  const exposures = () => EXPOSURES.filter((x) => state.done.includes(x.unlock) && !state.accident);
+  function examine(id) { const x = EXPOSURES.find((e) => e.id === id); if (!x || state.dialogue || state.working) return false; setFlag('done:' + x.id); state.dialogue = x.dialogueId; save(); emit(); return true; }
+  // after the death cinematic: Dylan takes up the game again from before the decision; a villager stays in the cemetery
+  function closeAccident() { const a = state.accident; if (!a) return; if (a.victim === 'dylan') setFlag('warning:' + a.id, false); state.accident = null; save(); emit(); }
+  const markPlayed = () => { if (state.accident) { state.accident.played = true; save(); emit(); } };
   // une action prend son temps (durationSeconds), puis applique ses effets ; son dialogue s'ouvre ensuite
   function startAction(id) {
     const a = actions.get(id); if (!a || !canExecute(id) || state.working || state.dialogue) return false;
@@ -389,11 +414,12 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     get state() { return state; }, get current() { return current; }, get feedback() { return feedback; }, get timedOut() { return timedOut; },
     canAssignTask, queueTask, cancelTask, tasksOf, villageStep, survive, warnings, brain: (id) => brain[id],
     quantity, craft, craftCheck, useItem, transfer, rest, memberStatus, clauseQuests, clauseVerified, clauseProgress, clauseStatus,
-    progress, frontier, nextAction, nextSite, kindOf, canExecute, startAction, choose, dialogue: () => dialogues.get(state.dialogue) || null, action: (id) => actions.get(id), questDone, guideOpen, workReady, differencesStatus, verified,
+    progress, frontier, nextAction, nextSite, kindOf, canExecute, startAction, choose, dialogue: () => { const d = dialogues.get(state.dialogue); return d ? { ...d, choices: d.choices.filter((c) => !c.victim || !state.dead.includes(c.victim)) } : null; }, action: (id) => actions.get(id), questDone, guideOpen, workReady, differencesStatus, verified,
     begin, dismissGuide, suspend, submit, selectTablet, confirmAssembly, allocate, confirmAllocation, performWork, verifyWork, moveLane, projectileHit,
     observe, validateDifferences, validateAssembly, retryTimer, tick, duel, reset, save,
     on: (f) => { listeners.add(f); return () => listeners.delete(f); },
     act: (q) => acts.find((a) => a.id === q?.actId),
     character: (id) => characters.find((c) => c.id === id),
+    accidents: ACCIDENTS, accident, nameOf, exposures, examine, closeAccident, markPlayed,
   };
 }

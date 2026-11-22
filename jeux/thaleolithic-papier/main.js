@@ -40,12 +40,13 @@ document.addEventListener('click', (e) => { if (e.target.closest('.btn')) sfx.pl
 // the story's sounds: an action done, a proof verified, a mistake, a quest completed, the fire alarm, the end
 const tally = () => { const st = campaign.state; return { done: st.done.length, quests: campaign.data.quests.filter((q) => campaign.questDone(q)).length, proofs: st.evidence.filter((e) => e.stage === 3).length,
   mistakes: Object.values(st.progress).reduce((n, p) => n + (p.mistakes || 0), 0), frontier: campaign.frontier()?.id, ending: !!st.ending, done_q: campaign.data.quests.filter((q) => campaign.questDone(q)).map((q) => q.id) }; };
-let was = tally();
+let was = tally(), accShown = null;
 campaign.on(() => {
   const now = tally();
   if (now.ending && !was.ending) sfx.play('ending'); else if (now.quests > was.quests) sfx.play('quest'); else if (now.proofs > was.proofs) sfx.play('evidence'); else if (now.done > was.done) sfx.play('action');
   if (now.mistakes > was.mistakes) sfx.play('log');
   if (now.frontier === 'V17_EMERGENCY' && was.frontier !== 'V17_EMERGENCY') sfx.play('alarm');
+  const acc = campaign.state.accident; if (acc && !acc.played && acc !== accShown) { accShown = acc; ui.close(); cinema.accident(acc); }   // a death: its cinematic
   cinema.tour(world.takeSwaps());   // the dwellings that change, one after the other, before the chapter's own cinematic
   for (const q of now.done_q) if (!was.done_q.includes(q)) cinema.after(q);   // C02, C03, C06 when their chapter ends
   was = now;
@@ -106,4 +107,5 @@ actBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); actBtn.class
 for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) actBtn.addEventListener(ev, () => { actBtn.classList.remove('on'); dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyE', bubbles: true })); });
 H.onStep(() => { actBtn.classList.toggle('off', document.getElementById('prompt').hidden); });
 window.__thaleo = { campaign, world, ui, cinema, sfx, talk };
+if (campaign.state.accident?.played) ui.open('death');   // a death screen left open: it comes back
 H.start();

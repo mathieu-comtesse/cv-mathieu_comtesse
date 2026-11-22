@@ -54,6 +54,22 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
     spec: [{ from: [0, -15, 26, 3], to: [0, -21.5, 14, 4], dur: 2.6, line: null, at: () => { world.engraving.cine = true; world.engraving.hideAll(); sfx?.play('stinger'); const o = world.people.nork; if (o && !o.dying) { o.busy = true; o.target = [-1.6, -21.2]; } } },
       ...Q.map((_, k) => ({ pin: k, from: [-0.7, 0, 8.6], to: [-0.45, 0, 7.6], dur: 3.4, line: k, at: () => world.engraving.show(k, true, 2.9) })),   // on the stone where it is cut, Ouways at work on his ladder
       { from: [0, -22, 13, 4.5], to: [0, -20, 22, 4.5], dur: 3.5, line: Q.length, at: () => sfx?.play('chant', { dur: 1.6 }) }] };
+  // an accident of the Unity game (AccidentDirector), in five shots: the warning, the walk in and what goes wrong, the
+  // chief's punchline, the reply; a villager is then laid in the cemetery; Dylan gets the death screen
+  function accident(acc) {
+    const spec = campaign.accident(acc.id); if (!spec) return;
+    const name = campaign.nameOf(acc.victim), [x, z] = world.accident.spotOf(spec), C = world.SITES.cimetiere;
+    const lines = [{ speaker: 'Mathieu', subtitle: spec.warning }, { speaker: '', subtitle: `${spec.danger} ${name} y va quand même.` }, { speaker: spec.speaker || 'Aurélien', subtitle: spec.punchline }, { speaker: 'Mathieu', subtitle: spec.reply }];
+    const sp = [
+      { from: [x - 3, z + 9, 26], to: [x - 1.4, z + 3, 17], dur: 3.4, line: 0, at: () => { world.accident.begin(spec, acc.victim); sfx?.play('stinger'); } },
+      { from: [x - 1.4, z + 2.4, spec.kind === 'mammoth' ? 18 : 14], to: [x - 0.6, z + 1.6, spec.kind === 'mammoth' ? 16 : 12], dur: spec.kind === 'river' ? 4.2 : spec.kind === 'fire' ? 3.6 : 3.2, line: 1, at: () => world.accident.strike() },
+      { from: [x + 0.6, z + 1.2, 11], to: [x + 0.8, z + 2.4, 15], dur: 3.8, line: 2 },
+      { from: [x + 0.8, z + 2.4, 15], to: [x, z + 4, 20], dur: 3.4, line: 3 },
+    ];
+    if (acc.victim !== 'dylan') { lines.push({ speaker: '', subtitle: `${name} repose désormais au cimetière du village. Une enquête est ouverte auprès de Mathieu.` }); sp.push({ from: [C.x - 2, C.z + 4, 16], to: [C.x, C.z + 1, 12], dur: 4.2, line: 4, at: () => { campaign.markPlayed(); sfx?.play('chant', { dur: 1.8, root: 'A2' }); } }); }
+    custom.ACC = { title: spec.title, shots: lines, spec: sp };
+    start('ACC');
+  }
   const ctl = {
     sfx,
     face(id) { const p = world.people[id]; if (p) { p.h.group.rotation.z = 0.12; setTimeout(() => { p.h.group.rotation.z = 0; }, 260); } },
@@ -68,9 +84,9 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
   function start(id) {
     const cu = custom[id], spec = cu ? cu.spec : SCRIPTS[id], c = cu || shots[id]; if (!spec || !c) return false;
     if (run) { if (run.id !== id && !queue.includes(id)) queue.push(id); return true; }
-    campaign.state.flags['cine:' + id] = true;
+    if (id !== 'ACC') campaign.state.flags['cine:' + id] = true;
     ui.close(); document.body.classList.add('cine-on'); root.hidden = false; root.classList.remove('out'); void root.offsetWidth; root.classList.add('in');
-    title.textContent = clean(c.title); delete title.dataset.cut; cutLetters(title, { chips: true });
+    title.textContent = clean(c.title); const n = title.textContent.length; title.style.fontSize = n > 44 ? 'clamp(15px, 2.1vw, 25px)' : n > 30 ? 'clamp(17px, 2.6vw, 30px)' : ''; delete title.dataset.cut; cutLetters(title, { chips: true });   // a long title (the accidents') stays on one band
     if (id === 'GRAVURE') sharpen(true);
     run = { id, spec, c, k: -1, t: 0 }; next(); return true;
   }
@@ -84,7 +100,8 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
     sh.at?.(ctl); sh.act?.(ctl);
   }
   function stop() {
-    if (!run) return; if (run.id === 'GRAVURE') { world.engraving.cine = false; world.engraving.release(); world.engraving.showAll(false); } sharpen(false); run = null; root.classList.remove('in'); root.classList.add('out');
+    if (!run) return; if (run.id === 'ACC') { campaign.markPlayed(); setTimeout(() => ui.open('death'), 0); }
+    if (run.id === 'GRAVURE') { world.engraving.cine = false; world.engraving.release(); world.engraving.showAll(false); } sharpen(false); run = null; root.classList.remove('in'); root.classList.add('out');
     setTimeout(() => { if (run) return; root.hidden = true; root.classList.remove('out'); document.body.classList.remove('cine-on'); }, 450);   // unless another began
     for (const p of Object.values(world.people)) if (p.busy && !p.dying) { p.busy = false; p.target = p.home.slice(); }
     world.H.unlook();
@@ -93,7 +110,7 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
   addEventListener('keydown', (e) => { if (!run) return; if (e.code === 'Escape') stop(); else if ((e.code === 'Enter' || e.code === 'Space') && !e.repeat && !world.talk?.skip()) stop(); e.stopImmediatePropagation(); e.preventDefault(); }, true);   // Enter finishes the line, then skips
   $('cine-skip').onclick = stop;
   return {
-    start, stop, tour, get playing() { return !!run; },
+    start, stop, tour, accident, get playing() { return !!run; },
     step(dt) {
       if (waitDuel && ui.mode !== 'duel') { waitDuel = false; start('GRAVURE'); }
       if (!run) return; const sh = run.spec[run.k]; run.t += dt;

@@ -56,15 +56,20 @@ export function createUI(campaign, world) {
     $('progress').style.width = (done / campaign.data.quests.length * 100) + '%';
     root.style.setProperty('--top', Math.round($('hud').getBoundingClientRect().bottom + 40) + 'px');   // the sheet sits just under the HUD, whatever its height
   }
+  // the exposure points (the accidents of the Unity game): where a studied danger stands, Dylan may look closer
+  const exposureHere = () => campaign.exposures().find((x) => world.near(x.site, 3.2)) || null;
   function prompt() {
     const el = $('prompt'), id = campaign.nextAction(), site = campaign.nextSite();
+    if (!mode && !campaign.state.working && !campaign.state.accident && (!id || !site || !world.near(site))) { const x = exposureHere(); if (x) { el.hidden = false; el.querySelector('span').textContent = clean(x.title); return; } }
     if (mode || !id || !site || campaign.state.working || !world.near(site)) { el.hidden = true; return; }
     const kind = campaign.kindOf(id);
     el.hidden = false;
     el.querySelector('span').textContent = clean(kind === 'duel' ? 'Défier Aurélien au Grand Menhir' : kind === 'activity' ? campaign.data.activities.get(id).title : campaign.action(id).title);
   }
   function act() {
-    const id = campaign.nextAction(), site = campaign.nextSite(); if (mode || !id || !world.near(site)) return;
+    const id = campaign.nextAction(), site = campaign.nextSite();
+    if (!mode && !campaign.state.accident && (!id || !site || !world.near(site))) { const x = exposureHere(); if (x) { campaign.examine(x.id); return; } }
+    if (mode || !id || !world.near(site)) return;
     const kind = campaign.kindOf(id);
     if (kind === 'duel') { campaign.duel.start(); open('duel'); }
     else if (kind === 'activity') { if (campaign.begin(id)) open('activity'); }
@@ -207,6 +212,17 @@ export function createUI(campaign, world) {
     for (const c of dl.choices) body.append(btn(esc(c.text), () => campaign.choose(c.id), sp.classList.contains('busy') ? 'wait' : ''));
   }
 
+  // ---- the death screen (AccidentInterface): the analysis of what happened, ISO 45001 clauses, then take up the game
+  // again before the decision (Dylan) or open the inquiry and carry on (a villager, who stays in the cemetery)
+  function renderDeath() {
+    const a = campaign.state.accident, spec = a && campaign.accident(a.id); if (!spec) { close(); return; }
+    const hero = a.victim === 'dylan', name = campaign.nameOf(a.victim), n = campaign.state.dylanDeaths;
+    body.innerHTML = `<p class="kicker">${hero ? `Dylan est mort${n > 1 ? `, pour la ${n}e fois` : ''}` : `Événement grave : ${esc(name)} est décédé`}</p><h2>${esc(spec.title)}</h2>`
+      + `<div class="card death"><p><b>Danger</b> : ${esc(spec.danger)}</p><p><b>Exposition</b> : ${esc(spec.exposure)}</p><p><b>Cause immédiate</b> : ${esc(spec.immediateCause)}</p><p><b>Cause organisationnelle</b> : ${esc(spec.organizationalCause)}</p><p><b>Action corrective</b> : ${esc(spec.correctiveAction)}</p><p class="small">ISO 45001 : ${esc((spec.iso || []).join(', '))}</p></div>`;
+    body.append(speech('death:' + a.id + ':' + campaign.state.deathLog.length, spec.speaker || 'Aurélien', `${spec.punchline} ${spec.reply}`));
+    body.append(btn(hero ? 'Reprendre avant la mauvaise décision' : 'Ouvrir l’enquête et continuer', () => { world.accident.clear(); campaign.closeAccident(); close(); }, 'go'));
+  }
+
   // ---- screens: the quests and the Carnet des Crânes -----------------------------------------------------------------
   function renderQuests() {
     const f = campaign.frontier();
@@ -346,7 +362,7 @@ export function createUI(campaign, world) {
   function render() {
     root.classList.toggle('runner', mode === 'activity' && !modal());
     root.classList.toggle('duel', mode === 'duel');   // docked low: the fight itself is played in the village
-    if (mode === 'activity') renderActivity(); else if (mode === 'duel') renderDuel(); else if (mode === 'dialogue') renderDialogue();
+    if (mode === 'activity') renderActivity(); else if (mode === 'duel') renderDuel(); else if (mode === 'dialogue') renderDialogue(); else if (mode === 'death') renderDeath();
     else if (mode === 'quest') renderQuests(); else if (mode === 'journal') renderJournal();
     else if (mode === 'people') renderPeople(); else if (mode === 'map') renderMap(); else if (mode === 'inventory') renderInventory(); else if (mode === 'tech') renderTech();
     for (const h of body.querySelectorAll('h2')) cutLetters(h);   // titles cut out letter by letter
@@ -364,7 +380,7 @@ export function createUI(campaign, world) {
     if (mode === 'activity' && campaign.current?.mode === 'briefing' && (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'KeyA' || k === 'KeyD')) { campaign.moveLane(k === 'ArrowLeft' || k === 'KeyA' ? -1 : 1); e.stopImmediatePropagation(); e.preventDefault(); return; }
     if ((k === 'KeyE' || k === 'Enter') && !mode) { act(); e.preventDefault(); return; }
     if (!mode && (k === 'KeyI' || k === 'KeyM')) { open(k === 'KeyI' ? 'inventory' : 'map'); return; }
-    if (k === 'Escape' && mode && mode !== 'dialogue') { if (mode === 'activity') suspend(); else if (mode === 'duel') { campaign.duel.close(); close(); } else close(); return; }
+    if (k === 'Escape' && mode && mode !== 'dialogue' && mode !== 'death') { if (mode === 'activity') suspend(); else if (mode === 'duel') { campaign.duel.close(); close(); } else close(); return; }
     if (modal() && /^(Key[WASD]|Arrow)/.test(k)) e.stopImmediatePropagation();
   }, true);
   $('prompt').onclick = act;

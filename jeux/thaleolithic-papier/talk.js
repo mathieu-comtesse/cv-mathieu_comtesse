@@ -53,8 +53,8 @@ export function createTalk({ sfx, onSyllable = null }) {
     let word = null;
     for (const ch of text) {
       if (ch === ' ' || ch === '\n') { word = null; frag.append(ch === '\n' ? document.createElement('br') : ' '); letters.push({ ch, el: null }); continue; }
-      if (!word) { word = document.createElement('span'); word.className = 'w'; frag.append(word); }
-      const s = document.createElement('span'); s.className = 'l'; s.textContent = ch; s.style.setProperty('--r', ((letters.length * 37) % 13 - 6) + 'deg'); word.append(s); letters.push({ ch, el: s });
+      if (!word) { word = document.createElement('span'); word.className = 'tw'; frag.append(word); }
+      const s = document.createElement('span'); s.className = 'tl'; s.textContent = ch; s.style.setProperty('--r', ((letters.length * 37) % 13 - 6) + 'deg'); word.append(s); letters.push({ ch, el: s });
     }
     el.append(frag);
     // timing: a pace per letter, pauses after punctuation; squeezed if it must fit a shot

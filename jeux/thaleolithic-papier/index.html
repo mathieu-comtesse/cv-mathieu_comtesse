@@ -297,9 +297,9 @@
   .speech .line { min-height: 2.6em; }
   .speech + .btn, .speech ~ .btn { transition: opacity .25s; } .btn.wait { opacity: .35; pointer-events: none; }
   /* the letters: each a cut that lands (dropped a little, larger, tilted), then sits in place */
-  .talking .w, .speech .w, #cine-line .w { display: inline-block; white-space: nowrap; }
-  .l { display: inline-block; opacity: 0; transform: translateY(-.45em) scale(1.7) rotate(var(--r, 0deg)); }
-  .l.on { opacity: 1; transform: none; transition: transform .16s cubic-bezier(.2, 1.6, .4, 1), opacity .05s; }
+  .tw { display: inline-block; white-space: nowrap; }
+  .tl { display: inline-block; opacity: 0; transform: translateY(-.45em) scale(1.7) rotate(var(--r, 0deg)); }
+  .tl.on { opacity: 1; transform: none; transition: transform .16s cubic-bezier(.2, 1.6, .4, 1), opacity .05s; }
   @media (max-width: 640px) { #cine-line, .speech .line { font-size: 21px; } #cine .sub, .speech { padding: 24px 28px 14px; } }
 </style>
 <script type="importmap">{ "imports": { "three": "../../vendor/three-r187/three.module.js", "papercraft/": "./papercraft/" } }</script>
