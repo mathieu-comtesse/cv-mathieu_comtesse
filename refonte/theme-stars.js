@@ -1,7 +1,9 @@
-import {transitionsPapier,couleurPapier} from './section-colours.js?v=1';
-import {poussiere,notesCadre} from './card-effects.js?v=2';
+import {transitionsPapier,etatCouleur,radialCouleur,couleurAuPoint} from './section-colours.js?v=2';
+import {initFlatColourRenderer} from './flat-colour-renderer.js?v=1';
+import {surfaceGraph,brancheSpectrale} from './fall26-graph-adapter.js?v=1';
+import {poussiere,notesCadre} from './card-effects.js?v=3';
 import { fonduChapitre } from './moteur.js?v=m36';
-import { avanceBranche, brancheCarte } from './card-wires.js?v=2';
+import { avanceBranche, brancheCarte } from './card-wires.js?v=3';
 
 /* Étoiles des titres (mode à plat). Chaque grand titre (chapitre : « Projets professionnels » ; thème : « Faire fonctionner »…)
  * garde sa taille et reçoit une étoile : un foyer carré blanc posé près du titre, d'où partent des branches.
@@ -42,6 +44,10 @@ html:not(.cv-parity-active) .section-hero-pin h2{color:transparent!important;-we
 .cv-flat-nav a:is(:hover,:focus-visible){text-decoration:underline}
 html[data-cv-flat-colour]:not(.cv-parity-active) [data-f26-page]{background:var(--cv-flat-colour)!important}
 html[data-cv-flat-colour]:not(.cv-parity-active) [data-f26-page-section]{background:transparent!important}
+.cv-colour-shader{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.cv-colour-shader[hidden],html.cv-parity-active .cv-colour-shader{display:none!important}
+html[data-cv-page-shader]:not(.cv-parity-active) [data-f26-page]{background:transparent!important}
+html[data-cv-fade-fallback]:not(.cv-parity-active) [data-f26-page]{background:var(--cv-fade) fixed!important}
 html[data-cv-flat-colour]:not(.cv-parity-active) .cv-site-nav{background:color-mix(in oklab,var(--cv-flat-colour) 88%,#121420)!important}
 @media (max-width:939px){.cv-flat-nav{display:none}}
 .cv-star-layer rect.foyer{fill:#fff;opacity:0;transition:opacity .3s}
@@ -165,8 +171,10 @@ function svgAccessible(etoiles) { for (const e of etoiles) if (e.fiches.length) 
  * part avec la page. Tout est piloté par la position de défilement : la séquence se rejoue à l'identique dans les deux sens. */
 function scene(chapitres) {
   const cv = document.createElement('canvas'), ctx = cv.getContext('2d');
-  cv.className = 'cv-star-scene'; cv.setAttribute('aria-hidden', 'true');
-  document.body.append(cv);
+  cv.className = 'cv-star-scene';cv.setAttribute('aria-hidden','true');
+  const fil=surfaceGraph('position:fixed;inset:0;width:100%;height:100%;z-index:2;pointer-events:none');
+  fil.canvas.className='cv-star-scene';
+  document.body.append(fil.canvas,cv);
   const lisse = (x, a, b) => { x = Math.max(0, Math.min(1, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
   const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false, ancienneCouleur = '', liensLus = 0;
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
@@ -183,7 +191,8 @@ function scene(chapitres) {
   document.body.append(nav);
   const source=document.querySelector('[data-f26-page]');
   let paper=[];
-  function mesure(){paper=transitionsPapier(source,H,el=>scrollY+el.getBoundingClientRect().top);}
+  const shader=initFlatColourRenderer();shader.prepare();
+  function mesure(){paper=transitionsPapier(source,H,el=>{const r=el.getBoundingClientRect();return {top:scrollY+r.top,bottom:scrollY+r.bottom};});}
   if(source)new ResizeObserver(mesure).observe(source);
   addEventListener('resize',mesure);
   mesure();
@@ -212,7 +221,26 @@ function scene(chapitres) {
       sortant=c;
       couleur=cible;
     }
-    couleur=couleurPapier(paper,scrollY+H*.5,!libre);
+    const etat=etatCouleur(paper,scrollY,!libre);
+    couleur=etat.stable;
+    root.dataset.cvInk=etat.next?.colour||etat.stable;
+    let painted=false;
+    if(etat.next){
+      // La transition part du foyer visible de l’étoile du chapitre entrant.
+      const originY=H*.56;
+      const wave=radialCouleur(etat,W*.6,originY,W,H);
+      painted=shader.draw(etat,wave,W,H,dpr);
+      couleur=couleurAuPoint(etat,wave,W*.5,25);
+      if(!painted){
+        const samples=Array.from({length:13},(_,i)=>{
+          const distance=i*wave.extent/12;
+          return couleurAuPoint(etat,wave,wave.x+distance,wave.y)+' '+distance+'px';
+        });
+        root.style.setProperty('--cv-fade','radial-gradient(circle at '+wave.x+'px '+wave.y+'px, '+samples.join(',')+')');
+      }
+    }else shader.draw(etat,null,W,H,dpr);
+    root.toggleAttribute('data-cv-page-shader',painted);
+    root.toggleAttribute('data-cv-fade-fallback',Boolean(etat.next&&!painted));
     if(couleur!==ancienneCouleur){
       ancienneCouleur=couleur;
       root.style.setProperty('--cv-flat-colour',couleur);
@@ -281,6 +309,8 @@ function scene(chapitres) {
     }
     nav.classList.toggle('vu', vuNav); for (const c of chapitres) c.lien.classList.toggle('actif', c === actif);
     liensLus=0;
+    const edges=[],clip=[0,0,W,H];
+    const emit=fil.active?(a,b,ink,alpha,width)=>brancheSpectrale(edges,a,b,ink,alpha,clip,width):undefined;
     poussiere(ctx,W,H,libre?tt:null,scrollY);
     const notes=[];
     if(vuNav&&W>=940)for(const c of chapitres){
@@ -293,9 +323,10 @@ function scene(chapitres) {
         const b={x:dot.left+dot.width/2,y:dot.top+dot.height/2};
         const fiche=card.querySelector('[data-fiche]');
         if(fiche){const edge=card.getBoundingClientRect();notes.push({element:fiche,x:edge.right,y:b.y,bottom:edge.bottom});}
-        if(brancheCarte(ctx,a,b,{t:libre?tt:null,id:card.id,progress:avanceBranche(b.y,H,!libre),active:depart,pointer:souris}))liensLus++;
+        if(brancheCarte(ctx,a,b,{t:libre?tt:null,id:card.id,progress:avanceBranche(b.y,H,!libre),active:depart,pointer:souris,emit}))liensLus++;
       }
     }
+    fil.render(W,H,dpr,edges);
     notesCadre(ctx,notes,W,H,souris);
 
     /* le curseur n'est modifié que par celui qui l'a posé : le graphe de l'accueil gère le sien (main ouverte, main fermée) */

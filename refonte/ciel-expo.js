@@ -85,7 +85,7 @@ export class CielExpo extends Ciel {
   }
   vide(){super.vide();this.pris=null;}
 
-  dessine(ctx,proj,t,{covers=[],souris,W,H,dt,alpha=1,titres=1,rise=0,unproject,segment,plat=false,ouverture=1}){
+  dessine(ctx,proj,t,{covers=[],souris,W,H,dt,alpha=1,titres=1,rise=0,unproject,segment,traitPlat,pointPlat,plat=false,ouverture=1}){
     const masque=p=>covers.some(([a,b,c,d])=>
       Math.min(profondeurTriangle(p,a,b,c),profondeurTriangle(p,a,c,d))<p.z-2
     );
@@ -100,6 +100,7 @@ export class CielExpo extends Ciel {
         else{
           const a=proj(...e.centre),b=proj(...n.centre);
           if(!a||!b)continue;
+          if(traitPlat){traitPlat(a,b,'128,147,245',.2*ouverture,.55);continue;}
           ctx.strokeStyle='rgba(128,147,245,'+(.2*ouverture)+')';
           ctx.lineWidth=.55;
           trait(ctx,a,b);
@@ -125,6 +126,7 @@ export class CielExpo extends Ciel {
         else{
           const p=proj(...a),q=proj(...b);
           if(!p||!q)return;
+          if(traitPlat){traitPlat(p,q,ink,opacity,.75);return;}
           const g=ctx.createLinearGradient(p.x,p.y,q.x,q.y);
           g.addColorStop(0,'rgba('+ink+','+opacity+')');g.addColorStop(1,'rgba(118,137,254,'+opacity*.48+')');
           ctx.strokeStyle=g;ctx.lineWidth=.75;trait(ctx,p,q);
@@ -208,7 +210,9 @@ export class CielExpo extends Ciel {
             if(d<nearest){this.survol=target;nearest=d;}
           }
         }else{
-          ctx.fillStyle='rgba('+color+',.69)';ctx.beginPath();ctx.arc(p.x,p.y,n.at[2]>.35?2:1.25,0,cercle);ctx.fill();
+          const rayon=n.at[2]>.35?2:1.25;
+          if(pointPlat)pointPlat(p,color,.69*opacity,rayon);
+          else{ctx.fillStyle='rgba('+color+',.69)';ctx.beginPath();ctx.arc(p.x,p.y,rayon,0,cercle);ctx.fill();}
         }
       }
       if(masque(hub))continue;
@@ -216,6 +220,7 @@ export class CielExpo extends Ciel {
       const diam=title?14:8;
       ctx.fillStyle=title?'#e9efff':plat?'#7385ff':'#a1badc';
       if(e.racine){ctx.strokeStyle='#7281ff';ctx.beginPath();ctx.arc(hub.x,hub.y,4,0,cercle);ctx.stroke();}
+      else if(pointPlat)pointPlat(hub,'115,133,255',opacity,diam/2,1);
       else ctx.fillRect(hub.x-diam/2,hub.y-diam/2,diam,diam);
       if(plat&&e.sol){
         const left=hub.x>W*.73;

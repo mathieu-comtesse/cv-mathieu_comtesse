@@ -1,5 +1,6 @@
 /* Graphe à plat. Les foyers et vignettes utilisent la même constellation que le chemin Expo. */
-import { CielExpo } from './ciel-expo.js?v=12';
+import { CielExpo } from './ciel-expo.js?v=14';
+import {surfaceGraph,brancheSpectrale,nœudSpectral} from './fall26-graph-adapter.js?v=1';
 
 const borne = t => Math.max(0, Math.min(1,t));
 const lisse = t => { const t0=borne(t); return t0*t0*(3-2*t0); };
@@ -75,7 +76,9 @@ export function demarre(chapitres) {
   const cv = document.createElement('canvas'), ctx = cv.getContext('2d'), reduit = matchMedia('(prefers-reduced-motion: reduce)');
   cv.className = 'cv-hero-graph'; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'Graphe des chapitres du site et de leurs contenus');
   cv.style.cssText = 'position:absolute;top:0;left:0;height:100%;z-index:3;touch-action:pan-y';
-  zone.append(cv); zone.querySelector('.hero-graph-spinner-track')?.remove();
+  const graph=surfaceGraph('position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none');
+  graph.canvas.dataset.cvSpectralGraph='';
+  zone.append(graph.canvas,cv); zone.querySelector('.hero-graph-spinner-track')?.remove();
   const ciel = new CielExpo(), souris = { x: -1e4, y: -1e4 };
   ciel.accueil(chapitres,'Mathieu Comtesse');
   const etiquette = document.createElement('span');
@@ -129,7 +132,11 @@ export function demarre(chapitres) {
       largeur:W*.51,hauteur:H*.48,etalement:ouvre
     });
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    ciel.dessine(ctx,proj,reduit.matches?null:t/1000,{souris,W,H,dt,plat:true,ouverture:reveal});
+    const edges=[],marks=[],clip=[0,0,W,H];
+    const traitPlat=graph.active?(a,b,ink,alpha,width)=>brancheSpectrale(edges,a,b,ink,alpha,clip,width):undefined;
+    const pointPlat=graph.active?(p,ink,alpha,radius,shape)=>nœudSpectral(marks,p,ink,alpha,clip,radius,shape):undefined;
+    ciel.dessine(ctx,proj,reduit.matches?null:t/1000,{souris,W,H,dt,plat:true,traitPlat,pointPlat,ouverture:reveal});
+    graph.canvas.style.opacity=cv.style.opacity;graph.render(W,H,dpr,edges,undefined,marks);
   }
   requestAnimationFrame(image);
   window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };
