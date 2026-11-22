@@ -29,7 +29,7 @@ export const WILD = [
 ];
 export const ROLE_OF = (kind) => ROLE[kind]?.role;
 
-export function createWild({ H, world, campaign, cinema, popup, beast, ovalE, riverDist, onAttack }) {
+export function createWild({ H, world, campaign, cinema, popup, beast, ovalE, riverDist, onAttack, guarded = () => false }) {
   const agents = [];
   for (const [kind, homes, young] of WILD) homes.forEach(([x, z], k) => {
     const R = ROLE[kind], h = popup(...beast(kind, k), { x, z, scale: kind === 'canariomys' || kind === 'hare' ? 0.8 : 1 });
@@ -46,12 +46,13 @@ export function createWild({ H, world, campaign, cinema, popup, beast, ovalE, ri
     const dx = x - a.x, dz = z - a.z, d = Math.hypot(dx, dz); if (d < 0.05) return d;
     const st = Math.min(d, sp * dt), nx = a.x + dx / d * st, nz = a.z + dz / d * st;
     if (!outside(nx, nz) && a.role !== 'flyer') return d;   // the stakes are a line no beast crosses
+    if (a.role !== 'lurker' && guarded(nx, nz) && !guarded(a.x, a.z)) return d;   // nor the tribe's guarded grounds and trails
     if (a.role !== 'flyer' && a.role !== 'lurker' && riverDist(nx, nz) < 2.8) return d;
     if (a.role === 'lurker' && a.state === 'hunt' && riverDist(nx, nz) > 2.4) return d;   // it hunts in the water only
     a.x = nx; a.z = nz; a.ph += st * 2.2; if (Math.abs(dx) > 0.05) a.face = Math.sign(dx); return d;
   }
   function step(t, dt) {
-    const hp = H.hero.group.position, out = ovalE(hp.x, hp.z) > 1.03, busy = cinema.playing || !!campaign.state.accident;
+    const hp = H.hero.group.position, out = ovalE(hp.x, hp.z) > 1.03 && !guarded(hp.x, hp.z), busy = cinema.playing || !!campaign.state.accident;
     if (busy) freeze = 1.5; else freeze = Math.max(0, freeze - dt);
     for (const a of agents) {
       if (a.held) continue;
