@@ -661,6 +661,12 @@ export function createHarness({ bounds = { x0: -64, x1: 64, z0: -62, z1: 38 }, g
     }
     // capture hook: restart() folds everything flat and replays from t = 0, so step(0.8) is a true mid-rise frame;
     // step(sec) advances a fixed clock (stops the real-time loop) and renders
+    // papercraft: the game frames a scene (the duel) with look(), then hands the camera back to the walk
+    let lookDist = null;
+    H.look = (x, z, dist, y) => { if (!looking) lookDist = view.dist; moved = true; look(x, z, dist, y); };
+    H.unlook = () => { if (!looking) return; looking = false; focusAt = null; if (lookDist) view.dist = lookDist; follow(true); };
+    H.placeHero = (x, z) => { const sf = walk.surface(x, z); if (!sf) return false; heroPos.set(x, sf.y, z); sync(); moved = true; return true; };
+    H.heroAt = () => [heroPos.x, heroPos.z];
     window.__papercraft = { step(sec, fps = 60) { auto = false; for (let i = 0; i < Math.round(sec * fps); i++) step(1 / fps); render(); return time; }, restart,
       resume() { last = performance.now(); auto = true; }, toggle: () => setOpen(!up), post, scene, camera, pieces: hinges.length, walk, view, target, heroPos,
       place: (x, z) => { const s = walk.surface(x, z); if (!s) return null; heroPos.set(x, s.y, z); sync(); moved = true; follow(true); focusBlend = 1; assistOff(); updateAssist(0, true); return s.y; },

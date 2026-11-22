@@ -166,12 +166,10 @@ export function createUI(campaign, world) {
       body.append(btn('Plus tard', () => { d.close(); close(); }, 'quiet')); return;
     }
     const pips = s.cleared.map((c) => `<i class="${c ? 'on' : ''}"></i>`).join('');
-    body.insertAdjacentHTML('beforeend', `<div class="arena ${s.t - (s.lastBoss ?? -9) < 0.4 ? 'boss' : ''} ${s.t - (s.lastHit ?? -9) < 0.25 ? 'hit' : ''} ${s.t < s.jumpUntil ? 'jump' : ''} ${s.t < s.guardUntil ? 'guard' : ''}">
-      <b class="f dylan">Dylan</b><b class="f chief">Aurélien</b></div>
-      ${bar('Dylan', s.dylan, 'life')}${bar('Énergie', s.energy, 'energy')}${bar('Aurélien', s.chief, 'chief')}<p class="pips">${pips}</p>
+    body.insertAdjacentHTML('beforeend', `${bar('Dylan', s.dylan, 'life')}${bar('Énergie', s.energy, 'energy')}${bar('Aurélien', s.chief, 'chief')}<p class="pips">${pips}</p>
       <p class="banner">${esc(s.banner)}</p><p class="said">${esc(s.caption)}</p>${s.feedback ? `<p class="fb">${esc(s.feedback)}</p>` : ''}`);
     if (s.phase === 'combat') {
-      const row = document.createElement('div'); row.className = 'choices';
+      const row = document.createElement('div'); row.className = 'choices duelpad';
       row.append(btn('Frapper <kbd>J</kbd>', () => d.attack(false)), btn('Coup de pied <kbd>K</kbd>', () => d.attack(true)), btn('Garde <kbd>L</kbd>', () => d.guard()), btn('Sauter <kbd>Espace</kbd>', () => d.jump()));
       body.append(row);
       const q = btn(d.canQuestion ? 'Répondre à l’épreuve <kbd>E</kbd>' : 'Épreuve dans un instant…', () => d.openQuestion(), 'go'); q.disabled = !d.canQuestion; body.append(q);
@@ -329,6 +327,7 @@ export function createUI(campaign, world) {
 
   function render() {
     root.classList.toggle('runner', mode === 'activity' && !modal());
+    root.classList.toggle('duel', mode === 'duel');   // docked low: the fight itself is played in the village
     if (mode === 'activity') renderActivity(); else if (mode === 'duel') renderDuel(); else if (mode === 'dialogue') renderDialogue();
     else if (mode === 'quest') renderQuests(); else if (mode === 'journal') renderJournal();
     else if (mode === 'people') renderPeople(); else if (mode === 'map') renderMap(); else if (mode === 'inventory') renderInventory(); else if (mode === 'tech') renderTech();

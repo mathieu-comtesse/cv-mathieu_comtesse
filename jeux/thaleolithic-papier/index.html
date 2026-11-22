@@ -240,6 +240,9 @@
   #prompt { font: 400 19px/1.2 var(--caps); letter-spacing: .03em; padding: 12px 22px; }
   #pin { font: 400 16px/1.1 var(--caps); letter-spacing: .03em; padding: 6px 12px 7px; }
   #work { font: 400 16px/1.2 var(--caps); }
+  #panel.duel { top: auto; bottom: 14px; width: min(430px, calc(100vw - 28px)); max-height: min(52vh, 470px); --tilt: rotate(-.6deg); }
+  #panel.duel #panel-body { padding: 26px 30px 28px; } #panel.duel h2 { font-size: 23px; margin-bottom: 10px; }
+  .duelpad { display: grid; grid-template-columns: 1fr 1fr; gap: 0 4px; } .duelpad .btn { text-align: center; }
   @media (max-width: 640px) { #tools .ico { width: 34px; height: 34px; } #tools .btn { padding: 6px; } #hud { width: calc(100vw - 86px); padding: 12px 14px; } #panel-body { padding: 26px 24px 28px; } .sheet h1 { font-size: 36px; } }
   @media (prefers-reduced-motion: reduce) { #hud, #tools .btn { animation: none; } }
 </style>

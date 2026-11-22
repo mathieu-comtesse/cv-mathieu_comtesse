@@ -35,6 +35,7 @@ H.onStep((t, dt) => {
   if (!world.evacuating && dt > 0) { campaign.villageStep(dt, world.arrivedAt, world.moving); world.lead(campaign); }
   const p = H.hero.group.position, moved = p.distanceTo(last) > 1e-4; last.copy(p);
   if (dt > 0) campaign.survive(dt, moved, world.near('repos', 4));
+  world.duelStep(dt, campaign.duel.s, ui.mode === 'duel');   // the duel is fought in the village, before the Grand Menhir
   if (world.guide && world.near(world.guide)) world.guide = null;   // a place chosen on the map: the marker goes there until Dylan arrives
   const site = world.guide || campaign.nextSite(), s = site && world.SITES[site];
   if (!s || ui.mode) { pin.hidden = true; return; }
