@@ -1,4 +1,9 @@
-import { fonduChapitre } from './moteur.js?v=m35';
+import {transitionsPapier,etatCouleur,radialCouleur,couleurAuPoint} from './section-colours.js?v=2';
+import {initFlatColourRenderer} from './flat-colour-renderer.js?v=1';
+import {surfaceGraph,brancheSpectrale} from './fall26-graph-adapter.js?v=1';
+import {poussiere,notesCadre} from './card-effects.js?v=3';
+import { fonduChapitre } from './moteur.js?v=m36';
+import { avanceBranche, brancheCarte } from './card-wires.js?v=3';
 
 /* Étoiles des titres (mode à plat). Chaque grand titre (chapitre : « Projets professionnels » ; thème : « Faire fonctionner »…)
  * garde sa taille et reçoit une étoile : un foyer carré blanc posé près du titre, d'où partent des branches.
@@ -39,6 +44,10 @@ html:not(.cv-parity-active) .section-hero-pin h2{color:transparent!important;-we
 .cv-flat-nav a:is(:hover,:focus-visible){text-decoration:underline}
 html[data-cv-flat-colour]:not(.cv-parity-active) [data-f26-page]{background:var(--cv-flat-colour)!important}
 html[data-cv-flat-colour]:not(.cv-parity-active) [data-f26-page-section]{background:transparent!important}
+.cv-colour-shader{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.cv-colour-shader[hidden],html.cv-parity-active .cv-colour-shader{display:none!important}
+html[data-cv-page-shader]:not(.cv-parity-active) [data-f26-page]{background:transparent!important}
+html[data-cv-fade-fallback]:not(.cv-parity-active) [data-f26-page]{background:var(--cv-fade) fixed!important}
 html[data-cv-flat-colour]:not(.cv-parity-active) .cv-site-nav{background:color-mix(in oklab,var(--cv-flat-colour) 88%,#121420)!important}
 @media (max-width:939px){.cv-flat-nav{display:none}}
 .cv-star-layer rect.foyer{fill:#fff;opacity:0;transition:opacity .3s}
@@ -162,10 +171,12 @@ function svgAccessible(etoiles) { for (const e of etoiles) if (e.fiches.length) 
  * part avec la page. Tout est piloté par la position de défilement : la séquence se rejoue à l'identique dans les deux sens. */
 function scene(chapitres) {
   const cv = document.createElement('canvas'), ctx = cv.getContext('2d');
-  cv.className = 'cv-star-scene'; cv.setAttribute('aria-hidden', 'true');
-  document.body.append(cv);
+  cv.className = 'cv-star-scene';cv.setAttribute('aria-hidden','true');
+  const fil=surfaceGraph('position:fixed;inset:0;width:100%;height:100%;z-index:2;pointer-events:none');
+  fil.canvas.className='cv-star-scene';
+  document.body.append(fil.canvas,cv);
   const lisse = (x, a, b) => { x = Math.max(0, Math.min(1, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
-  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false, ancienneCouleur = '';
+  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false, ancienneCouleur = '', liensLus = 0;
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
   addEventListener('resize', taille); taille();
   for (const c of chapitres) {
@@ -178,12 +189,19 @@ function scene(chapitres) {
   const nav = document.createElement('nav'); nav.className = 'cv-flat-nav'; nav.setAttribute('aria-label', 'Chapitres');
   for (const c of chapitres) { const a = document.createElement('a'); a.href = '#' + c.section.id; a.textContent = c.nom; c.lien = a; nav.append(a); }
   document.body.append(nav);
+  const source=document.querySelector('[data-f26-page]');
+  let paper=[];
+  const shader=initFlatColourRenderer();shader.prepare();
+  function mesure(){paper=transitionsPapier(source,H,el=>{const r=el.getBoundingClientRect();return {top:scrollY+r.top,bottom:scrollY+r.bottom};});}
+  if(source)new ResizeObserver(mesure).observe(source);
+  addEventListener('resize',mesure);
+  mesure();
   function image(t) {
     requestAnimationFrame(image);
     if (document.hidden || t - dernier < 16) return; dernier = t;
     const expo = document.documentElement.classList.contains('cv-parity-active');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); cibles = [];
-    if (expo) return;
+      if (expo) return;
     const libre = !reduit.matches, tt = t / 1000; let actif = null, vuNav = false;
     const root = document.documentElement;
     const sections = chapitres.map(c => c.section.getBoundingClientRect());
@@ -203,11 +221,31 @@ function scene(chapitres) {
       sortant=c;
       couleur=cible;
     }
+    const etat=etatCouleur(paper,scrollY,!libre);
+    couleur=etat.stable;
+    root.dataset.cvInk=etat.next?.colour||etat.stable;
+    let painted=false;
+    if(etat.next){
+      // La transition part du foyer visible de l’étoile du chapitre entrant.
+      const originY=H*.56;
+      const wave=radialCouleur(etat,W*.6,originY,W,H);
+      painted=shader.draw(etat,wave,W,H,dpr);
+      couleur=couleurAuPoint(etat,wave,W*.5,25);
+      if(!painted){
+        const samples=Array.from({length:13},(_,i)=>{
+          const distance=i*wave.extent/12;
+          return couleurAuPoint(etat,wave,wave.x+distance,wave.y)+' '+distance+'px';
+        });
+        root.style.setProperty('--cv-fade','radial-gradient(circle at '+wave.x+'px '+wave.y+'px, '+samples.join(',')+')');
+      }
+    }else shader.draw(etat,null,W,H,dpr);
+    root.toggleAttribute('data-cv-page-shader',painted);
+    root.toggleAttribute('data-cv-fade-fallback',Boolean(etat.next&&!painted));
     if(couleur!==ancienneCouleur){
       ancienneCouleur=couleur;
       root.style.setProperty('--cv-flat-colour',couleur);
     }
-    root.toggleAttribute('data-cv-flat-colour',Boolean(sortant||entrant));
+    root.toggleAttribute('data-cv-flat-colour',scrollY>H*.7);
     for (const c of chapitres) {
       const S = c.section.getBoundingClientRect(); if (S.top < H * 0.5 && S.bottom > H * 0.5) actif = c; if (S.top < H * 1.4) vuNav = true;
       const T = c.titre.getBoundingClientRect(), u = (H - T.top) / H;
@@ -222,6 +260,11 @@ function scene(chapitres) {
       ctx.save(); ctx.globalAlpha = alpha; ctx.lineCap = 'round';
       /* les branches passent derrière les fiches : la zone des fiches visibles est retirée du tracé */
       if (u > 0.15) { ctx.beginPath(); ctx.rect(0, 0, W, H); for (const f of c.fiches) { const q = f.getBoundingClientRect(); if (q.bottom > 0 && q.top < H) ctx.rect(q.left, q.top, q.width, q.height); } ctx.clip('evenodd'); }
+      const panel=document.querySelector('#work .gains-chart');
+      if(panel){
+        const b=panel.getBoundingClientRect();
+        ctx.beginPath();ctx.rect(0,0,W,H);ctx.rect(b.left,b.top,b.width,b.height);ctx.clip('evenodd');
+      }
       c.branches.forEach((b, k) => {
         const gk = lisse(g * 1.6 - k * 0.02, 0, 1);
         let x = hx + Math.cos(b.a) * R * b.r, y = hy + Math.sin(b.a) * R * b.r * 0.82;
@@ -229,7 +272,16 @@ function scene(chapitres) {
         x = hx + (x - hx) * gk; y = hy + (y - hy) * gk;
         const survole = b.fiche && Math.hypot(x - souris.x, y - souris.y) < 16;
         ctx.strokeStyle = b.fiche ? (survole ? '#fff' : k < 2 ? 'rgba(95,230,255,.9)' : 'rgba(255,255,255,.72)') : 'rgba(207,224,255,.26)'; ctx.lineWidth = survole ? 2 : 1;
-        ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(x, y); ctx.stroke();
+        const dx=x-hx,dy=y-hy,length=dx*dx+dy*dy;
+        const u=length?Math.min(1,Math.max(0,((souris.x-hx)*dx+(souris.y-hy)*dy)/length)):0;
+        const px=hx+u*dx,py=hy+u*dy,d=Math.hypot(souris.x-px,souris.y-py);
+        ctx.beginPath();ctx.moveTo(hx,hy);
+        if(libre&&u>.12&&u<.92&&d<18){
+          ctx.strokeStyle='rgba(239,248,255,.84)';ctx.lineWidth=1.3;
+          const push=(1-d/18)*22/Math.max(1,d);
+          ctx.quadraticCurveTo(px+(px-souris.x)*push,py+(py-souris.y)*push,x,y);
+        }else ctx.lineTo(x,y);
+        ctx.stroke();
         if (b.fiche) {
           if (libre) { const q = (tt * 0.28 + b.phase / 6.283) % 1, f = Math.min(1, q / 0.75); ctx.fillStyle = `rgba(255,255,255,${(q < 0.75 ? 0.95 : (1 - q) * 3.8).toFixed(2)})`; ctx.beginPath(); ctx.arc(hx + (x - hx) * f, hy + (y - hy) * f, 1.7, 0, 6.283); ctx.fill(); }
           ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1; ctx.strokeRect(x - 9, y - 7, 18, 14); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - 6, y - 4, 12, 8);
@@ -256,6 +308,27 @@ function scene(chapitres) {
       ctx.restore();
     }
     nav.classList.toggle('vu', vuNav); for (const c of chapitres) c.lien.classList.toggle('actif', c === actif);
+    liensLus=0;
+    const edges=[],clip=[0,0,W,H];
+    const emit=fil.active?(a,b,ink,alpha,width)=>brancheSpectrale(edges,a,b,ink,alpha,clip,width):undefined;
+    poussiere(ctx,W,H,libre?tt:null,scrollY);
+    const notes=[];
+    if(vuNav&&W>=940)for(const c of chapitres){
+      const r=c.lien.getBoundingClientRect(),a={x:r.right-2,y:r.top+r.height/2};
+      const depart=c.section===actif?.section;
+      for(const card of c.fiches){
+        const marker=card.querySelector(':scope > [data-card-marker]');
+        const dot=marker?.getBoundingClientRect();
+        if(!dot?.width||dot.top<54||dot.top>H)continue;
+        const b={x:dot.left+dot.width/2,y:dot.top+dot.height/2};
+        const fiche=card.querySelector('[data-fiche]');
+        if(fiche){const edge=card.getBoundingClientRect();notes.push({element:fiche,x:edge.right,y:b.y,bottom:edge.bottom});}
+        if(brancheCarte(ctx,a,b,{t:libre?tt:null,id:card.id,progress:avanceBranche(b.y,H,!libre),active:depart,pointer:souris,emit}))liensLus++;
+      }
+    }
+    fil.render(W,H,dpr,edges);
+    notesCadre(ctx,notes,W,H,souris);
+
     /* le curseur n'est modifié que par celui qui l'a posé : le graphe de l'accueil gère le sien (main ouverte, main fermée) */
     const dessus = cibles.some((q) => Math.hypot(q.x - souris.x, q.y - souris.y) < 16); if (dessus !== curseurPose) { curseurPose = dessus; document.documentElement.style.cursor = dessus ? 'pointer' : ''; }
   }
@@ -266,6 +339,6 @@ function scene(chapitres) {
     const q = cibles.find((q) => Math.hypot(q.x - ev.clientX, q.y - ev.clientY) < 16); if (!q) return;
     ev.preventDefault(); q.fiche.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' });
   }, { capture: true });
-  window.__cvStarScene = { etat: () => chapitres.map((c) => { const T = c.titre.getBoundingClientRect(); return { titre: c.nom, u: +((H - T.top) / H).toFixed(2), remplissage: +c.titre.style.getPropertyValue('--cv-fill'), fiches: c.fiches.length, branches: c.branches.length }; }), vignettes: () => cibles.length };
+  window.__cvStarScene = { etat: () => chapitres.map((c) => { const T = c.titre.getBoundingClientRect(); return { titre: c.nom, u: +((H - T.top) / H).toFixed(2), remplissage: +c.titre.style.getPropertyValue('--cv-fill'), fiches: c.fiches.length, branches: c.branches.length }; }), vignettes: () => cibles.length, liens:()=>liensLus };
 }
 if (document.readyState === 'loading') addEventListener('DOMContentLoaded', installe); else installe();
