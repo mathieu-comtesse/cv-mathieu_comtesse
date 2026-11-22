@@ -110,6 +110,66 @@ export const BEASTS = {
     g.fillStyle = ink('#e8d0a0', 'print'); D.ell(g, 1.25, 0.78, 0.15, 0.08);
     eye(g, ink, D, 1.2, 1.0, 0.04);
   } },
+  // ---- the Cenozoic menagerie (Dylan may leave the camp: some hunt, some defend themselves when frightened) ----------
+  smilodon: { w: 3.6, h: 2.0, draw: (g, ink, D, P2, C) => {
+    legs(g, ink, D, '#a8743a', [-0.95, -0.7, 0.55, 0.8], 0.75, 0.2, '#5a3a22');
+    g.fillStyle = ink('#c8904a'); D.ell(g, -0.1, 1.12, 1.15, 0.42); D.ell(g, 0.95, 1.35, 0.42, 0.36); D.ell(g, 1.3, 1.25, 0.26, 0.2); P2.fillLimb(g, -1.15, 1.2, -1.4, 1.15, -1.5, 0.95, 0.1, 0.07);
+    g.fillStyle = ink('#f4ecdc'); for (const sx of [1.28, 1.42]) D.poly(g, [[sx - 0.05, 1.1], [sx + 0.05, 1.1], [sx, 0.62]]);
+    g.fillStyle = ink('#8a5a2a', 'print'); for (let k = 0; k < 7; k++) D.ell(g, -0.8 + k * 0.25, 1.25 + (k % 2) * 0.12, 0.07, 0.05);
+    g.fillStyle = ink('#5a3a22'); D.poly(g, [[0.85, 1.62], [0.92, 1.85], [1.02, 1.62]]); eye(g, ink, D, 1.1, 1.42, 0.05);
+  } },
+  gastornis: { w: 2.6, h: 3.4, draw: (g, ink, D, P2, C) => {
+    g.fillStyle = ink('#c8a050'); for (const x of [-0.2, 0.2]) { D.rect(g, x - 0.08, 0.06, 0.16, 1.2, 0.05); D.poly(g, [[x - 0.3, 0], [x + 0.3, 0], [x, 0.15]]); }
+    g.fillStyle = ink('#3a3448'); D.ell(g, 0, 1.6, 0.75, 0.6); P2.fillLimb(g, 0.4, 1.9, 0.6, 2.5, 0.55, 2.85, 0.3, 0.24); D.poly(g, [[-0.6, 1.8], [-1.15, 2.2], [-0.65, 1.45]]);
+    g.fillStyle = ink('#e0a24a'); D.poly(g, [[0.7, 2.95], [1.25, 2.72], [0.75, 2.5]]); g.fillStyle = ink('#c84a2a', 'print'); D.rect(g, 0.72, 2.72, 0.5, 0.04);
+    g.fillStyle = ink('#5a5470', 'print'); for (let k = 0; k < 6; k++) P2.fillLeaf(g, -0.4 + k * 0.15, 1.4, 0.35, -1.2, 0.3); eye(g, ink, D, 0.62, 2.92, 0.05);
+  } },
+  diprotodon: { w: 3.8, h: 2.4, draw: (g, ink, D, P2, C) => {
+    legs(g, ink, D, '#5a3a24', [-1.0, -0.7, 0.6, 0.9], 0.75, 0.32, '#2a1a1e');
+    g.fillStyle = ink('#7a5236'); D.ell(g, 0, 1.25, 1.35, 0.68); D.ell(g, 1.2, 1.25, 0.48, 0.42); D.rect(g, 1.45, 1.0, 0.38, 0.38, 0.12); D.ell(g, 0.95, 1.68, 0.13, 0.12);
+    g.fillStyle = ink('#2a1a1e'); D.ell(g, 1.78, 1.25, 0.08, 0.07); strokes(g, ink, D, '#9a7048', -1.1, 1.0, 0.8, 1.6, 16, 0.25); eye(g, ink, D, 1.3, 1.38, 0.04);
+  } },
+  megatherium: { w: 3.4, h: 5.0, draw: (g, ink, D, P2, C) => {   // the giant ground sloth, up on its hind legs
+    g.fillStyle = ink('#6a5038'); D.rect(g, -0.5, 0.05, 0.4, 1.3, 0.15); D.rect(g, 0.15, 0.05, 0.4, 1.3, 0.15); P2.fillLimb(g, -0.3, 0.6, -1.1, 0.5, -1.4, 0.15, 0.35, 0.2);
+    g.fillStyle = ink('#7a6044'); D.ell(g, 0, 2.5, 0.95, 1.35); D.ell(g, 0.1, 3.95, 0.45, 0.42); D.ell(g, 0.45, 3.85, 0.25, 0.18);
+    g.fillStyle = ink('#6a5038'); for (const sd of [-1, 1]) P2.fillLimb(g, sd * 0.7, 3.2, sd * 1.25, 3.4, sd * 1.35, 2.6, 0.24, 0.16);
+    g.fillStyle = ink('#ead9b8'); for (const sd of [-1, 1]) for (let k = 0; k < 3; k++) D.poly(g, [[sd * 1.3 + k * 0.06, 2.62], [sd * 1.3 + k * 0.06 + 0.06, 2.62], [sd * 1.36 + k * 0.05, 2.15]]);
+    strokes(g, ink, D, '#9a7a58', -0.7, 0.7, 1.4, 3.3, 22, 0.35); eye(g, ink, D, 0.3, 4.02, 0.045);
+  } },
+  glyptotherium: { w: 3.6, h: 2.0, draw: (g, ink, D, P2, C) => {
+    legs(g, ink, D, '#5a4a3a', [-0.9, -0.6, 0.5, 0.8], 0.35, 0.22, '#2a1a1e');
+    g.fillStyle = ink('#8a7a5a'); D.ell(g, 1.25, 0.65, 0.32, 0.26); P2.fillLimb(g, -1.1, 0.7, -1.6, 0.6, -1.8, 0.5, 0.2, 0.18); D.ell(g, -1.82, 0.5, 0.2, 0.2);
+    g.fillStyle = ink('#a08a62'); g.beginPath(); g.ellipse(0, 0.5, 1.35, 1.25, 0, Math.PI, 0, true); g.fill();
+    g.strokeStyle = ink('#6a5a3a', 'print'); g.lineWidth = 0.04; for (let r = 0; r < 4; r++) for (let k = 0; k < 7; k++) { const a = Math.PI * (0.12 + k * 0.125), rr = 0.35 + r * 0.27; g.beginPath(); g.arc(Math.cos(a) * rr, 0.5 + Math.sin(a) * rr * 0.92, 0.11, 0, 6.283); g.stroke(); }
+    g.fillStyle = ink('#ead9b8'); for (let k = 0; k < 5; k++) D.poly(g, [[-1.95 + k * 0.08, 0.6], [-1.9 + k * 0.08, 0.78], [-1.85 + k * 0.08, 0.6]]); eye(g, ink, D, 1.35, 0.72, 0.04);
+  } },
+  harpagornis: { w: 4.6, h: 2.0, draw: (g, ink, D, P2, C) => {   // Haast's eagle, wings spread
+    g.fillStyle = ink('#4a3426'); g.beginPath(); g.moveTo(0, 1.0); g.quadraticCurveTo(-1.2, 1.9, -2.2, 1.6); g.lineTo(-1.8, 1.3); g.lineTo(-2.0, 1.15); g.lineTo(-1.5, 0.95); g.lineTo(-1.7, 0.75); g.quadraticCurveTo(-0.8, 0.8, 0, 0.75); g.quadraticCurveTo(0.8, 0.8, 1.7, 0.75); g.lineTo(1.5, 0.95); g.lineTo(2.0, 1.15); g.lineTo(1.8, 1.3); g.lineTo(2.2, 1.6); g.quadraticCurveTo(1.2, 1.9, 0, 1.0); g.fill();
+    g.fillStyle = ink('#6a4a32'); D.ell(g, 0, 0.85, 0.32, 0.5); g.fillStyle = ink('#ead9b8'); D.ell(g, 0, 1.3, 0.2, 0.18); g.fillStyle = ink('#e0a24a'); D.poly(g, [[0.12, 1.3], [0.35, 1.22], [0.12, 1.15]]); for (const sd of [-1, 1]) D.poly(g, [[sd * 0.12, 0.38], [sd * 0.22, 0.12], [sd * 0.02, 0.3]]);
+  } },
+  archaeoindris: { w: 2.4, h: 3.2, draw: (g, ink, D, P2, C) => {   // the giant lemur, gorilla-sized
+    g.fillStyle = ink('#5a4a40'); for (const sd of [-1, 1]) P2.fillLimb(g, sd * 0.35, 1.0, sd * 0.45, 0.5, sd * 0.4, 0.05, 0.24, 0.18); D.ell(g, 0, 1.55, 0.7, 0.85); for (const sd of [-1, 1]) P2.fillLimb(g, sd * 0.6, 2.0, sd * 1.0, 1.4, sd * 0.95, 0.6, 0.18, 0.13);
+    g.fillStyle = ink('#3a2e2a'); D.ell(g, 0, 2.6, 0.42, 0.4); g.fillStyle = ink('#d8c8a8'); D.ell(g, 0, 2.5, 0.24, 0.2); for (const sd of [-1, 1]) D.ell(g, sd * 0.36, 2.85, 0.14, 0.12); eye(g, ink, D, -0.12, 2.65, 0.07); eye(g, ink, D, 0.12, 2.65, 0.07);
+  } },
+  sarcosuchus: { w: 6.0, h: 1.2, draw: (g, ink, D, P2, C) => {   // the giant crocodile, low in the water
+    g.fillStyle = ink('#4a5a3a'); g.beginPath(); g.moveTo(-2.9, 0.35); g.quadraticCurveTo(-1.5, 0.55, 0, 0.62); g.lineTo(1.6, 0.55); g.lineTo(2.9, 0.38); g.quadraticCurveTo(3.0, 0.25, 2.8, 0.2); g.lineTo(1.6, 0.18); g.lineTo(-1.0, 0.1); g.quadraticCurveTo(-2.2, 0.12, -2.9, 0.35); g.fill();
+    g.fillStyle = ink('#3a4a2e', 'print'); for (let k = 0; k < 12; k++) D.poly(g, [[-1.8 + k * 0.28, 0.58], [-1.68 + k * 0.28, 0.78], [-1.56 + k * 0.28, 0.58]]);
+    g.fillStyle = ink('#f4ecdc'); for (let k = 0; k < 9; k++) D.poly(g, [[1.8 + k * 0.11, 0.3], [1.85 + k * 0.11, 0.2], [1.9 + k * 0.11, 0.3]]); D.ell(g, 2.45, 0.68, 0.12, 0.1); g.fillStyle = ink('#c8a020'); D.ell(g, 1.5, 0.66, 0.08, 0.07);
+  } },
+  canariomys: { w: 1.2, h: 0.6, draw: (g, ink, D, P2, C) => { g.fillStyle = ink('#7a6250'); D.ell(g, 0, 0.25, 0.38, 0.2); D.ell(g, 0.36, 0.3, 0.16, 0.13); D.ell(g, 0.3, 0.44, 0.06, 0.06); g.strokeStyle = ink('#c8947a'); g.lineWidth = 0.05; g.beginPath(); g.moveTo(-0.36, 0.22); g.quadraticCurveTo(-0.6, 0.1, -0.55, 0.32); g.stroke(); g.fillStyle = ink('#2a1a1e'); D.ell(g, 0.42, 0.33, 0.025, 0.025); } },
+  castoroides: { w: 2.0, h: 1.0, draw: (g, ink, D, P2, C) => { g.fillStyle = ink('#6a4a32'); D.ell(g, 0, 0.42, 0.7, 0.38); D.ell(g, 0.68, 0.48, 0.26, 0.22); g.fillStyle = ink('#3a2a22'); D.ell(g, -0.82, 0.18, 0.3, 0.1); g.fillStyle = ink('#e0a24a'); D.rect(g, 0.86, 0.3, 0.08, 0.14); eye(g, ink, D, 0.75, 0.55, 0.035); } },
+  hare: { w: 1.0, h: 0.9, draw: (g, ink, D, P2, C) => { g.fillStyle = ink('#b89a72'); D.ell(g, 0, 0.3, 0.3, 0.2); D.ell(g, 0.28, 0.42, 0.13, 0.12); P2.fillLeaf(g, 0.26, 0.5, 0.32, 1.9, 0.3); D.ell(g, -0.28, 0.32, 0.07, 0.07); g.fillStyle = ink('#2a1a1e'); D.ell(g, 0.33, 0.45, 0.025, 0.025); } },
+  tortoise: { w: 1.2, h: 0.7, draw: (g, ink, D, P2, C) => { g.fillStyle = ink('#7a8a5a'); D.ell(g, 0.5, 0.18, 0.13, 0.1); g.fillStyle = ink('#8a6a3a'); g.beginPath(); g.ellipse(0, 0.12, 0.45, 0.42, 0, Math.PI, 0, true); g.fill(); g.strokeStyle = ink('#5a4a2a', 'print'); g.lineWidth = 0.03; for (const x of [-0.2, 0.05, 0.28]) { g.beginPath(); g.arc(x, 0.3, 0.1, 0, 6.283); g.stroke(); } } },
+  hyracotherium: { w: 1.6, h: 1.2, draw: (g, ink, D, P2, C) => { legs(g, ink, D, '#6a4a32', [-0.35, -0.22, 0.25, 0.38], 0.4, 0.07); g.fillStyle = ink('#9a7048'); D.ell(g, 0, 0.62, 0.48, 0.2); P2.fillLimb(g, 0.38, 0.7, 0.55, 0.9, 0.62, 0.98, 0.14, 0.1); D.ell(g, 0.68, 0.95, 0.16, 0.1); g.fillStyle = ink('#ead9b8', 'print'); for (let k = 0; k < 4; k++) D.rect(g, -0.3 + k * 0.15, 0.55, 0.05, 0.18); eye(g, ink, D, 0.68, 1.0, 0.025); } },
+};
+
+// the flora of the Paleogene to the Quaternary, in the clearings outside the stakes
+export const PLANTS = {
+  treeFern: { w: 3.0, h: 4.2, draw: (g, ink, D, P2) => { g.fillStyle = ink('#5a3a22'); D.rect(g, -0.15, 0, 0.3, 2.8, 0.06); for (let k = 0; k < 9; k++) { const a = -2.6 + k * 0.4; g.fillStyle = ink(k % 2 ? '#5a7a32' : '#6a8a3a'); P2.fillLeaf(g, 0, 2.8, 1.5, a + Math.PI, 0.25); } } },
+  cycad: { w: 2.6, h: 2.2, draw: (g, ink, D, P2) => { g.fillStyle = ink('#7a5a32'); D.poly(g, [[-0.35, 0], [0.35, 0], [0.25, 0.8], [-0.25, 0.8]]); for (let k = 0; k < 9; k++) { g.fillStyle = ink(k % 2 ? '#4a6a2a' : '#6a8a32'); P2.fillLeaf(g, 0, 0.8, 1.2, Math.PI / 2 + (k - 4) * 0.32, 0.22); } g.fillStyle = ink('#c86a2a'); D.ell(g, 0, 0.9, 0.18, 0.2); } },
+  ginkgo: { w: 3.2, h: 4.6, draw: (g, ink, D, P2) => { g.fillStyle = ink('#5a3a22'); D.rect(g, -0.13, 0, 0.26, 2.2); for (let k = 0; k < 14; k++) { const a = k / 14 * 6.283, r = 0.5 + (k % 3) * 0.35; g.fillStyle = ink(k % 3 ? '#e0c040' : '#c8a830'); D.poly(g, [[Math.cos(a) * r * 0.5, 2.9 + Math.sin(a) * r * 0.9], [Math.cos(a) * r * 1.3 + 0.3, 3.1 + Math.sin(a) * r], [Math.cos(a) * r * 1.3 - 0.3, 3.1 + Math.sin(a) * r]]); } D.ell(g, 0, 3.1, 1.1, 1.2); } },
+  palm: { w: 3.4, h: 5.0, draw: (g, ink, D, P2) => { g.fillStyle = ink('#8a6a42'); D.poly(g, [[-0.2, 0], [0.2, 0], [0.14, 3.8], [-0.1, 3.8]]); g.fillStyle = ink('#6a4a2a', 'print'); for (let k = 0; k < 9; k++) D.rect(g, -0.18, 0.3 + k * 0.38, 0.34, 0.05); for (let k = 0; k < 7; k++) { g.fillStyle = ink(k % 2 ? '#4a7a32' : '#5a8a3a'); P2.fillLeaf(g, 0, 3.8, 1.6, Math.PI / 2 + (k - 3) * 0.55, 0.22); } } },
+  horsetail: { w: 1.6, h: 2.6, draw: (g, ink, D) => { for (let k = 0; k < 5; k++) { const x = -0.5 + k * 0.25, h = 1.6 + (k % 3) * 0.4; g.fillStyle = ink('#6a8a3a'); D.rect(g, x - 0.05, 0, 0.1, h); g.fillStyle = ink('#3a4a22', 'print'); for (let j = 1; j < 6; j++) D.rect(g, x - 0.12, j * h / 6, 0.24, 0.04); g.fillStyle = ink('#8a6a3a'); D.ell(g, x, h + 0.08, 0.07, 0.14); } } },
 };
 
 // ---- the herds: where each kind lives, how it moves (paper-life critter behaviours), how many --------------------
@@ -121,14 +181,7 @@ export const HERDS = [
   { kind: 'pig', at: [[-26.4, 5.8], [-24.8, 7.0]], behaviour: 'graze', roam: 0.35, scale: 0.95 },
   { kind: 'hen', at: [[20.0, -1.6], [21.6, -1.2], [22.4, -2.6], [19.4, -0.2], [21.0, 0.2]], behaviour: 'peck', roam: 0.5, scale: 1.0, speed: 0.5 },
   { kind: 'dog', at: [[3.0, 2.2]], behaviour: 'pet', roam: 1.2, scale: 1.0 },
-  // the wild: beyond the stakes, in the clearings, across the river
-  { kind: 'rhino', at: [[-29, -34]], behaviour: 'graze', roam: 0.8, scale: 1.0, wild: true },
-  { kind: 'aurochs', at: [[-36, -19], [-38.5, -15.5], [-34, -24]], behaviour: 'graze', roam: 0.8, scale: 1.0, wild: true },
-  { kind: 'megaloceros', at: [[39, -26], [41, -21]], behaviour: 'shy', roam: 0.8, scale: 1.0, wild: true },
-  { kind: 'horse', at: [[37, 4], [39.5, 7], [36.5, 9.5]], behaviour: 'graze', roam: 0.9, scale: 1.0, wild: true },
-  { kind: 'bear', at: [[30, -36]], behaviour: 'graze', roam: 0.6, scale: 1.0, wild: true },
-  { kind: 'wolf', at: [[-37, 4], [-39, 6.5], [-35.5, 7.8]], behaviour: 'shy', roam: 0.9, scale: 1.0, wild: true },
-  { kind: 'lion', at: [[-11, -37]], behaviour: 'perch', roam: 0.1, scale: 1.0, wild: true },
+  // the wild beasts live in wild.js (roles: predators, defenders, flyers, lurkers, the shy ones)
 ];
 
 // ---- the workshops and the folds: pieces drawn as cards ---------------------------------------------------------------

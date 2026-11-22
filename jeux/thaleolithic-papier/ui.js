@@ -283,24 +283,35 @@ export function createUI(campaign, world) {
     body.append(btn('Fermer', close, 'quiet'));
   }
   // ---- Carte (TribalMapView) : le village vu de haut, Dylan, l'objectif ; choisir un lieu pose le repère dessus ------
+  // the map: the village seen from straight above (the same plate as the minimap, rendered from the scene), the route
+  // of the GPS ribbon, the beacons, the villagers, Dylan; zoom with the wheel or the buttons, drag to look around, a
+  // place clicked becomes the place to go
+  const mv = { cx: null, cz: null, span: 60 };
   function renderMap() {
-    const S = world.SITES, X = (x) => (x + 30) * 8, Z = (z) => (z + 34) * 8, hero = world.H.hero.group.position, target = world.guide || campaign.nextSite();
-    const river = world.RIVER.pts.map(([x, z], i) => (i ? 'L' : 'M') + X(x).toFixed(0) + ' ' + Z(z).toFixed(0)).join(' ');
-    // printed like an atlas plate: graticule, neatline, the river in ink and wash, the target as an inked ring with a
-    // cross, Dylan as the one red pin, a compass
-    let svg = `<svg class="map" viewBox="0 0 496 368" role="img" aria-label="Carte du village"><defs><pattern id="grat" width="31" height="23" patternUnits="userSpaceOnUse"><path d="M31 0V23H0" fill="none" stroke="#2a1a1e" stroke-opacity=".08"/></pattern></defs>
-      <rect width="496" height="368" fill="url(#grat)"/>
-      <rect x="6" y="6" width="484" height="356" fill="none" stroke="#2a1a1e" stroke-opacity=".7" stroke-width="1.2"/><rect x="10" y="10" width="476" height="348" fill="none" stroke="#2a1a1e" stroke-opacity=".35" stroke-width=".6"/>
-      <path d="${river}" stroke="#6f7fb0" stroke-width="24" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".42"/><path d="${river}" stroke="#2a1a1e" stroke-opacity=".5" stroke-width="1.1" stroke-dasharray="7 5" fill="none"/>`;
+    const M = world.navMap, A = M?.bounds || { x0: -46, x1: 46, z0: -48, z1: 26 }, S = world.SITES, hero = world.H.hero.group.position, target = world.guide || campaign.nextSite();
+    if (mv.cx == null) { mv.cx = hero.x; mv.cz = hero.z; }
+    const aspect = 0.72, vw = mv.span, vh = mv.span * aspect, vb = () => `${mv.cx - mv.span / 2} ${mv.cz - mv.span * aspect / 2} ${mv.span} ${mv.span * aspect}`;
+    const route = (world.navRoute || []).map(([x, z], i) => (i ? 'L' : 'M') + x.toFixed(1) + ' ' + z.toFixed(1)).join(' ');
+    let g = `<svg viewBox="${vb()}" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Carte du village vue de dessus">`;
+    g += M?.image ? `<image href="${M.image}" x="${A.x0}" y="${A.z0}" width="${A.x1 - A.x0}" height="${A.z1 - A.z0}" preserveAspectRatio="none"/>` : `<rect x="${A.x0}" y="${A.z0}" width="${A.x1 - A.x0}" height="${A.z1 - A.z0}" fill="#c8b48a"/>`;
+    if (route) g += `<path d="${route}" fill="none" stroke="#7a2e18" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/><path d="${route}" fill="none" stroke="#ffce60" stroke-width=".5" stroke-dasharray="1.2 .8" stroke-linecap="round"/>`;
+    for (const p of Object.values(world.people)) if (!p.dying && !p.h.held) g += `<circle cx="${p.x.toFixed(1)}" cy="${p.z.toFixed(1)}" r=".45" fill="#fbf1de" stroke="#2a1a1e" stroke-width=".12"/>`;
+    for (const x of campaign.exposures()) { const sp = S[x.site]; if (sp) g += `<circle cx="${sp.x + 1.6}" cy="${sp.z - 1.2}" r=".8" fill="#e84834" stroke="#fbf1de" stroke-width=".2"/>`; }
     for (const [id, s] of Object.entries(S)) {
-      const x = X(s.x), y = Z(s.z), goal = id === target;
-      svg += `<g class="site" data-site="${id}"><circle cx="${x}" cy="${y}" r="16" fill="transparent" stroke="none"/>${goal ? `<circle class="goal" cx="${x}" cy="${y}" r="11"/><path class="x" d="M${x - 3.4} ${y - 3.4}l6.8 6.8M${x + 3.4} ${y - 3.4}l-6.8 6.8"/>` : `<circle cx="${x}" cy="${y}" r="4.6"/>`}<text x="${x}" y="${y - 15}">${esc(s.label)}</text></g>`;
+      const goal = id === target;
+      g += `<g class="site" data-site="${id}" style="cursor:pointer"><circle cx="${s.x}" cy="${s.z}" r="2.2" fill="transparent"/>${goal ? `<circle cx="${s.x}" cy="${s.z}" r="1.6" fill="#ffce60" stroke="#7a2e18" stroke-width=".3"/>` : `<circle cx="${s.x}" cy="${s.z}" r=".7" fill="#2a1a1e" opacity=".7"/>`}${mv.span < 70 ? `<text x="${s.x + 1.2}" y="${s.z - 1.0}" style="font-size:${(mv.span / 46).toFixed(2)}px">${esc(s.label)}</text>` : ''}</g>`;
     }
-    const hx = X(hero.x), hz = Z(hero.z);
-    svg += `<ellipse cx="${hx + 2}" cy="${hz + 1}" rx="5" ry="2" fill="#2a1828" opacity=".3"/><path d="M${hx} ${hz}v-13" stroke="#2a1a1e" stroke-width="1.6"/><circle cx="${hx}" cy="${hz - 16}" r="6" fill="#a83a2a" stroke="#4a2c24"/><circle cx="${hx - 2}" cy="${hz - 18}" r="1.8" fill="#fbf6ea" opacity=".8"/>
-      <g transform="translate(456 326)" stroke="#2a1a1e" stroke-width=".8"><path d="M0-18L3.4 0 0 18-3.4 0z" fill="#efe0c2"/><path d="M0-18L3.4 0H-3.4z" fill="#a83a2a"/><path d="M-14 0H14" stroke-opacity=".6"/></g><text x="456" y="300">N</text></svg>`;
-    body.innerHTML = `<p class="kicker">Écran Carte</p><h2>Le village des Crânes Fendus</h2>${svg}<p class="small">L’épingle rouge est Dylan, le cercle à croix la prochaine étape. Choisis un lieu pour y poser le repère.</p>`;
-    body.querySelectorAll('.site').forEach((g) => { g.onclick = () => { world.guide = g.dataset.site; render(); }; });
+    g += `<g transform="translate(${hero.x.toFixed(2)} ${hero.z.toFixed(2)}) rotate(${(-world.H.hero.group.rotation.y * 180 / Math.PI + 180).toFixed(0)})"><path d="M0-1.5L1.1 1.1 0 .5-1.1 1.1z" fill="#a83a2a" stroke="#fbf1de" stroke-width=".25"/></g></svg>`;
+    body.innerHTML = `<p class="kicker">Écran Carte</p><h2>Le village des Crânes Fendus</h2><div class="bigmap">${g}<div class="zoom"><button class="btn" type="button" data-z="in" aria-label="Zoomer">+</button><button class="btn" type="button" data-z="out" aria-label="Dézoomer">−</button><button class="btn" type="button" data-z="me" aria-label="Revenir sur Dylan">◎</button></div></div><p class="small">La flèche rouge est Dylan, le rond doré la prochaine étape (le ruban y mène), les points rouges les dangers à examiner. Molette ou boutons pour zoomer, glisser pour se déplacer, un lieu choisi devient la destination.</p>`;
+    const box = body.querySelector('.bigmap'), svg = box.querySelector('svg'), set = () => svg.setAttribute('viewBox', vb());
+    const zoom = (k, fx = 0.5, fy = 0.5) => { const ns = Math.max(14, Math.min(100, mv.span * k)), dx = (fx - 0.5) * (mv.span - ns), dz = (fy - 0.5) * (mv.span - ns) * aspect; mv.span = ns; mv.cx += dx; mv.cz += dz; set(); };
+    box.querySelectorAll('[data-z]').forEach((b) => { b.onclick = (e) => { e.stopPropagation(); if (b.dataset.z === 'me') { mv.cx = hero.x; mv.cz = hero.z; set(); } else zoom(b.dataset.z === 'in' ? 0.7 : 1.4); }; });
+    box.addEventListener('wheel', (e) => { e.preventDefault(); const r = box.getBoundingClientRect(); zoom(e.deltaY < 0 ? 0.85 : 1.18, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height); }, { passive: false });
+    let drag = null, moved = 0;
+    box.addEventListener('pointerdown', (e) => { if (e.target.closest('.zoom')) return; drag = { x: e.clientX, y: e.clientY, cx: mv.cx, cz: mv.cz }; moved = 0; box.setPointerCapture?.(e.pointerId); box.style.cursor = 'grabbing'; });
+    box.addEventListener('pointermove', (e) => { if (!drag) return; const r = box.getBoundingClientRect(), k = mv.span / r.width; moved = Math.hypot(e.clientX - drag.x, e.clientY - drag.y); mv.cx = drag.cx - (e.clientX - drag.x) * k; mv.cz = drag.cz - (e.clientY - drag.y) * k; set(); });
+    box.addEventListener('pointerup', () => { drag = null; box.style.cursor = ''; });
+    body.querySelectorAll('.site').forEach((el) => { el.onclick = () => { if (moved > 6) return; world.guide = el.dataset.site; render(); }; });
     if (world.guide) body.append(btn('Revenir à l’objectif de la quête', () => { world.guide = null; render(); }));
     body.append(btn('Fermer', close, 'quiet'));
   }

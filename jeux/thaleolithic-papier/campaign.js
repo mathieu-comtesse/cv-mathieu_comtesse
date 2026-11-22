@@ -26,7 +26,7 @@ export const PRODUCTIONS = [
   { id: 'work:fiber', title: 'Collecter des fibres', site: 'stockage', resource: 'fiber', durationSeconds: 10, minimumCompetence: 10 },
   { id: 'work:food', title: 'Préparer des provisions', site: 'foyer', resource: 'food', durationSeconds: 12, minimumCompetence: 15 },
 ];
-export const BEHAVIOUR = { MOVE_TO_TASK: 'Se rend au poste de travail', WORK: 'Travaille sur place', REST: 'Se repose', EAT: 'Prend un repas', EVACUATE: 'Évacue la zone', DEAD: 'Décédé', IDLE: 'Présent dans le village' };
+export const BEHAVIOUR = { MOVE_TO_TASK: 'Se rend au poste de travail', WORK: 'Travaille sur place', REST: 'Se repose', EAT: 'Prend un repas', EVACUATE: 'Évacue la zone', DEAD: 'Décédé', IDLE: 'Présent dans le village', STROLL: 'En promenade', CHAT: 'Bavarde chez un voisin' };
 // titres et budgets des actes, comme PrepareCampaignV17
 const ACT_TITLES = ['LE GRAND RÉVEIL : LE CONTEXTE', 'LE CHEF CONTRE-ATTAQUE', 'LA CHASSE AUX RISQUES', 'LA TRIBU A DES MOYENS', 'LES 15 DIFFÉRENCES', 'AU FEU !!!', 'LES ANCIENS VIENNENT AUDITER', 'LE PROCHAIN CYCLE'];
 export const MENHIR_QUEST = 'M_II_ROLES', MENHIR_ACTION = 'MENHIR_DUEL';
@@ -59,6 +59,28 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   // (lui meurt pour de bon) ; les alertes des chapitres (D_*_A_ALERTE, « maintenir ») tuent aussi leur habitant
   const nameOf = (id) => characters.find((c) => c.id === id)?.name || String(id).split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   const ACCIDENTS = legacy.accidents.map((a) => ({ ...a }));
+  // the deaths outside the stakes: Dylan alone among the beasts of the Cenozoic (wild.js), in the same grammar as the
+  // Unity game's accidents (danger, exposure, causes, corrective action, ISO 45001, the chief's punchline and the reply)
+  const W = (kind, how, title, danger, immediate, punchline, reply) => ({ id: 'W_' + kind, kind: how, beast: kind, site: null, riskId: 'exterieur', title, victimId: 'dylan', danger,
+    exposure: 'Dylan sort seul au-delà de la palissade, sans repérage du territoire ni moyen de repli.', warning: 'Territoire non évalué ; sortie déconseillée sans préparation.', immediateCause: immediate,
+    organizationalCause: 'Aucune évaluation des risques au-delà de la palissade, aucune règle de sortie ni itinéraire balisé.', correctiveAction: 'Évaluer le territoire extérieur, sortir à plusieurs, baliser les itinéraires et tenir les distances avec la faune.',
+    iso: ['6.1.2', '8.1.2', '8.2'], punchline, reply, speaker: 'Aurélien', requiredFlags: [] });
+  const WILD_ACC = [
+    W('smilodon', 'beast', 'PRÉDATEUR NON RECENSÉ AU REGISTRE.', 'Attaque d’un smilodon hors de l’enceinte.', 'Morsure par un félin à dents de sabre.', 'Il a trouvé des dents plus longues que les nôtres.', 'Les dangers du dehors n’étaient dans aucun registre.'),
+    W('wolf', 'beast', 'TRAVAIL EN ÉQUIPE. CÔTÉ LOUPS.', 'Attaque d’une meute de loups.', 'Encerclement et morsures par la meute.', 'Eux, au moins, se coordonnent.', 'Une meute, c’est un risque connu de tous, sauf de lui.'),
+    W('lion', 'beast', 'SIESTE DU LION. FIN DE SIESTE.', 'Réveil d’un lion des cavernes.', 'Bond et morsure du lion.', 'Il voulait juste lui dire bonjour.', 'On ne réveille pas un risque qui dort.'),
+    W('bear', 'beast', 'ÉTREINTE NON CONSENTIE.', 'Rencontre avec un ours des cavernes.', 'Coups de patte et morsure de l’ours.', 'Il cherchait de la chaleur humaine.', 'La distance de sécurité se mesure en lances, pas en sourires.'),
+    W('harpagornis', 'beast', 'ÉVALUATION DES RISQUES : VUE DU CIEL.', 'Piqué d’un harpagornis.', 'Serres d’un aigle géant.', 'Il a enfin pris de la hauteur sur le sujet.', 'Le danger venait d’en haut. Personne n’avait levé les yeux.'),
+    W('sarcosuchus', 'beast', 'BAIGNADE NON AUTORISÉE.', 'Embuscade d’un sarcosuchus au bord de l’eau.', 'Mâchoires d’un crocodile géant.', 'L’eau avait l’air calme.', 'Une berge, ça se balise. Surtout quand elle a des dents.'),
+    W('mammoth', 'trample', 'LA MÈRE N’A PAS VALIDÉ LA VISITE.', 'Charge d’une mère mammouth qui protège son petit.', 'Piétinement par un mammouth.', 'Il voulait caresser le petit.', 'Un animal effrayé se défend. Toujours.'),
+    W('rhino', 'trample', 'CORNE D’ABONDANCE. DE CORNE.', 'Charge d’un rhinocéros laineux effrayé.', 'Coup de corne et piétinement.', 'Il a sous-estimé la vue du rhinocéros. Pas son odorat.', 'Approcher un animal de deux tonnes n’est pas une observation.'),
+    W('aurochs', 'trample', 'LE TROUPEAU A VOTÉ CONTRE.', 'Charge d’un aurochs qui défend le troupeau.', 'Encornement par un aurochs.', 'Au moins, la décision était collective.', 'Un troupeau inquiet est un troupeau dangereux.'),
+    W('megatherium', 'trample', 'ÉTREINTE DE PARESSEUX GÉANT.', 'Défense d’un mégathérium dérangé.', 'Griffes d’un paresseux géant.', 'Le paresseux le plus rapide de l’histoire.', 'Lent ne veut pas dire inoffensif.'),
+    W('diprotodon', 'trample', 'GROS NOUNOURS. GROS ÉCART.', 'Charge d’un diprotodon effrayé.', 'Écrasement par un diprotodon.', 'Il avait l’air si placide.', 'Sa mère était juste derrière.'),
+    W('glyptotherium', 'trample', 'COUP DE QUEUE BLINDÉE.', 'Défense d’un glyptothérium.', 'Coup de queue en massue.', 'L’armure, c’était pour se défendre. On le sait maintenant.', 'Un animal qui porte une massue s’en sert.'),
+    W('gastornis', 'trample', 'L’OISEAU ÉTAIT VÉGÉTARIEN. PAS PATIENT.', 'Attaque d’un gastornis dérangé au nid.', 'Coups de bec d’un oiseau géant.', 'Il comptait faire une omelette.', 'Un nid se contourne, il ne se visite pas.'),
+  ];
+  ACCIDENTS.push(...WILD_ACC);
   const accident = (id) => ACCIDENTS.find((a) => a.id === id) || null;
   const UNLOCK = { D01: 'V17_RESOURCES', D02: 'V17_RISK_QUARRY', D03: 'V17_RISK_HUNT', D04: 'M_V_ABRI_1', D05: 'V17_RISK_FIRE', D06: 'V17_RISK_STORAGE', D07: 'V17_PARTIES', D08: 'V17_RISK_SILEX' };
   const EXPOSURES = legacy.actions.filter((a) => /^EXPOSURE_D0\d$/.test(a.id)).map((a) => ({ id: a.id, acc: a.id.slice(9), site: a.targetBindingId, title: a.title, dialogueId: a.dialogueId, unlock: UNLOCK[a.id.slice(9)] }));
@@ -231,6 +253,8 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
       state.dead.push(who); const a = accident('NPC_' + who); if (a) { state.accident = { id: a.id, victim: who, played: false }; logDeath(a, who); }
     }
   }
+  // a beast reached Dylan outside the stakes: its cinematic, the analysis, then the game takes up again before the outing
+  function wildDeath(kind, at, beast) { const a = accident('W_' + kind); if (!a || state.accident) return false; state.accident = { id: a.id, victim: 'dylan', played: false, at, beast }; state.dylanDeaths++; logDeath(a, 'dylan'); save(); emit(); return true; }
   function logDeath(a, who) { state.deathLog.push({ id: a.id, kind: a.kind, victim: who, site: a.site, quest: frontier()?.id || null, at: Math.round(state.wallSeconds) }); }
   // the exposure points open (their chapter's game done), and those standing where Dylan is
   const exposures = () => EXPOSURES.filter((x) => state.done.includes(x.unlock) && !state.accident);
@@ -296,6 +320,10 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   // ---- les besoins des habitants (VillagerBrain) : usure, repos (l'abri vérifié aide), repas au foyer, tâches, routine -
   // at(id, place) dit si la carte de l'habitant est arrivée ; moving(id) s'il marche. Le village déplace les cartes vers goal.
   const brain = {};
+  // where each one likes to go in free time (their trade's places)
+  const HANG = { georges: ['atelier_silex', 'pierre_carriere', 'foyer'], tarek: ['bois_construction', 'foyer'], neila: ['stockage', 'foyer'], orok: ['foyer'], eliott: ['chasse_clairiere', 'foyer'], brok: ['atelier_silex', 'foyer'],
+    uma: ['habitations', 'foyer'], kora: ['chasse_clairiere', 'foyer'], sila: ['foyer', 'repos'], varg: ['rassemblement', 'foyer'], grumb: ['grand_menhir', 'alban'], mathilde: ['repos', 'foyer'], lorette: ['foyer', 'aurelien'],
+    mathieu: ['foyer', 'stockage'], nork: ['grand_menhir', 'foyer'], alban: ['grand_menhir'], aurelien: ['foyer'], milena: ['berge_observation'] };
   function villageStep(dt, at, moving) {
     let changed = false;
     for (const c of characters) {
@@ -319,7 +347,26 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
         if (t.workedSeconds >= t.duration) { t.status = 'done'; state.resources[a.resource] = (state.resources[a.resource] ?? 0) + 1; changed = true; }
         continue;
       }
-      b.behaviour = 'IDLE'; b.goal = 'home';
+      // free time: now and then an outing, picked at random but kept in order: to the places of their trade, or a visit
+      // to a neighbour's door for a chat; never more than four out at once, one visitor per door, then home again
+      if (b.out) {
+        const there = at(id, b.out);
+        b.behaviour = there ? (b.out.startsWith('visit:') ? 'CHAT' : 'STROLL') : 'STROLL';
+        if (there && (b.stay -= dt) <= 0) { b.out = null; b.next = 25 + Math.random() * 40; }
+        b.goal = b.out || 'home'; continue;
+      }
+      b.next = (b.next ?? 6 + Math.random() * 30) - dt;
+      if (b.next <= 0) {
+        b.next = 10 + Math.random() * 20;
+        const out = Object.values(brain).filter((x) => x.out).length;
+        if (out < 4) {
+          const visit = Math.random() < 0.35, hosts = characters.filter((c) => c.id !== id && c.id !== 'dylan' && !state.dead.includes(c.id) && brain[c.id]?.goal === 'home' && !brain[c.id]?.out && !Object.values(brain).some((x) => x.out === 'visit:' + c.id));
+          const spots = HANG[id] || ['foyer'];
+          b.out = visit && hosts.length ? 'visit:' + hosts[Math.floor(Math.random() * hosts.length)].id : spots[Math.floor(Math.random() * spots.length)];
+          b.stay = 8 + Math.random() * 10;
+        }
+      }
+      b.behaviour = 'IDLE'; b.goal = b.out || 'home';
     }
     if (changed) { save(); emit(); }
   }
@@ -420,6 +467,6 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     on: (f) => { listeners.add(f); return () => listeners.delete(f); },
     act: (q) => acts.find((a) => a.id === q?.actId),
     character: (id) => characters.find((c) => c.id === id),
-    accidents: ACCIDENTS, accident, nameOf, exposures, examine, closeAccident, markPlayed,
+    accidents: ACCIDENTS, accident, nameOf, wildDeath, exposures, examine, closeAccident, markPlayed,
   };
 }

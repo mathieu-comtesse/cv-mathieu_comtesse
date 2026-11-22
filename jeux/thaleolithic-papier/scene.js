@@ -18,7 +18,8 @@ import { createLife } from 'papercraft/lib/paper-life.js';
 import { createHarness } from './harness.js';
 import { MENHIR_QUEST } from './campaign.js';
 import { PROFILE, DEFAULT, GESTURE, PROPS, dress, dressTop } from './characters.js';
-import { BEASTS, HERDS, PIECES } from './fauna.js';
+import { BEASTS, HERDS, PIECES, PLANTS } from './fauna.js';
+import { createWild, WILD } from './wild.js';
 
 export const C = {
   ground: '#a6a274', dirt: '#c8a47c', grassA: '#9a9a66', grassB: '#aca676', pine: '#b8402e', pineDeep: '#8e2f2a', trunk: '#4a2c24',
@@ -60,7 +61,7 @@ const LOOK = {   // tunic, trim, hair, a prop: each villager in their own colour
 export function buildVillage(campaign) {
   const H = createHarness({ ground: C.ground, stock: '#f6ecdc', mood: 'crepuscule', moods: { crepuscule: CREPUSCULE }, play: true, clickFold: false,
     view: innerWidth < innerHeight ? { pitch: 47, dist: 78, target: [2, 1.5, -7], follow: [-1.5, -8] } : { pitch: 47, dist: 62, target: [0, 1.5, -8] },
-    walkArea: { x0: -28, x1: 28, z0: -32, z1: 12 } });
+    walkArea: { x0: -46, x1: 46, z0: -48, z1: 26 } });
   const { walk } = H;
   const FIRES = [], TREES = [];   // the flames that flicker (three prints shown in turn), the pines the wind bends
   let rnd = P2.rng(301);
@@ -76,7 +77,9 @@ export function buildVillage(campaign) {
 
   // ---- the printed ground: dry grass, the beaten square, paths, the wall's ditch, garden plots, the river -----------
   const PATHS = [[[0, 11], [0, 4], [0, -5]], [[0, -5], [0, -12], [0, -18]], [[0, -5], [-7, -3], [-15, -2], [-19, -11]], [[0, -5], [7, -4], [14, -6], [13, -17]],
-    [[0, 4], [6, 8], [12, 10]], [[0, 2], [-8, 4]], [[13, -17], [18, -22], [22, -28]], [[-19, -11], [-19, -21], [-22, -29]], [[0, -18], [-6, -19], [-11, -20]], [[0, -5], [-4, -9], [-11, -11.4]]];
+    [[0, 4], [6, 8], [12, 10]], [[0, 2], [-8, 4]],
+    // trails beyond the stakes: through the north-west gap to the western clearings, north from the hunt and the quarry, south from the gate
+    [[-22, -29], [-30, -33], [-37, -25], [-39, -14]], [[-22, -29], [-14, -37]], [[22, -28], [28, -37]], [[0, 11], [-6, 18], [-20, 21], [-35, 9]], [[12, 10], [20, 13]], [[-39, -14], [-38, 2]], [[13, -17], [18, -22], [22, -28]], [[-19, -11], [-19, -21], [-22, -29]], [[0, -18], [-6, -19], [-11, -20]], [[0, -5], [-4, -9], [-11, -11.4]]];
   H.printGround(({ g, ppu, X, Z, rnd: r, washes, torn, bandOf, drifts, water }) => {
     washes([C.grassA, C.grassA, C.grassB, '#b8a77a']);
     // inside the wall the grass is trodden paler; the square is beaten earth; a ditch runs outside the stakes
@@ -402,7 +405,7 @@ export function buildVillage(campaign) {
   // quern, the potter's plank and kiln, the stores' baskets; the folds: the wattle fold of goats and sheep south-west of
   // the gate, the pigs' sty, the hens' coop on stilts by the stores
   const piece = (name) => { const Pc = PIECES[name]; return P2.drawnPiece((g, ink) => Pc.draw(g, ink, D, P2, C), { w: Pc.w, h: Pc.h, name }); };
-  const beast = (kind, v) => { const B = BEASTS[kind]; return P2.drawnPiece((g, ink) => B.draw(g, ink, D, P2, C, v), { w: B.w, h: B.h, name: kind }); };
+  const beast = (kind, v) => { if (kind === 'mammoth') return mammoth(); const B = BEASTS[kind]; return P2.drawnPiece((g, ink) => B.draw(g, ink, D, P2, C, v), { w: B.w, h: B.h, name: kind }); };
   popup(...piece('flintBench'), { x: A.x - 3.4, z: A.z - 0.6 }); popup(...piece('heatPit'), { x: A.x + 2.8, z: A.z - 2.8 }); mark(A.x - 3.4, A.z - 0.6, 2.6);
   popup(...piece('sawhorse'), { x: B.x + 0.4, z: B.z + 1.7 }); popup(...piece('woodpile'), { x: B.x - 3.4, z: B.z - 0.6, solid: 1.2 }); popup(...piece('stumpAxe'), { x: B.x + 2.6, z: B.z + 0.6 }); mark(B.x - 3.4, B.z - 0.6, 2.4);
   popup(...piece('quarrySledge'), { x: SITES.pierre_carriere.x - 3.2, z: SITES.pierre_carriere.z + 1.8 });
@@ -531,7 +534,7 @@ export function buildVillage(campaign) {
   // ---- outside the wall: the far ridge with mammoths, crimson pines in the woods, rocks; inside, tufts only ------------
   for (const [x, z, s] of [[-30, -44, 1.4], [-10, -48, 1.2], [18, -46, 1.5]]) H.stack(x, z, [0, 1, 2].map((k) => ({ pts: P2.roughen(P2.shape.hill(rnd, { w: 26 - k * 4, h: 7 - k * 1.6, bumps: 2 }), rnd), paint: (P) => { base2(P, sh('#8a6a8a', -0.12 + k * 0.1), 0.08); shadeIn(P, '#8a6a8a', 0.25); }, d: k * 1.6 })), { scale: s });
   const herd = [];
-  for (const [x, z, s] of [[-20, -37, 1.0], [-14, -38, 0.8], [24, -37, 1.1]]) herd.push(popup(...mammoth(), { x, z, scale: s }));
+  for (const [, homes] of WILD) for (const [x, z] of homes) mark(x, z, 2.6);   // the beasts' grounds stay clear of pines
   const PV = Array.from({ length: 4 }, () => { const [pts, paint] = pine(); return [pts, H.printed(pts, paint, { cross: true })]; });
   for (let gz = -42; gz <= 16; gz += 3.4) for (let gx = -42; gx <= 42; gx += 3.4) {
     const x = gx + (rnd() - 0.5) * 2.4, z = gz + (rnd() - 0.5) * 2.4, e = ovalE(x, z);
@@ -540,6 +543,37 @@ export function buildVillage(campaign) {
     else if (rnd() < (e < 1 ? 0.18 : 0.35)) { popup(...(e < 1 || rnd() < 0.5 ? tuft() : rock(between(1.6, 2.6))), { x, z, scale: 0.8 + rnd() * 0.4, sway: 0.4 }); mark(x, z, 1.6); }
   }
 
+
+  // ---- the flora of the Paleogene to the Quaternary in the clearings outside the stakes: tree ferns and horsetails by
+  // the river, palms and cycads to the south, ginkgos to the north
+  const plant = (k) => { const Pl = PLANTS[k]; return P2.drawnPiece((g, ink) => Pl.draw(g, ink, D, P2, C), { w: Pl.w, h: Pl.h, name: k }); };
+  const PL = Object.fromEntries(Object.keys(PLANTS).map((k) => { const [pts, paint] = plant(k); return [k, [pts, H.printed(pts, paint, { cross: k !== 'horsetail' })]]; }));
+  for (let i = 0; i < 260; i++) {
+    const x = -46 + rnd() * 92, z = -48 + rnd() * 74; if (ovalE(x, z) < 1.16 || !free(x, z, 0.2)) continue;
+    const rv = RIVER.dist(x, z), k = rv < 9 ? (rnd() < 0.5 ? 'horsetail' : 'treeFern') : z > 8 ? (rnd() < 0.5 ? 'palm' : 'cycad') : z < -28 ? (rnd() < 0.6 ? 'ginkgo' : 'treeFern') : ['cycad', 'treeFern', 'horsetail', 'palm'][Math.floor(rnd() * 4)];
+    if (rnd() > 0.32) continue; const [pts, mat] = PL[k]; TREES.push(popup(pts, null, { materials: mat, x, z, cross: k !== 'horsetail', scale: 0.8 + rnd() * 0.5, sway: 0.35 })); mark(x, z, 1.8);
+  }
+  // ---- the paths as a network: villagers (and the GPS ribbon) go from place to place along them, not through the huts.
+  // Nodes every ~2 units along each path, merged where paths meet; a route joins the start and the end to their nearest
+  // nodes, then Dijkstra; the result is thinned where it runs straight
+  const NET = (() => {
+    const nodes = [], adj = [];
+    const node = (x, z) => { for (let i = 0; i < nodes.length; i++) if (Math.hypot(nodes[i][0] - x, nodes[i][1] - z) < 0.9) return i; nodes.push([x, z]); adj.push([]); return nodes.length - 1; };
+    const link = (a, b) => { if (a === b) return; const d = Math.hypot(nodes[a][0] - nodes[b][0], nodes[a][1] - nodes[b][1]); adj[a].push([b, d]); adj[b].push([a, d]); };
+    for (const pl of PATHS) { let prev = null; for (let i = 0; i < pl.length - 1; i++) { const [x0, z0] = pl[i], [x1, z1] = pl[i + 1], n = Math.max(1, Math.round(Math.hypot(x1 - x0, z1 - z0) / 2)); for (let k = i ? 1 : 0; k <= n; k++) { const id = node(x0 + (x1 - x0) * k / n, z0 + (z1 - z0) * k / n); if (prev != null) link(prev, id); prev = id; } } }
+    return { nodes, adj };
+  })();
+  const nearestNodes = (x, z, k = 2) => NET.nodes.map((n, i) => [i, Math.hypot(n[0] - x, n[1] - z)]).sort((a, b) => a[1] - b[1]).slice(0, k);
+  function route(from, to) {
+    const N = NET.nodes.length, S = N, T = N + 1, dist = new Float64Array(N + 2).fill(Infinity), prev = new Int32Array(N + 2).fill(-1), done = new Uint8Array(N + 2);
+    const direct = Math.hypot(to[0] - from[0], to[1] - from[1]);
+    const extra = (i) => (i === S ? nearestNodes(from[0], from[1]).map(([j, d]) => [j, d]) : i < N ? [...NET.adj[i], ...nearestNodes(to[0], to[1]).filter(([j]) => j === i).map(([, d]) => [T, d])] : []);
+    dist[S] = 0;
+    for (;;) { let u = -1, best = Infinity; for (let i = 0; i < N + 2; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; } if (u < 0 || u === T) break; done[u] = 1; for (const [v, w] of extra(u)) if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; prev[v] = u; } }
+    if (!isFinite(dist[T]) || direct < 4 || dist[T] > direct * 2.6) return [from.slice(), to.slice()];   // close by, or the network goes the long way round: straight
+    const pts = []; for (let v = T; v >= 0; v = prev[v]) pts.unshift(v === S ? from.slice() : v === T ? to.slice() : NET.nodes[v].slice());
+    return pts.filter((q, i) => { if (i === 0 || i === pts.length - 1) return true; const a = pts[i - 1], c = pts[i + 1], ux = q[0] - a[0], uz = q[1] - a[1], vx = c[0] - q[0], vz = c[1] - q[1]; return Math.abs(ux * vz - uz * vx) > 0.25 * Math.hypot(ux, uz) * Math.hypot(vx, vz) * 0.2 + 0.05; });
+  }
 
   // ---- the villagers -------------------------------------------------------------------------------------------------
   const people = {};
@@ -554,7 +588,7 @@ export function buildVillage(campaign) {
       if (pr.prop === 'map') { card.position.x = -0.1; p.map = card; card.scale.x = 0.25; }
       if (pr.prop === 'staff') { p.smoke = new THREE.Object3D(); p.smoke.position.set(0, A.tip + 0.1, 0); g.add(p.smoke); }
     }
-    walk.solid(x, z, 0.5);
+    p.sol = { x, z, r: 0.42, base: -Infinity, top: Infinity }; walk.solids.push(p.sol);   // a body Dylan cannot walk through, wherever it goes
   }
   // Aurélien's deck chair beside him; Alban's ritual circle with its smoking bowl; Milena's lookout stone on the bank
   popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink('#a0683e'); D.poly(g, [[-0.9, 0], [-0.75, 0], [0.1, 1.5], [-0.08, 1.6]]); D.poly(g, [[0.5, 0], [0.65, 0], [0.35, 0.7], [0.2, 0.7]]); g.fillStyle = ink('#c8402e'); D.poly(g, [[-0.62, 0.55], [0.6, 0.6], [0.05, 1.45], [-0.15, 1.42]]); g.fillStyle = ink('#e0a24a', 'print'); for (let k = 0; k < 4; k++) D.rect(g, -0.4 + k * 0.22, 0.7 + k * 0.17, 0.08, 0.35); }, { w: 1.9, h: 1.8, name: 'transat' }), { x: SITES.aurelien.x - 1.4, z: SITES.aurelien.z - 0.5 });
@@ -584,6 +618,10 @@ export function buildVillage(campaign) {
   const doll = dylan();
   const hero = popup(null, null, { node: doll, height: 3.1, x: 2, z: 3, sway: 0.1, scale: 1.3 });
   H.setHero(hero, { stride: doll.userData.stride });
+  // ---- the beasts outside the stakes (wild.js): an attack that reaches Dylan becomes an accident of the game
+  const wild = createWild({ H, world: null, campaign, cinema: { get playing() { return document.body.classList.contains('cine-on'); } }, popup, beast, ovalE, riverDist: (x, z) => RIVER.dist(x, z),
+    onAttack: (a) => { if (campaign.state.accident) return; const hp = hero.group.position; campaign.wildDeath(a.kind === 'mammoth' ? 'mammoth' : a.kind, [hp.x, hp.z], wild.agents.indexOf(a)); } });
+  H.onStep((t, dt) => wild.step(t, dt));
 
   // ---- life: embers over the fire, swallows, butterflies in the grass, smoke, the mammoths grazing -------------------
   const life = createLife({ scene: H.scene, camera: H.camera, heroHeight: H.heroHeight, seed: 41, wind: [0.9, 0.4] });
@@ -594,7 +632,6 @@ export function buildVillage(campaign) {
   life.motes({ count: 18, colors: ['#ffb060', '#ffd080'], size: [0.05, 0.09], rise: 0.6, glow: 1, height: [0.5, 3] });
   life.flock({ size: 5, height: 4, colors: ['#3a2a3a', '#f0e0d0'] });
   life.flyers({ count: 8, colors: ['#f4ecd8', '#e9c64a', '#d88aa0'], anchors: [[-6, -3], [8, 3], [-6, -20], [18, -10], [-20, 2]], roam: 1.6 });
-  for (const m of herd) life.critter(m.group, { behaviour: 'graze', roam: 1.0 });
   for (const a of HERD) life.critter(a.h.group, { behaviour: a.hd.behaviour, roam: a.hd.roam, speed: a.hd.speed ?? 0.6, home: [a.x, a.z], hero: H.hero.group.position });
   life.puffs({ at: [[SMOKER[0], 0.8, SMOKER[1]]], perEmitter: 3, life: 4, rise: 0.5, size: [0.25, 0.45], colors: ['#c8c0c8', '#b8b0b8'] });
   life.fallers({ count: 24, cut: 'leaf', colors: ['#c8402e', '#e07a3a', '#8e2f2a', '#e0a24a'], size: [0.1, 0.16], fall: [0.6, 1.0], sway: 0.6, land: 8 });
@@ -682,12 +719,16 @@ export function buildVillage(campaign) {
   function sendHome() { burn.stop(); for (const p of Object.values(people)) { if (p.crew || (burn.douse && burn.douse.crew.includes(p.id))) continue; p.hurry = false; p.target = p.home.slice(); } }
   // the tribe's daily life (campaign.villageStep decides, the cards walk): each villager to their goal, a slot round a site
   const ids = Object.keys(people), slotOf = (id, site) => { const s = SITES[site], a = ids.indexOf(id) * 2.4; return [s.x + Math.cos(a) * 1.5, s.z + Math.sin(a) * 1.2]; };
-  const goalPoint = (id, place) => (place === 'home' ? people[id].home : SITES[place] ? slotOf(id, place) : null);
+  const goalPoint = (id, place) => { if (place === 'home') return people[id].home; if (SITES[place]) return slotOf(id, place); if (place?.startsWith('visit:')) { const host = people[place.slice(6)]; if (host) return [host.home[0] + 1.25, host.home[1] + 0.5]; } return null; };
   const arrivedAt = (id, place) => { const p = people[id], g = goalPoint(id, place); return !!g && Math.hypot(p.x - g[0], p.z - g[1]) < 0.4; };
-  function lead(campaign) {
+  let chatClock = 0;
+  function lead(campaign, dt = 0) {
+    // the chats: visitor and host take turns, each bobbing with their words; heard murmuring when Dylan is near
+    if ((chatClock += dt) > 0.7) { chatClock = 0; for (const id of ids) { const b = campaign.brain(id); if (b?.behaviour !== 'CHAT') continue; const host = b.out?.slice(6), who = Math.random() < 0.5 ? id : host, p = people[who]; if (!p || p.dying) continue; talkPulse(who, 0.5);
+      if (Math.hypot(p.x - hero.group.position.x, p.z - hero.group.position.z) < 9) H.sfx?.play('grunt', { f0: (p.pr.f0 || 120) * (0.9 + Math.random() * 0.25), dur: 0.22 + Math.random() * 0.2, vowel: 'aeiou'[Math.floor(Math.random() * 5)], v: 0.05, rough: 0.2, bend: -0.1 }); } }
     for (const id of ids) {
       const b = campaign.brain(id), p = people[id]; if (!b || !b.goal || p.h.held || p.busy) continue;
-      const g = goalPoint(id, b.goal); if (g && (!p.target || p.target[0] !== g[0] || p.target[1] !== g[1]) && !arrivedAt(id, b.goal)) p.target = g;
+      const g = goalPoint(id, b.goal); if (g && (!p.goalPt || p.goalPt[0] !== g[0] || p.goalPt[1] !== g[1]) && !arrivedAt(id, b.goal)) { p.goalPt = g; p.path = route([p.x, p.z], g).slice(1); p.target = p.routeTarget = p.path.shift(); }
     }
   }
   const everyoneAtAssembly = () => Object.values(people).every((p) => p.h.held || Math.hypot(p.x - assembly.x, p.z - assembly.z) < 3);
@@ -734,7 +775,7 @@ export function buildVillage(campaign) {
   const bits = []; const bitGeo = new THREE.PlaneGeometry(1, 1);
   const bitMats = ['#b8202a', '#8e1a22', '#d84a3a', '#e0a24a'].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 1, side: THREE.DoubleSide }));
   function die(id, animate) {
-    const p = people[id], h = p.h, d = { t: animate ? 0 : 9, parts: [] }; deaths.set(id, d); p.dying = d; p.busy = true; p.target = null; h.held = true;
+    const p = people[id], h = p.h, d = { t: animate ? 0 : 9, parts: [] }; deaths.set(id, d); if (p.sol) p.sol.r = 0; p.dying = d; p.busy = true; p.target = null; h.held = true;
     const face = flatCard(...deadFace, 611); face.position.set(0, 2.0 * (id === 'petit_os' ? 0.7 : 1), 0.06); h.pivot.add(face); d.parts.push([h.pivot, face]);
     const splat = flatCard(...splatShape, 613); splat.rotation.x = -Math.PI / 2; splat.position.set(p.x, 0.03, p.z - 1.0); splat.scale.setScalar(animate ? 0.001 : 1); H.scene.add(splat); d.splat = splat; d.parts.push([H.scene, splat]);
     if (!animate) { h.reset(0); return; }
@@ -751,7 +792,7 @@ export function buildVillage(campaign) {
   function revive(id) {
     const p = people[id], d = deaths.get(id); deaths.delete(id);
     for (const [par, o] of d.parts) par.remove(o);
-    p.dying = null; p.busy = false; p.acting = false; p.h.held = false; p.h.group.rotation.z = 0; p.h.group.scale.set(1, 1, 1); p.h.set(1, 0);
+    if (p.sol) p.sol.r = 0.42; p.dying = null; p.busy = false; p.acting = false; p.h.held = false; p.h.group.rotation.z = 0; p.h.group.scale.set(1, 1, 1); p.h.set(1, 0);
   }
   // ---- the Grand Menhir engraved: the duel's five decisions cut into its face, one after the other, each a sunken
   // plaque with a pale edge and dark grooves: a hand over the flame (5.1), the policy tablet (5.2), the three roles
@@ -907,8 +948,21 @@ export function buildVillage(campaign) {
       }
       if (p.g) { p.g = null; if (p.propG) { p.propG.rotation.z = 0; p.propG.position.y = p.propY; } if (p.map) p.map.scale.x = 0.25; if (p.smoke) p.smoke.rotation.x = Math.PI / 2; }
       const dx = p.target[0] - p.x, dz = p.target[1] - p.z, d = Math.hypot(dx, dz);
-      if (d < 0.05) { p.target = null; continue; }
-      const step = Math.min(d, pr.speed * (p.hurry ? 1.7 : 1) * dt); p.x += dx / d * step; p.z += dz / d * step; p.ph += step / pr.step * Math.PI;
+      if (d < 0.05) { p.target = p.target === p.routeTarget && p.path?.length ? (p.routeTarget = p.path.shift()) : null; if (!p.target) { p.goalPt = null; p.path = null; } continue; }   // a route's next stretch (a target set by a scene is walked straight)
+      // the passing rule: whoever is in front within reach is walked round (a step to the side, more the closer it is);
+      // two face to face, the one of lower rank waits a moment, then goes round too; Dylan counts as someone
+      let ax = dx / d, az = dz / d, wait = false;
+      const others = [...Object.values(people).filter((q) => q !== p && !q.dying && !q.h.held), { x: hero.group.position.x, z: hero.group.position.z, hero: true }];
+      for (const q of others) {
+        const ox = q.x - p.x, oz = q.z - p.z, od = Math.hypot(ox, oz); if (od > 1.7 || od < 1e-3) continue;
+        const ahead = (ox * ax + oz * az) / od; if (ahead < 0.2) continue;
+        const side = Math.sign(ox * az - oz * ax) || 1, push = (1.7 - od) / 1.7 * 1.3;
+        ax -= az * side * push; az += (dx / d) * side * push;
+        if (od < 0.95 && ahead > 0.75 && (q.hero || (q.target && (p.seed < q.seed)))) wait = true;
+      }
+      if (wait && (p.waitT = (p.waitT || 0) + dt) < 0.9) continue; if (!wait) p.waitT = 0;
+      const al = Math.hypot(ax, az) || 1; ax /= al; az /= al;
+      const step = Math.min(d, pr.speed * (p.hurry ? 1.7 : 1) * dt); p.x += ax * step; p.z += az * step; p.ph += step / pr.step * Math.PI; if (p.sol) { p.sol.x = p.x; p.sol.z = p.z; }
       h.group.position.x = p.x; h.group.position.z = p.z;
       if (Math.abs(dx) > 0.2) { const want = Math.sign(dx); if (want !== p.face) p.face = want; }
       h.pivot.scale.x = p.face;
@@ -1102,9 +1156,10 @@ export function buildVillage(campaign) {
   const S_ = (spec) => { const s0 = SITES[spec.site] || SITES.foyer; return spec.kind === 'river' ? [30.6, -12.2] : [s0.x + 1.2, s0.z + 1.4]; };
   const accident = {
     get spot() { return ACC.cur?.spot || null; }, spotOf: (spec) => S_(spec),
-    begin(spec, victim) {
-      accident.clear(true); const spot = S_(spec), v = vic(victim);
-      ACC.cur = { spec, victim, v, spot, kind: spec.kind, from: [spot[0] - 3.4, spot[1] + 2.6] }; ACC.t = -1; ACC.walk = 0; ACC.killed = false;
+    begin(spec, victim, at = null, beastIdx = null) {
+      accident.clear(true); const spot = at ? at.slice() : S_(spec), v = vic(victim), ag = beastIdx != null ? wild.agents[beastIdx] : null;
+      ACC.cur = { spec, victim, v, spot, kind: spec.kind, from: at ? spot.slice() : [spot[0] - 3.4, spot[1] + 2.6], ag }; ACC.t = -1; ACC.walk = at ? 1 : 0; ACC.killed = false;
+      if (ag) { ag.held = true; const dx = ag.x - spot[0], dz = ag.z - spot[1], l = Math.hypot(dx, dz) || 1, r = spec.kind === 'trample' ? 7 : 4; ag.x = spot[0] + dx / l * r; ag.z = spot[1] + dz / l * r * 0.5; ag.h.group.position.set(ag.x, ag.y > 1 ? 6 : 0, ag.z); ACC.cur.agFrom = [ag.x, ag.z, ag.y > 1 ? 6 : 0]; }
       if (victim !== 'dylan') { const p = people[victim]; p.acting = true; p.busy = true; p.target = null; } else ACC.back = H.heroAt();
       v.put(...ACC.cur.from); v.pose();
       const [x, z] = spot, k = spec.kind;
@@ -1118,8 +1173,8 @@ export function buildVillage(campaign) {
     strike() { if (ACC.cur && ACC.t < 0) { ACC.t = 0; H.sfx?.play('grunt', { f0: 260, dur: 0.35, vowel: 'o', bend: 0.5, v: 0.22 }); } },
     clear(quiet = false) {
       for (const h of Object.values(P)) hide(h); for (const f of fireOn) { f.group.visible = false; f.held = true; }
-      const c = ACC.cur; ACC.cur = null; ACC.t = -1;
-      if (c?.victim === 'dylan') { for (const [par, o] of heroGore) par.remove(o); heroGore.length = 0; ACC.gore = null; doll.rotation.set(0, 0, 0); doll.position.set(0, 0, 0); doll.scale.set(1, 1, 1); for (const f of fireOn) if (f.group.parent !== H.scene) H.scene.add(f.group); const s0 = SITES[c.spec.site] || SITES.foyer; if (!quiet) H.placeHero(s0.x, s0.z + 4.5); }
+      const c = ACC.cur; ACC.cur = null; ACC.t = -1; if (c?.ag) c.ag.held = false;
+      if (c?.victim === 'dylan') { for (const [par, o] of heroGore) par.remove(o); heroGore.length = 0; ACC.gore = null; doll.rotation.set(0, 0, 0); doll.position.set(0, 0, 0); doll.scale.set(1, 1, 1); for (const f of fireOn) if (f.group.parent !== H.scene) H.scene.add(f.group); const s0 = SITES[c.spec.site] || SITES.foyer; if (!quiet) { if (c.spec.beast) H.placeHero(0, 7); else H.placeHero(s0.x, s0.z + 4.5); } }   // after a beast: back inside the gate
       else if (c && !ACC.killed) { const p = people[c.victim]; p.acting = false; p.busy = false; p.target = p.home.slice(); }
     },
   };
@@ -1155,6 +1210,13 @@ export function buildVillage(campaign) {
       if (T < 2.2) { const a = T * 5.5; v.put(x + Math.cos(a) * 1.6, z + Math.sin(a) * 1.0); v.pose(0.3 * Math.sin(T * 22), 0.35 * Math.abs(Math.sin(T * 13))); if (Math.random() < dt * 20) burst(v.x, 1.6, v.z, 1, [3, 4], 3, 1); }
       once('char', 2.2, () => { c.burnt = true; kill(); sx?.play('hiss', { v: 0.3, dur: 1.4 }); burst(v.x, 1.2, v.z, 18, [4, 3, 2], 4, 3); });
     }
+    if ((k === 'beast' || k === 'trample') && c.ag) {   // the beast itself: a bound and a bite, or a charge that throws him
+      const ag = c.ag, g = ag.h.group, [fx, fz, fy] = c.agFrom, sgn = Math.sign(x - fx) || 1;
+      if (ag.h.pivot) ag.h.pivot.scale.x = sgn;
+      if (k === 'beast') { const u = Math.min(1, T / 0.5); g.position.set(fx + (x - fx) * u, fy * (1 - u) + Math.sin(u * Math.PI) * 1.6, fz + (z - fz) * u); once('roar', 0, () => { sx?.play('grunt', { f0: 80, dur: 0.7, vowel: 'a', rough: 1, v: 0.35, bend: 0.2 }); sx?.play('whoosh'); }); crush(0.5); once('maul', 0.5, () => burst(x, 1.2, z, 30, [4, 3, 0], 7, 6)); if (T > 0.5) g.rotation.z = 0.12 * Math.sin(T * 30) * Math.max(0, 1 - (T - 0.5)); }
+      else { g.position.set(fx + (x - fx) * T * 1.6, 0.2 * Math.abs(Math.sin(T * 14)), fz + (z - fz) * T * 1.6); once('rumble', 0, () => { sx?.play(ag.kind === 'mammoth' ? 'trumpet' : 'horn', { f: 70, dur: 0.6, v: 0.3 }); sx?.play('rumble', { dur: 2 }); });
+        if (T > 0.62) { const f = T - 0.62; if (!c.landed) { v.put(x + sgn * 6 * f, z - 0.5 * f); v.pose(-f * 11 * sgn, Math.max(0, 8 * f - 11 * f * f)); } once('toss', 0.62, () => { sx?.play('hit', { v: 0.7 }); burst(x, 1, z, 14, [0, 1, 2], 5, 5); }); if (f > 0.75 && !c.landed) { c.landed = true; v.pose(-1.5 * sgn, 0, 0.5); kill(); sx?.play('log'); } } }
+    }
     if (k === 'river') {
       once('break', 0, () => { sx?.play('crumple', { v: 0.5 }); sx?.play('rumble', { dur: 0.8 }); });
       P.bank.group.position.y = -Math.min(1.2, T * 1.5); P.bank.group.rotation.z = Math.min(0.6, T);
@@ -1167,5 +1229,5 @@ export function buildVillage(campaign) {
   const fireNear = (x, z) => [...firePlaces, ...burn.lit.map((b) => [b.x, b.z, 1.6 * b.level])].reduce((m, [fx, fz, k]) => Math.max(m, Math.min(1.6, k * Math.max(0, 1 - Math.hypot(x - fx, z - fz) / 16))), 0);
   const onPath = (x, z) => Math.hypot((x - SITES.foyer.x) / 8.5, (z - SITES.foyer.z) / 5.8) < 1 || PATHS.some((pl) => P2.pathLine(pl, { step: 1 }).dist(x, z) < 1.2);
   const talkPulse = (id, d) => { const p = people[id]; if (p && !p.dying) p.talkT = Math.max(p.talkT || 0, d + 0.05); };
-  return { H, SITES, RIVER, people, hero, herds: HERD, talkPulse, accident, burn, duelStep, weather, fireNear, riverNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
+  return { H, SITES, RIVER, people, hero, herds: HERD, talkPulse, accident, route, wild, burn, duelStep, weather, fireNear, riverNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
 }

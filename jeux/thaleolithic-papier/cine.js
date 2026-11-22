@@ -58,11 +58,11 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
   // chief's punchline, the reply; a villager is then laid in the cemetery; Dylan gets the death screen
   function accident(acc) {
     const spec = campaign.accident(acc.id); if (!spec) return;
-    const name = campaign.nameOf(acc.victim), [x, z] = world.accident.spotOf(spec), C = world.SITES.cimetiere;
-    const lines = [{ speaker: 'Mathieu', subtitle: spec.warning }, { speaker: '', subtitle: `${spec.danger} ${name} y va quand même.` }, { speaker: spec.speaker || 'Aurélien', subtitle: spec.punchline }, { speaker: 'Mathieu', subtitle: spec.reply }];
+    const name = campaign.nameOf(acc.victim), [x, z] = acc.at || world.accident.spotOf(spec), C = world.SITES.cimetiere;
+    const lines = [{ speaker: 'Mathieu', subtitle: spec.warning }, { speaker: '', subtitle: acc.at ? `${spec.danger} ${name} était seul, loin de la palissade.` : `${spec.danger} ${name} y va quand même.` }, { speaker: spec.speaker || 'Aurélien', subtitle: spec.punchline }, { speaker: 'Mathieu', subtitle: spec.reply }];
     const sp = [
-      { from: [x - 3, z + 9, 26], to: [x - 1.4, z + 3, 17], dur: 3.4, line: 0, at: () => { world.accident.begin(spec, acc.victim); sfx?.play('stinger'); } },
-      { from: [x - 1.4, z + 2.4, spec.kind === 'mammoth' ? 18 : 14], to: [x - 0.6, z + 1.6, spec.kind === 'mammoth' ? 16 : 12], dur: spec.kind === 'river' ? 4.2 : spec.kind === 'fire' ? 3.6 : 3.2, line: 1, at: () => world.accident.strike() },
+      { from: [x - 3, z + 9, 26], to: [x - 1.4, z + 3, 17], dur: 3.4, line: 0, at: () => { world.accident.begin(spec, acc.victim, acc.at || null, acc.beast ?? null); sfx?.play('stinger'); } },
+      { from: [x - 1.4, z + 2.4, spec.kind === 'mammoth' || spec.kind === 'trample' ? 19 : 14], to: [x - 0.6, z + 1.6, spec.kind === 'mammoth' || spec.kind === 'trample' ? 17 : 12], dur: spec.kind === 'river' ? 4.2 : spec.kind === 'fire' ? 3.6 : 3.2, line: 1, at: () => world.accident.strike() },
       { from: [x + 0.6, z + 1.2, 11], to: [x + 0.8, z + 2.4, 15], dur: 3.8, line: 2 },
       { from: [x + 0.8, z + 2.4, 15], to: [x, z + 4, 20], dur: 3.4, line: 3 },
     ];

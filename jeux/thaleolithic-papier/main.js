@@ -7,6 +7,7 @@ import { createSound } from './sound.js';
 import { createCinema } from './cine.js';
 import { createTalk } from './talk.js';
 import { createStats } from './stats.js';
+import { createNav } from './nav.js';
 
 // the windows are printed on the village's own paper: tiles for the small pieces, a printed card behind each sheet
 installTiles();
@@ -62,7 +63,7 @@ H.onStep((t, dt) => {
   ui.step(dt);
   talk.step(dt);
   // the village lives: the tribe's needs and tasks (not during the evacuation, which leads everyone itself), Dylan's survival
-  if (!world.evacuating && dt > 0) { campaign.villageStep(dt, world.arrivedAt, world.moving); world.lead(campaign); }
+  if (!world.evacuating && dt > 0) { campaign.villageStep(dt, world.arrivedAt, world.moving); world.lead(campaign, dt); }
   const p = H.hero.group.position, dist = p.distanceTo(last), moved = dist > 1e-4; last.copy(p);
   if (dt > 0) campaign.survive(dt, moved, world.near('repos', 4));
   world.duelStep(dt, campaign.duel.s, ui.mode === 'duel');   // the duel is fought in the village, before the Grand Menhir
@@ -107,8 +108,11 @@ for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) stick.add
 actBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); actBtn.classList.add('on'); dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', bubbles: true })); });
 for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) actBtn.addEventListener(ev, () => { actBtn.classList.remove('on'); dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyE', bubbles: true })); });
 H.onStep(() => { actBtn.classList.toggle('off', document.getElementById('prompt').hidden); });
+// finding the way: the GPS ribbon, the beacons, the minimap, the conversation camera (nav.js)
+const nav = createNav({ world, campaign, ui, cinema }); world.navMap = nav.map; H.onStep((t, dt) => nav.step(t, dt));
+paperize(document.getElementById('mini'), { seed: 31, style: 'slip' });
 // the game's statistics, sent to Supabase like the Village Talas (stats.js; read back on stats.html)
 const stats = createStats(campaign, { touch: matchMedia('(pointer: coarse)').matches, off: Q.has('capture') });
-window.__thaleo = { campaign, world, ui, cinema, sfx, talk, stats };
+window.__thaleo = { campaign, world, ui, cinema, sfx, talk, stats, nav };
 if (campaign.state.accident?.played) ui.open('death');   // a death screen left open: it comes back
 H.start();

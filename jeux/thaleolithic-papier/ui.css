@@ -290,3 +290,14 @@
   .tl { display: inline-block; opacity: 0; transform: translateY(-.45em) scale(1.7) rotate(var(--r, 0deg)); }
   .tl.on { opacity: 1; transform: none; transition: transform .16s cubic-bezier(.2, 1.6, .4, 1), opacity .05s; }
   @media (max-width: 640px) { #cine-line, .speech .line { font-size: 21px; } #cine .sub, .speech { padding: 24px 28px 14px; } }
+
+  /* the minimap: a plate of the village seen from above, pinned under the tools; a click opens the big map */
+  #mini { position: fixed; top: 82px; right: 16px; padding: 7px; border: 0; cursor: zoom-in; transform: rotate(1deg); z-index: 3; }
+  #mini canvas { display: block; width: 236px; height: 168px; border-radius: 3px 8px 4px 9px; box-shadow: inset 0 0 0 1px rgb(var(--sh) / .5); }
+  body.cine-on #mini { display: none; }
+  @media (max-width: 640px) { #mini { top: auto; bottom: max(14px, env(safe-area-inset-bottom)); left: 50%; right: auto; transform: translateX(-50%) rotate(1deg); padding: 5px; } #mini canvas { width: 132px; height: 94px; } }
+  /* the big map: the same plate, zoomable and draggable */
+  .bigmap { position: relative; overflow: hidden; height: min(52vh, 420px); margin: 8px 0; border-radius: 3px 8px 4px 9px; box-shadow: var(--cut), inset 0 0 0 1px rgb(var(--sh) / .4); cursor: grab; touch-action: none; background: #c8b48a; }
+  .bigmap svg { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .bigmap .zoom { position: absolute; right: 8px; top: 8px; display: grid; gap: 6px; z-index: 2; } .bigmap .zoom .btn { width: 38px; height: 38px; padding: 0; font: 400 22px/1 var(--caps); }
+  .bigmap .site text { font: 400 11px/1 var(--caps); fill: #2a1a1e; paint-order: stroke; stroke: #fbf1de; stroke-width: 3px; }

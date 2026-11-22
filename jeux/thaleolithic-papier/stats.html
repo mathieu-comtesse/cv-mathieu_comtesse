@@ -74,7 +74,7 @@
   installTiles();
   const SB = window.THALEO_SB || window.TALAS_SB, RES = '../../thaleolithic/Source/Resources/';
   const $ = (id) => document.getElementById(id), tip = $('tip');
-  const KIND = { tree: 'Arbre abattu', rock: 'Bloc de carrière', mammoth: 'Mammouth', hut: 'Toiture effondrée', fire: 'Feu', stock: 'Pile des réserves', river: 'Berge', workshop: 'Poste de l’atelier' };
+  const KIND = { tree: 'Arbre abattu', rock: 'Bloc de carrière', mammoth: 'Mammouth', hut: 'Toiture effondrée', fire: 'Feu', stock: 'Pile des réserves', river: 'Berge', workshop: 'Poste de l’atelier', beast: 'Bête sauvage (prédateur)', trample: 'Grand herbivore effrayé' };
   const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const calm = (t) => { const s = String(t || '').toLowerCase().replace(/!!!/, '!'); return s.charAt(0).toUpperCase() + s.slice(1); };   // the game's titles are in capitals
   const [legacy, v17] = await Promise.all(['UngaBungaQuests.json', 'CampaignV17.json'].map((f) => fetch(RES + f).then((r) => r.json()).catch(() => null)));
