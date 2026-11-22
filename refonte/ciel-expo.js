@@ -1,4 +1,4 @@
-import { Ciel, hache } from './moteur.js?v=m35';
+import { Ciel, hache } from './moteur.js?v=m36';
 
 const angleOr = 2.399963, cercle = Math.PI * 2;
 const tons = ['25,122,220', '85,238,172', '105,131,251'];
@@ -177,7 +177,18 @@ export class CielExpo extends Ciel {
       for(const node of nodes){
         if(!node)continue;
         const {p,n,covered,ground}=node,d=distance(p,souris),hot=!covered&&d<14;
-        trace(e.centre,node.world,hot?'255,255,255':color,(hot?.9:title?.39:plat?.68:.43)*opacity);
+        const dx=p.x-hub.x,dy=p.y-hub.y,dist2=dx*dx+dy*dy;
+        const u=dist2?Math.min(1,Math.max(0,((souris.x-hub.x)*dx+(souris.y-hub.y)*dy)/dist2)):0;
+        const x=hub.x+dx*u,y=hub.y+dy*u,gap=Math.hypot(souris.x-x,souris.y-y);
+        const onBranch=t!==null&&!covered&&gap<12&&u>.16&&u<.93;
+        const strength=(onBranch||hot?.9:title?.39:plat?.68:.43)*opacity;
+        if(onBranch&&!plat&&unproject){
+          const mid=e.centre.map((v,i)=>v+(node.world[i]-v)*u);
+          const scale=(1-gap/12)*9/Math.max(1,gap);
+          const bend=unproject(x+(x-souris.x)*scale,y+(y-souris.y)*scale,mid[2],mid);
+          if(bend){const knot=[bend[0],bend[1],mid[2]];trace(e.centre,knot,color,strength);trace(knot,node.world,color,strength);}
+          else trace(e.centre,node.world,color,strength);
+        }else trace(e.centre,node.world,hot?'255,255,255':color,strength);
         if(covered)continue;
         ctx.globalAlpha=opacity;
         if(!plat&&ground&&hubShadow&&!masque(ground)&&!masque(hubShadow)){

@@ -1,4 +1,4 @@
-import { hache } from './moteur.js?v=m35';
+import { hache } from './moteur.js?v=m36';
 
 // Même tangente horizontale aux deux extrémités que dans le tracé des cartes Fall 26.
 export function pointBranche(a,b,t) {
@@ -15,17 +15,37 @@ const springs=new Map();
 export function brancheCarte(ctx,a,b,{t,id,progress,active,pointer}) {
   if(progress<=0||Math.abs(b.x-a.x)<6)return false;
   let spring=springs.get(id);
-  if(!spring){spring={y:0,v:0,pos:.5,time:0};springs.set(id,spring);}
-  if(t===null){spring.y=0;spring.v=0;}else{
+  if(!spring){spring={y:0,v:0,pos:.5,time:t||0,last:null,brushed:-Infinity};springs.set(id,spring);}
+  if(t===null){spring.y=0;spring.v=0;spring.last=null;}else{
     const dt=Math.min(.04,Math.max(0,t-spring.time));spring.time=t;
-    let force=0,nearest=32,pos=.5;
-    if(pointer)for(let i=1;i<24;i++){
-      const u=i/24,p=pointBranche(a,b,u),d=Math.hypot(pointer.x-p.x,pointer.y-p.y);
-      if(d<nearest){nearest=d;pos=u;force=(pointer.y<p.y?1:-1)*22*(1-d/32);}
+    const previous=spring.last;
+    const omega=2*Math.PI*3.1,damping=.15,maxVelocity=14*omega/.8;
+    if(pointer&&previous&&t-spring.brushed>=.065&&Math.hypot(pointer.x-previous.x,pointer.y-previous.y)>1){
+      const left=Math.min(pointer.x,previous.x)-8,right=Math.max(pointer.x,previous.x)+8;
+      const top=Math.min(pointer.y,previous.y)-8,bottom=Math.max(pointer.y,previous.y)+8;
+      if(right>=Math.min(a.x,b.x)&&left<=Math.max(a.x,b.x)&&bottom>=Math.min(a.y,b.y)&&top<=Math.max(a.y,b.y)){
+        const dx=pointer.x-previous.x,dy=pointer.y-previous.y,length=dx*dx+dy*dy;
+        let nearest=8;
+        for(let i=3;i<46;i++){
+          const u=i/48,p=pointBranche(a,b,u),k=Math.min(1,Math.max(0,((p.x-previous.x)*dx+(p.y-previous.y)*dy)/length));
+          const d=Math.hypot(p.x-previous.x-k*dx,p.y-previous.y-k*dy);
+          if(d<nearest){nearest=d;spring.pos=u;}
+        }
+        if(nearest<8){
+          const shift=(pointBranche(a,b,spring.pos+.01).y-pointBranche(a,b,spring.pos-.01).y);
+          const span=(pointBranche(a,b,spring.pos+.01).x-pointBranche(a,b,spring.pos-.01).x);
+          const normal=Math.hypot(span,shift)||1;
+          const impulse=(dy*span-dx*shift)/normal/Math.max(.008,dt)*.2;
+          spring.v=Math.max(-maxVelocity,Math.min(maxVelocity,spring.v+impulse));spring.brushed=t;
+        }
+      }
     }
-    if(force)spring.pos=pos;
-    spring.v+=(145*(force-spring.y)-12*spring.v)*dt;
-    spring.y+=spring.v*dt;
+    if(pointer)spring.last={x:pointer.x,y:pointer.y};
+    for(let elapsed=dt;elapsed>0;elapsed-=1/240){
+      const step=Math.min(elapsed,1/240);
+      spring.v+=(-omega*omega*spring.y-2*damping*omega*spring.v)*step;
+      spring.y+=spring.v*step;
+    }
   }
   const sample=u=>{
     const p=pointBranche(a,b,u);

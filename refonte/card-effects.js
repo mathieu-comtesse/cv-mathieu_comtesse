@@ -137,7 +137,12 @@ export function etincelles(ctx,t){
     const size=s.size*(1-age/.65),x=s.x+s.vx*age,y=s.y+s.vy*age+age*age*42;
     ctx.globalAlpha=Math.max(0,1-age/.62);
     ctx.fillStyle='#f8fbff';ctx.fillRect(x,y,size,size);
-    ctx.fillStyle='#99c4ff';ctx.fillRect(x+size,y+size*.22,size*.4,size*.78);
+    if(document.documentElement.classList.contains('cv-parity-active')){
+      ctx.fillStyle='#a6c5e2';ctx.beginPath();ctx.moveTo(x+size,y);ctx.lineTo(x+size*1.55,y-size*.35);ctx.lineTo(x+size*1.55,y+size*.65);ctx.lineTo(x+size,y+size);ctx.fill();
+      ctx.fillStyle='#d9edff';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+size*.55,y-size*.35);ctx.lineTo(x+size*1.55,y-size*.35);ctx.lineTo(x+size,y);ctx.fill();
+    }else{
+      ctx.fillStyle='#a5b7ca';ctx.fillRect(x+size,y+size*.22,size*.4,size*.78);
+    }
   }
   ctx.restore();
 }

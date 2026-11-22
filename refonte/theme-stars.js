@@ -1,6 +1,7 @@
-import {poussiere,notesCadre} from './card-effects.js?v=1';
-import { fonduChapitre } from './moteur.js?v=m35';
-import { avanceBranche, brancheCarte } from './card-wires.js?v=1';
+import {transitionsPapier,couleurPapier} from './section-colours.js?v=1';
+import {poussiere,notesCadre} from './card-effects.js?v=2';
+import { fonduChapitre } from './moteur.js?v=m36';
+import { avanceBranche, brancheCarte } from './card-wires.js?v=2';
 
 /* Étoiles des titres (mode à plat). Chaque grand titre (chapitre : « Projets professionnels » ; thème : « Faire fonctionner »…)
  * garde sa taille et reçoit une étoile : un foyer carré blanc posé près du titre, d'où partent des branches.
@@ -180,12 +181,18 @@ function scene(chapitres) {
   const nav = document.createElement('nav'); nav.className = 'cv-flat-nav'; nav.setAttribute('aria-label', 'Chapitres');
   for (const c of chapitres) { const a = document.createElement('a'); a.href = '#' + c.section.id; a.textContent = c.nom; c.lien = a; nav.append(a); }
   document.body.append(nav);
+  const source=document.querySelector('[data-f26-page]');
+  let paper=[];
+  function mesure(){paper=transitionsPapier(source,H,el=>scrollY+el.getBoundingClientRect().top);}
+  if(source)new ResizeObserver(mesure).observe(source);
+  addEventListener('resize',mesure);
+  mesure();
   function image(t) {
     requestAnimationFrame(image);
     if (document.hidden || t - dernier < 16) return; dernier = t;
     const expo = document.documentElement.classList.contains('cv-parity-active');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); cibles = [];
-    if (expo) return;
+      if (expo) return;
     const libre = !reduit.matches, tt = t / 1000; let actif = null, vuNav = false;
     const root = document.documentElement;
     const sections = chapitres.map(c => c.section.getBoundingClientRect());
@@ -205,11 +212,12 @@ function scene(chapitres) {
       sortant=c;
       couleur=cible;
     }
+    couleur=couleurPapier(paper,scrollY+H*.5,!libre);
     if(couleur!==ancienneCouleur){
       ancienneCouleur=couleur;
       root.style.setProperty('--cv-flat-colour',couleur);
     }
-    root.toggleAttribute('data-cv-flat-colour',Boolean(sortant||entrant));
+    root.toggleAttribute('data-cv-flat-colour',scrollY>H*.7);
     for (const c of chapitres) {
       const S = c.section.getBoundingClientRect(); if (S.top < H * 0.5 && S.bottom > H * 0.5) actif = c; if (S.top < H * 1.4) vuNav = true;
       const T = c.titre.getBoundingClientRect(), u = (H - T.top) / H;
@@ -224,6 +232,11 @@ function scene(chapitres) {
       ctx.save(); ctx.globalAlpha = alpha; ctx.lineCap = 'round';
       /* les branches passent derrière les fiches : la zone des fiches visibles est retirée du tracé */
       if (u > 0.15) { ctx.beginPath(); ctx.rect(0, 0, W, H); for (const f of c.fiches) { const q = f.getBoundingClientRect(); if (q.bottom > 0 && q.top < H) ctx.rect(q.left, q.top, q.width, q.height); } ctx.clip('evenodd'); }
+      const panel=document.querySelector('#work .gains-chart');
+      if(panel){
+        const b=panel.getBoundingClientRect();
+        ctx.beginPath();ctx.rect(0,0,W,H);ctx.rect(b.left,b.top,b.width,b.height);ctx.clip('evenodd');
+      }
       c.branches.forEach((b, k) => {
         const gk = lisse(g * 1.6 - k * 0.02, 0, 1);
         let x = hx + Math.cos(b.a) * R * b.r, y = hy + Math.sin(b.a) * R * b.r * 0.82;
@@ -231,7 +244,16 @@ function scene(chapitres) {
         x = hx + (x - hx) * gk; y = hy + (y - hy) * gk;
         const survole = b.fiche && Math.hypot(x - souris.x, y - souris.y) < 16;
         ctx.strokeStyle = b.fiche ? (survole ? '#fff' : k < 2 ? 'rgba(95,230,255,.9)' : 'rgba(255,255,255,.72)') : 'rgba(207,224,255,.26)'; ctx.lineWidth = survole ? 2 : 1;
-        ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(x, y); ctx.stroke();
+        const dx=x-hx,dy=y-hy,length=dx*dx+dy*dy;
+        const u=length?Math.min(1,Math.max(0,((souris.x-hx)*dx+(souris.y-hy)*dy)/length)):0;
+        const px=hx+u*dx,py=hy+u*dy,d=Math.hypot(souris.x-px,souris.y-py);
+        ctx.beginPath();ctx.moveTo(hx,hy);
+        if(libre&&u>.12&&u<.92&&d<18){
+          ctx.strokeStyle='rgba(239,248,255,.84)';ctx.lineWidth=1.3;
+          const push=(1-d/18)*22/Math.max(1,d);
+          ctx.quadraticCurveTo(px+(px-souris.x)*push,py+(py-souris.y)*push,x,y);
+        }else ctx.lineTo(x,y);
+        ctx.stroke();
         if (b.fiche) {
           if (libre) { const q = (tt * 0.28 + b.phase / 6.283) % 1, f = Math.min(1, q / 0.75); ctx.fillStyle = `rgba(255,255,255,${(q < 0.75 ? 0.95 : (1 - q) * 3.8).toFixed(2)})`; ctx.beginPath(); ctx.arc(hx + (x - hx) * f, hy + (y - hy) * f, 1.7, 0, 6.283); ctx.fill(); }
           ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1; ctx.strokeRect(x - 9, y - 7, 18, 14); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - 6, y - 4, 12, 8);
