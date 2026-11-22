@@ -544,7 +544,7 @@ export function createHarness({ bounds = { x0: -64, x1: 64, z0: -62, z1: 38 }, g
     const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
     const pose = (dt) => {                                    // heading (or the flip), lean and roll on the model
       const node = hero.pivot.children[0];
-      if (H.heroTurn === 'flip') { hero.pivot.scale.x += (facing - hero.pivot.scale.x) * (1 - Math.exp(-dt * 14)); return; }
+      if (H.heroTurn === 'flip') { const k = hero.pivot.scale.x + (facing - hero.pivot.scale.x) * (1 - Math.exp(-dt * 14)); hero.pivot.scale.x = Math.abs(k) < 0.22 ? Math.sign(facing) * 0.22 : k; return; }   // cut at the middle: never edge-on
       hero.group.rotation.y = heading;
       if (node) { node.rotation.x = lean; node.rotation.z = -Math.max(-ROLL, Math.min(ROLL, 0.035 * yawRate)); }
     };
