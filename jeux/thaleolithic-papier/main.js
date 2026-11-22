@@ -59,7 +59,7 @@ H.onStep((t, dt) => {
   const p = H.hero.group.position, dist = p.distanceTo(last), moved = dist > 1e-4; last.copy(p);
   if (dt > 0) campaign.survive(dt, moved, world.near('repos', 4));
   world.duelStep(dt, campaign.duel.s, ui.mode === 'duel');   // the duel is fought in the village, before the Grand Menhir
-  sfx.step(dt, { gust: world.weather.gust, rain: world.weather.rain, fire: world.fireNear(p.x, p.z) });
+  sfx.step(dt, { gust: world.weather.gust, rain: world.weather.rain, fire: world.fireNear(p.x, p.z), river: world.riverNear(p.x, p.z) });
   // Dylan's paper footsteps, one per step of his stride (1.15 units), on the beaten earth or the grass
   if (moved && dist < 2) { stride += dist; if (stride > 1.15) { stride -= 1.15; foot ^= 1; H.sound?.step({ surface: world.onPath?.(p.x, p.z) ? 'path' : 'grass', foot }); } }
   if (world.guide && world.near(world.guide)) world.guide = null;   // a place chosen on the map: the marker goes there until Dylan arrives

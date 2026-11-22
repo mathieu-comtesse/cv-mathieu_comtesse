@@ -87,7 +87,13 @@ function beds(ac, out) {
   const leaves = filt(ac, 'highpass', 3500, 0.5), lg = ac.createGain(); lg.gain.value = 0; chain(loop(1.2), leaves, lg, out);
   const rain = filt(ac, 'bandpass', 2600, 0.4), rg = ac.createGain(); rg.gain.value = 0; chain(loop(1.0), rain, rg, out);
   const fire = filt(ac, 'lowpass', 220, 0.8), fg = ac.createGain(); fg.gain.value = 0; chain(loop(0.35), fire, fg, out);
-  return { set(at, { gust = 0.4, rain: r = 0, fire: f = 0 }, ramp = 0.1) {
+  // the river: a babble, two bands of water noise whose levels wobble out of step
+  const rv1 = filt(ac, 'bandpass', 420, 1.2), rv2 = filt(ac, 'bandpass', 1350, 1.6), vg = ac.createGain(); vg.gain.value = 0;
+  const wob = (f, d) => { const o = ac.createOscillator(); o.frequency.value = f; const g = ac.createGain(); g.gain.value = d; o.connect(g); o.start(); return g; };
+  const b1 = ac.createGain(), b2 = ac.createGain(); b1.gain.value = 0.6; b2.gain.value = 0.4; wob(3.1, 0.35).connect(b1.gain); wob(4.7, 0.3).connect(b2.gain);
+  chain(loop(0.9), rv1, b1, vg); chain(loop(1.3), rv2, b2, vg); vg.connect(out);
+  return { set(at, { gust = 0.4, rain: r = 0, fire: f = 0, river: rv = 0 }, ramp = 0.1) {
+    vg.gain.linearRampToValueAtTime(0.13 * rv, at + ramp);
     wg.gain.linearRampToValueAtTime(0.045 + 0.09 * gust, at + ramp); wind.frequency.linearRampToValueAtTime(320 + 420 * gust, at + ramp);
     lg.gain.linearRampToValueAtTime(0.012 * Math.max(0, gust - 0.5), at + ramp); rg.gain.linearRampToValueAtTime(0.11 * r, at + ramp); fg.gain.linearRampToValueAtTime(0.12 * f, at + ramp);
   } };
@@ -110,8 +116,8 @@ export function createSound() {
     mute(m = !muted) { muted = m; if (M) M.vol.gain.setTargetAtTime(m ? 0 : 0.8, ac.currentTime, 0.05); return muted; },
     get muted() { return muted; },
     // every frame: the beds follow the weather and the nearest fire; now and then a bird, a crackle, a far mammoth, thunder
-    step(dt, { gust, rain, fire, night = 0 }) {
-      if (!ac || muted) return; const t = ac.currentTime; B.set(t, { gust, rain, fire });
+    step(dt, { gust, rain, fire, river = 0, night = 0 }) {
+      if (!ac || muted) return; const t = ac.currentTime; B.set(t, { gust, rain, fire, river });
       if (fire > 0.05 && t > nextCrackle) { SFX.crackle(ac, M.bus, t, { v: 0.1 * fire }); nextCrackle = t + 0.05 + Math.random() * 0.25 / fire; }
       if (t > nextAmbient) { nextAmbient = t + 4 + Math.random() * 9; const r = Math.random(); if (rain > 0.6 && r < 0.25) SFX.thunder(ac, M.bus, t); else if (rain < 0.3 && r < 0.7) SFX.bird(ac, M.bus, t); else if (r < 0.85) SFX.trumpet(ac, M.bus, t); }
     },

@@ -456,14 +456,14 @@ export function buildVillage(campaign) {
   H.onStep((t, dt) => life.update(dt, H.target));
   // ---- weather and light: gusts in the pines, rain with the métamorphose and in showers after it, the low sun turning
   // slowly, clouds dimming it, the fires and torches flickering; the grade cools and softens under the rain
-  const weather = { rain: 0, gust: 0.4, forced: null, base: null };
+  const weather = { rain: 0, gust: 0.4, forced: null, base: null, gustBoost: 0, sunSpeed: 1, sunPhase: 0 };
   const flick = (t, i) => 0.5 + 0.5 * Math.sin(t * 9.1 + i * 1.7) * Math.sin(t * 13.7 + i * 0.6);
   H.onStep((t, dt) => {
     const after = quest('V17_OPERATIONS')(), shower = after && (t % 150 < 45 || weather.metamorph > 0);
     if (weather.metamorph > 0) weather.metamorph -= dt;
     const target = weather.forced ?? (shower ? 1 : 0);
     weather.rain += (target - weather.rain) * (1 - Math.exp(-dt * 0.6)); rain.day = rain.night = weather.rain;
-    weather.gust = 0.3 + 0.7 * Math.max(0, Math.sin(t * 0.21) * Math.sin(t * 0.53 + 1.3)) + 0.45 * weather.rain;
+    weather.gust = 0.3 + 0.7 * Math.max(0, Math.sin(t * 0.21) * Math.sin(t * 0.53 + 1.3)) + 0.45 * weather.rain + weather.gustBoost;
     for (const h of TREES) h.swayAmp = 0.3 * (0.5 + 2.0 * weather.gust);
     const frame = Math.floor(t * 8);
     FIRES.forEach((fl, i) => fl.forEach((f, k) => { f.group.visible = k === (frame + i) % 3 && (!f.held || f.p > 0.02); }));
@@ -472,13 +472,42 @@ export function buildVillage(campaign) {
     if (!weather.base) weather.base = { ki: L.key.intensity, fi: L.fill.intensity, si: L.sky.intensity, pos: L.key.position.clone(), tgt: L.key.target.position.clone(), sat: H.post.o.saturation, haze: H.post.o.hazeAmount, exp: H.post.o.exposure, con: H.post.o.contrast };
     const B = weather.base, cloud = 0.5 + 0.5 * Math.sin(t * 0.09) * Math.sin(t * 0.041 + 2);
     L.key.intensity = B.ki * (1 - 0.45 * weather.rain - 0.1 * cloud); L.sky.intensity = B.si * (1 + 0.2 * weather.rain); L.fill.intensity = B.fi * (1 + 0.15 * weather.rain);
-    const a = 0.14 * Math.sin(t * 0.017), v = B.pos.clone().sub(B.tgt), ca = Math.cos(a), sa = Math.sin(a);
+    weather.sunPhase += dt * 0.017 * weather.sunSpeed; const a = 0.14 * Math.sin(weather.sunPhase) * Math.min(4, weather.sunSpeed), v = B.pos.clone().sub(B.tgt), ca = Math.cos(a), sa = Math.sin(a);
     L.key.position.set(B.tgt.x + v.x * ca - v.z * sa, B.tgt.y + v.y * (1 + 0.05 * Math.sin(t * 0.011)), B.tgt.z + v.x * sa + v.z * ca);
     for (const [i, P] of H.lampLights.entries()) P.intensity = P.userData.base * (0.78 + 0.3 * flick(t, i)) * (1 + 0.25 * weather.rain);
     const want = [B.sat * (1 - 0.18 * weather.rain), B.haze + 0.22 * weather.rain, B.exp * (1 - 0.06 * weather.rain), B.con * (1 - 0.06 * weather.rain)];
     if (!weather.last || want.some((x, k) => Math.abs(x - weather.last[k]) > 0.004)) { weather.last = want; Object.assign(H.post.o, { saturation: want[0], hazeAmount: want[1], exposure: want[2], contrast: want[3] }); H.post.apply(); }
   });
   H.onRestart(() => life.reset(H.target));
+
+  // ---- the river moves: cut-paper ripples (a pale arc over a darker one) drift downstream along its course, born and
+  // shrinking away; under the rain, rings open where the drops fall; its babble is heard near the banks
+  const RV = (() => { const pts = RIVER.pts, L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, L, len: L[L.length - 1] }; })();
+  const along = (s) => { let i = 1; while (i < RV.L.length - 1 && RV.L[i] < s) i++; const [x0, z0] = RV.pts[i - 1], [x1, z1] = RV.pts[i], u = (s - RV.L[i - 1]) / Math.max(1e-6, RV.L[i] - RV.L[i - 1]), l = Math.hypot(x1 - x0, z1 - z0) || 1; return [x0 + (x1 - x0) * u, z0 + (z1 - z0) * u, (x1 - x0) / l, (z1 - z0) / l]; };
+  const inkTex = (draw) => { const c = document.createElement('canvas'); c.width = 128; c.height = 64; const g = c.getContext('2d'); g.lineCap = 'round'; draw(g); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
+  const rippleTex = inkTex((g) => { g.strokeStyle = '#4e5a8c'; g.lineWidth = 9; g.beginPath(); g.arc(64, 74, 50, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); g.strokeStyle = '#e8e2f0'; g.lineWidth = 6; g.beginPath(); g.arc(64, 70, 50, Math.PI * 1.18, Math.PI * 1.82); g.stroke(); });
+  const ringTex = inkTex((g) => { g.strokeStyle = '#e0dcf0'; g.lineWidth = 5; g.beginPath(); g.ellipse(64, 32, 52, 26, 0, 0, 7); g.stroke(); });
+  const flatMat = (map) => new THREE.MeshStandardMaterial({ map, transparent: true, alphaTest: 0.25, depthWrite: false, roughness: 1, side: THREE.DoubleSide });
+  const RN = 170, rip = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 0.5), flatMat(rippleTex), RN), RG = 60, rings = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 0.5), flatMat(ringTex), RG);
+  for (const m of [rip, rings]) { m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); H.scene.add(m); }
+  const R = Array.from({ length: RN }, () => ({ s: Math.random() * RV.len, off: (Math.random() - 0.5) * 2.2, sp: 1.1 + Math.random() * 0.8, age: Math.random() * 3, life: 2.5 + Math.random() * 2, w: 1.1 + Math.random() * 0.9 }));
+  const G = Array.from({ length: RG }, () => ({ age: 9, life: 0.9, x: 0, z: 0 }));
+  const _o = new THREE.Object3D(); let ringAt = 0;
+  H.onStep((t, dt) => {
+    R.forEach((r, i) => {
+      r.age += dt; r.s += r.sp * dt; if (r.age > r.life || r.s > RV.len) Object.assign(r, { s: Math.random() * RV.len * 0.97, off: (Math.random() - 0.5) * 2.2, age: 0, life: 2.5 + Math.random() * 2 });
+      const [x, z, tx, tz] = along(r.s), k = Math.sin(Math.PI * Math.min(1, r.age / r.life)) * r.w;
+      _o.position.set(x - tz * r.off, 0.06, z + tx * r.off); _o.rotation.set(-Math.PI / 2, 0, Math.atan2(-tz, tx) + Math.PI / 2); _o.scale.set(k, k, 1); _o.updateMatrix(); rip.setMatrixAt(i, _o.matrix);
+    });
+    ringAt -= dt * (2 + 40 * weather.rain);
+    G.forEach((g, i) => {
+      g.age += dt; if (g.age > g.life && ringAt <= 0 && weather.rain > 0.05) { ringAt += 1; const [x, z, tx, tz] = along(Math.random() * RV.len), off = (Math.random() - 0.5) * 2.6; Object.assign(g, { age: 0, x: x - tz * off, z: z + tx * off }); }
+      const u = Math.min(1, g.age / g.life), k = g.age < g.life ? 0.3 + 1.3 * u : 0.001;
+      _o.position.set(g.x, 0.065, g.z); _o.rotation.set(-Math.PI / 2, 0, 0); _o.scale.set(k, k, 1); _o.updateMatrix(); rings.setMatrixAt(i, _o.matrix);
+    });
+    rip.instanceMatrix.needsUpdate = true; rings.instanceMatrix.needsUpdate = true; rings.material.opacity = 1;
+  });
+  const riverNear = (x, z) => Math.max(0, 1 - RIVER.dist(x, z) / 16);
 
   // ---- what the campaign changes in the world -------------------------------------------------------------------------
   // the evacuation: the villagers walk to the gathering point
@@ -664,5 +693,5 @@ export function buildVillage(campaign) {
   const firePlaces = [[SITES.foyer.x, SITES.foyer.z, 1], [-11, -3.9, 0.8], ...[[-4.6, 7.2], [4.6, 7.2], [-7.6, -8.8], [7.6, -8.4], [-3.4, -17.8], [7, -17.6], [-12.6, 0.2], [10.8, -9.8]].map(([x, z]) => [x, z, 0.35])];
   const fireNear = (x, z) => firePlaces.reduce((m, [fx, fz, k]) => Math.max(m, k * Math.max(0, 1 - Math.hypot(x - fx, z - fz) / 13)), 0);
   const onPath = (x, z) => Math.hypot((x - SITES.foyer.x) / 8.5, (z - SITES.foyer.z) / 5.8) < 1 || PATHS.some((pl) => P2.pathLine(pl, { step: 1 }).dist(x, z) < 1.2);
-  return { H, SITES, RIVER, people, hero, duelStep, weather, fireNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
+  return { H, SITES, RIVER, people, hero, duelStep, weather, fireNear, riverNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
 }
