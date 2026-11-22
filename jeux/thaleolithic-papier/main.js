@@ -3,6 +3,8 @@ import { createCampaign } from './campaign.js';
 import { buildVillage } from './scene.js';
 import { createUI } from './ui.js';
 import { installTiles, paperize, cutLetters } from './paper-ui.js';
+import { createSound } from './sound.js';
+import { createCinema } from './cine.js';
 
 // the windows are printed on the village's own paper: tiles for the small pieces, a printed card behind each sheet
 installTiles();
@@ -26,16 +28,39 @@ const world = buildVillage(campaign);
 const ui = createUI(campaign, world);
 const { H } = world;
 
+// sound: unlocked by the first gesture (browsers ask it), N mutes; the beds follow the weather and the nearest fire
+const sfx = createSound(); H.sfx = sfx;
+const cinema = createCinema({ campaign, world, ui, sfx, data: base });
+addEventListener('pointerdown', () => sfx.unlock(), { capture: true }); addEventListener('keydown', (e) => { sfx.unlock(); if (e.code === 'KeyN' && !e.repeat) sfx.mute(); }, { capture: true });
+document.addEventListener('click', (e) => { if (e.target.closest('.btn')) sfx.play('bone', { f: 1500 + Math.random() * 700, v: 0.2 }); });
+// the story's sounds: an action done, a proof verified, a mistake, a quest completed, the fire alarm, the end
+const tally = () => { const st = campaign.state; return { done: st.done.length, quests: campaign.data.quests.filter((q) => campaign.questDone(q)).length, proofs: st.evidence.filter((e) => e.stage === 3).length,
+  mistakes: Object.values(st.progress).reduce((n, p) => n + (p.mistakes || 0), 0), frontier: campaign.frontier()?.id, ending: !!st.ending, done_q: campaign.data.quests.filter((q) => campaign.questDone(q)).map((q) => q.id) }; };
+let was = tally();
+campaign.on(() => {
+  const now = tally();
+  if (now.ending && !was.ending) sfx.play('ending'); else if (now.quests > was.quests) sfx.play('quest'); else if (now.proofs > was.proofs) sfx.play('evidence'); else if (now.done > was.done) sfx.play('action');
+  if (now.mistakes > was.mistakes) sfx.play('log');
+  if (now.frontier === 'V17_EMERGENCY' && was.frontier !== 'V17_EMERGENCY') sfx.play('alarm');
+  for (const q of now.done_q) if (!was.done_q.includes(q)) cinema.after(q);   // C02, C03, C06 when their chapter ends
+  was = now;
+});
+let stride = 0, foot = 0;
+
 // the marker over the place where the next action happens (or the place chosen on the map)
 const pin = document.getElementById('pin'), v = new H.THREE.Vector3();
 let last = H.hero.group.position.clone();
 H.onStep((t, dt) => {
+  cinema.step(dt);
   ui.step(dt);
   // the village lives: the tribe's needs and tasks (not during the evacuation, which leads everyone itself), Dylan's survival
   if (!world.evacuating && dt > 0) { campaign.villageStep(dt, world.arrivedAt, world.moving); world.lead(campaign); }
-  const p = H.hero.group.position, moved = p.distanceTo(last) > 1e-4; last.copy(p);
+  const p = H.hero.group.position, dist = p.distanceTo(last), moved = dist > 1e-4; last.copy(p);
   if (dt > 0) campaign.survive(dt, moved, world.near('repos', 4));
   world.duelStep(dt, campaign.duel.s, ui.mode === 'duel');   // the duel is fought in the village, before the Grand Menhir
+  sfx.step(dt, { gust: world.weather.gust, rain: world.weather.rain, fire: world.fireNear(p.x, p.z) });
+  // Dylan's paper footsteps, one per step of his stride (1.15 units), on the beaten earth or the grass
+  if (moved && dist < 2) { stride += dist; if (stride > 1.15) { stride -= 1.15; foot ^= 1; H.sound?.step({ surface: world.onPath?.(p.x, p.z) ? 'path' : 'grass', foot }); } }
   if (world.guide && world.near(world.guide)) world.guide = null;   // a place chosen on the map: the marker goes there until Dylan arrives
   const site = world.guide || campaign.nextSite(), s = site && world.SITES[site];
   if (!s || ui.mode) { pin.hidden = true; return; }
@@ -52,7 +77,7 @@ const intro = document.getElementById('intro');
 const started = campaign.state.done.length > 0;
 document.getElementById('continue').hidden = !started;
 document.getElementById('continue').onclick = () => { intro.hidden = true; };
-document.getElementById('play').onclick = () => { if (started) campaign.reset(); intro.hidden = true; };
+document.getElementById('play').onclick = () => { if (started) campaign.reset(); intro.hidden = true; sfx.unlock(); cinema.start('C01'); };   // a new game opens on « Le village catastrophe »
 addEventListener('keydown', (e) => { if (!intro.hidden) e.stopImmediatePropagation(); }, true);
 if (Q.has('capture')) { intro.hidden = true; for (const id of ['hud', 'tools']) document.getElementById(id).hidden = true; }
 for (const b of document.querySelectorAll('#pad button')) {
@@ -60,5 +85,5 @@ for (const b of document.querySelectorAll('#pad button')) {
   b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); b.classList.add('on'); send('keydown'); });
   for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, () => { if (!b.classList.contains('on')) return; b.classList.remove('on'); send('keyup'); });
 }
-window.__thaleo = { campaign, world, ui };
+window.__thaleo = { campaign, world, ui, cinema, sfx };
 H.start();

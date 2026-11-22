@@ -244,6 +244,22 @@
   .duelpad { display: grid; grid-template-columns: 1fr 1fr; gap: 0 4px; } .duelpad .btn { text-align: center; }
   @media (max-width: 640px) { #tools .ico { width: 34px; height: 34px; } #tools .btn { padding: 6px; } #hud { width: calc(100vw - 86px); padding: 12px 14px; } #panel-body { padding: 26px 24px 28px; } .sheet h1 { font-size: 36px; } }
   @media (prefers-reduced-motion: reduce) { #hud, #tools .btn { animation: none; } }
+
+  /* the cinematics: paper bands slide in top and bottom, the title in cut letters, a sheet for the lines */
+  #cine { position: fixed; inset: 0; z-index: 7; pointer-events: none; }
+  #cine .band { position: absolute; left: -1%; right: -1%; height: 12vh; background: var(--plum-t, none) #4a2030; transition: transform .6s cubic-bezier(.65, 0, .35, 1); filter: drop-shadow(0 3px 2px rgb(var(--sh) / .5)); }
+  #cine .band.top { top: 0; transform: translateY(-110%); clip-path: polygon(0 0, 100% 0, 100.0% 88.5%, 96.4% 97.4%, 92.9% 90.3%, 89.3% 87.6%, 85.7% 88.0%, 82.1% 90.1%, 78.6% 98.0%, 75.0% 86.7%, 71.4% 99.7%, 67.9% 91.6%, 64.3% 94.1%, 60.7% 99.3%, 57.1% 94.8%, 53.6% 89.1%, 50.0% 87.7%, 46.4% 97.6%, 42.9% 91.9%, 39.3% 87.3%, 35.7% 87.0%, 32.1% 92.1%, 28.6% 86.5%, 25.0% 93.1%, 21.4% 86.8%, 17.9% 91.1%, 14.3% 93.5%, 10.7% 87.0%, 7.1% 95.1%, 3.6% 88.1%, 0.0% 90.5%); }
+  #cine .band.bottom { bottom: 0; transform: translateY(110%); clip-path: polygon(0.0% 6.5%, 3.6% 5.2%, 7.1% 1.9%, 10.7% 12.1%, 14.3% 0.1%, 17.9% 7.0%, 21.4% 12.6%, 25.0% 1.1%, 28.6% 7.8%, 32.1% 8.6%, 35.7% 0.6%, 39.3% 5.3%, 42.9% 9.8%, 46.4% 6.3%, 50.0% 10.2%, 53.6% 2.2%, 57.1% 3.3%, 60.7% 1.6%, 64.3% 7.1%, 67.9% 12.9%, 71.4% 8.3%, 75.0% 10.8%, 78.6% 5.4%, 82.1% 10.4%, 85.7% 1.4%, 89.3% 4.1%, 92.9% 9.4%, 96.4% 10.2%, 100.0% 5.9%, 100% 100%, 0 100%); }
+  #cine.in .band { transform: none; }
+  #cine-title { position: absolute; left: 4vw; top: 2.4vh; margin: 0; font: 400 clamp(22px, 3.4vw, 38px)/1 var(--title); color: #2a1a1e; }
+  #cine .sub { position: absolute; left: 50%; bottom: 6vh; transform: translateX(-50%) rotate(-.6deg); width: max-content; max-width: min(760px, 86vw); padding: 14px 24px 16px; background: var(--bone-t, none) #f4e6c6;
+    border-radius: 6px 14px 8px 16px / 14px 6px 16px 8px; box-shadow: var(--cut), 3px 4px 0 #5a1a14, 6px 10px 14px rgb(var(--sh) / .4); opacity: 0; transition: opacity .4s .2s; }
+  #cine.in .sub { opacity: 1; }
+  #cine-who { display: block; margin-bottom: 3px; font: 400 19px/1.1 var(--caps); letter-spacing: .03em; color: #9a3328; } #cine-line { font: 500 18px/1.42 var(--serif); }
+  #cine.narrator #cine-line { font-style: italic; }
+  #cine-skip { position: absolute; right: 3vw; top: 3.4vh; z-index: 1; pointer-events: auto; color: #f4e6c6; text-decoration-color: rgb(244 230 198 / .6); }
+  body.cine-on #hud, body.cine-on #tools, body.cine-on #pin, body.cine-on #prompt, body.cine-on #work, body.cine-on #panel { visibility: hidden !important; }
+  @media (prefers-reduced-motion: reduce) { #cine .band { transition: none; } }
 </style>
 <script type="importmap">{ "imports": { "three": "../../vendor/three-r187/three.module.js", "papercraft/": "./papercraft/" } }</script>
 </head>
@@ -303,6 +319,8 @@
     <button class="btn" id="play" type="button">Nouvelle partie</button>
   </div>
 </div>
+
+<div id="cine" hidden aria-live="polite"><div class="band top"><p id="cine-title"></p></div><div class="band bottom"></div><div class="sub"><b id="cine-who"></b><span id="cine-line"></span></div><button class="btn quiet" id="cine-skip" type="button">Passer</button></div>
 
 <div class="pad" id="pad" aria-hidden="true">
   <span></span><button data-k="KeyW"><svg class="ico up"><use href="#i-arrow"/></svg></button><span></span>

@@ -342,7 +342,7 @@ export function createHarness({ bounds = { x0: -64, x1: 64, z0: -62, z1: 38 }, g
   /** A group whose printed panes glow (P.glow): dim by day, lit at dusk and night. */
   const glowing = (group) => { glowers.push(group); group.traverse((o) => o.userData.setGlow?.(0.35)); };
 
-  const H = { THREE, P2, flags, renderer, scene, camera, paper, view, target, walk, hinges, spots, bounds, heroHeight, groundAt, stack, dome,
+  const H = { THREE, P2, flags, renderer, scene, camera, paper, view, target, walk, hinges, spots, bounds, heroHeight, groundAt, stack, dome, lampLights: [],
     printGround, popup, printed, cardOpts, inFrame, inReach, walkArea, sharpAt, lamp, glowing, hero: null, heroStride: null, stepHooks: [], onStep: (fn) => H.stepHooks.push(fn), restartHooks: [], onRestart: (fn) => H.restartHooks.push(fn), heroTurn: 'yaw', setHero: (h, { stride = null, turn = 'yaw' } = {}) => { H.hero = h; H.heroStride = stride; H.heroTurn = turn; }, start };
 
   // ---- start: light, lens, choreography, input, walking, the loop and the capture hook -------------------------------
@@ -353,10 +353,12 @@ export function createHarness({ bounds = { x0: -64, x1: 64, z0: -62, z1: 38 }, g
     // key from the side, ~55 deg off the camera axis and ~45 deg up: faces stay lit, shadows fall sideways where the
     // camera sees them (a key from behind the camera hides every shadow)
     const lights = paperLights(scene, L);
+    H.lights = lights; H.post = null; H.moodBase = null;   // papercraft: the game's weather and fires drive the light at run time
     PAPER_LIGHT.leak.value.set(L.leak);      // the world's shadow colour (light.leak), more saturated than the ground, never grey (default: a warm ground's day amber; other light: assets/lights.json)
     enableSoftShadows(lights.key, { softness: L.softness, maxPenumbra: L.maxPenumbra });
     const post = new PaperPost(renderer, scene, camera, { haze: '#d8bf8e', hazeStart: 34, hazeEnd: 95, hazeAmount: 0.3, focusBand: 0.3, ramp: 0.3, maxBlur: 18,
       tint: [1.03, 0.985, 0.98], saturation: 0.96, greenDesat: 0.3, exposure: 0.82, contrast: 1.18, vignette: 0.03, ...lens });
+    H.post = post;
     const M = moods[flags.MOOD];
     if (M) {
       lights.key.color.set(M.key); lights.key.intensity = M.ki; lights.fill.color.set(M.fill); lights.fill.intensity = M.fi;
@@ -364,7 +366,7 @@ export function createHarness({ bounds = { x0: -64, x1: 64, z0: -62, z1: 38 }, g
       lights.sky.color.set(M.sky); lights.sky.groundColor.set(M.skyG); lights.sky.intensity = M.si;
       PAPER_LIGHT.leak.value.set(M.leak); if (M.wrap) PAPER_LIGHT.wrap.value = M.wrap;
       if (M.glow && flags.DIAG !== 'key') for (const gr of glowers) gr.traverse((o) => o.userData.setGlow?.(M.glow));
-      if (M.lamp && flags.DIAG !== 'key') for (const [x, y, z, k, d] of lamps) { const P = new THREE.PointLight('#ffb070', M.lamp * k, d, 1.0); P.position.set(x, y, z); scene.add(P); } // before the first render: the light count is fixed
+      if (M.lamp && flags.DIAG !== 'key') for (const [x, y, z, k, d] of lamps) { const P = new THREE.PointLight('#ffb070', M.lamp * k, d, 1.0); P.position.set(x, y, z); P.userData.base = M.lamp * k; scene.add(P); H.lampLights.push(P); } // before the first render: the light count is fixed
       Object.assign(post.o, M.post); post.apply();
     }
     // ?diag=key: the key light alone (look.md 8b), applied AFTER the mood so it holds in every mood
