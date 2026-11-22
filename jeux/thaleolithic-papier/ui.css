@@ -310,16 +310,18 @@
   .sunstone .groove { fill: none; stroke: #6e6886; stroke-width: 7.5; opacity: .8; filter: drop-shadow(0 1px 0 rgb(244 236 250 / .5)); }
   .sunstone .powder circle { fill: none; stroke: #1a1416; stroke-width: 2.6; stroke-linecap: round; } .sunstone .powder .heap { stroke: #3a3034; stroke-width: 5.5; stroke-linecap: butt; } .sunstone .powder .p2 { stroke: #2e2628; stroke-width: 2.4; } .sunstone .powder .p3 { stroke: #5a4a44; stroke-width: 2; }
   .sunstone .scorch { fill: none; stroke: #b8aeb0; stroke-width: 4; opacity: .75; stroke-dasharray: none; filter: blur(.4px); transition: stroke-dasharray .3s linear; }
-  .sunstone .cinders { fill: none; stroke: #ff8a2a; stroke-width: 2.4; stroke-linecap: round; filter: drop-shadow(0 0 1.5px #ff6a1a); animation: cinders .6s steps(4) infinite; animation-delay: var(--t); }
+  .sunstone .cinders { fill: none; stroke: #f07a2a; stroke-width: 2.6; stroke-linecap: butt; filter: drop-shadow(.4px .6px 0 rgb(42 26 30 / .5)); animation: cinders .6s steps(4) infinite; animation-delay: var(--t); }
   .sunstone .fire { transition: transform .3s linear; }
   .sunstone .halo { fill: #ff8a2a; opacity: .4; filter: blur(3px); animation: halo .4s steps(3) infinite; animation-delay: var(--t); }
-  .sunstone .flame { transform-box: fill-box; transform-origin: 50% 100%; }
-  .sunstone .f1 { fill: #f06a1e; animation: flame .32s ease-in-out infinite alternate; animation-delay: var(--t); } .sunstone .f2 { fill: #ffd84a; animation: flame .24s ease-in-out infinite alternate-reverse; animation-delay: var(--t); }
-  .sunstone .core { fill: #fffbe0; filter: drop-shadow(0 0 2px #fff0a0); }
-  .sunstone .spark { fill: #ffe08a; filter: drop-shadow(0 0 1px #ff9a3a); opacity: 0; animation: spark .7s ease-out infinite; animation-delay: calc(var(--t) + var(--d)); }
-  .sunstone .smoke { fill: rgb(210 200 215 / .65); transform-box: fill-box; transform-origin: center; animation: smoke2 1.6s ease-out infinite; animation-delay: var(--t); } .sunstone .smoke.s2 { animation-delay: calc(var(--t) + .8s); }
+  .sunstone .paper { filter: drop-shadow(.5px .8px 0 rgb(42 26 30 / .55)) drop-shadow(0 0 2.5px rgb(255 150 60 / .55)); }
+  .sunstone .pose path { stroke: rgb(70 20 14 / .55); stroke-width: .35; stroke-linejoin: round; }
+  .sunstone .t-red { fill: #c8402a; } .sunstone .t-ora { fill: #f0a040; } .sunstone .t-pale { fill: #fbe8a0; stroke: rgb(160 90 30 / .4) !important; }
+  .sunstone .pose { opacity: 0; animation: pose .375s step-end infinite; animation-delay: var(--t); } .sunstone .p1 { animation-delay: calc(var(--t) + .125s); } .sunstone .p2 { animation-delay: calc(var(--t) + .25s); }
+  @keyframes pose { 0% { opacity: 1; } 33.33% { opacity: 0; } 100% { opacity: 0; } }
+  .sunstone .spark { stroke: rgb(70 20 14 / .6); stroke-width: .25; filter: none; transform-box: fill-box; transform-origin: center; } .sunstone .sp-r { fill: #e0502a; } .sunstone .sp-o { fill: #f8c850; }
+  .sunstone .smoke circle { fill: #e2dce4; stroke: rgb(60 40 60 / .35); stroke-width: .3; } .sunstone .smoke path { fill: none; stroke: rgb(120 110 130 / .7); stroke-width: .35; }
   @keyframes flame { 0% { transform: scale(1, 1) skewX(0); } 50% { transform: scale(.85, 1.18) skewX(6deg); } 100% { transform: scale(1.1, .9) skewX(-7deg); } }
-  @keyframes spark { 0% { opacity: 1; transform: translate(0, 0); } 70% { opacity: .9; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)); } }
+  @keyframes spark { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 70% { opacity: .95; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--r)); } }
   @keyframes smoke2 { 0% { opacity: .75; transform: translate(0, -6px) scale(.5); } 100% { opacity: 0; transform: translate(5px, -22px) scale(2.2); } }
   @keyframes halo { 0% { opacity: .3; } 50% { opacity: .6; } }
   @keyframes cinders { 0% { opacity: .9; } 33% { opacity: .45; } 66% { opacity: .8; } }
@@ -338,4 +340,4 @@
   #council small { padding: 3px 9px 4px; font: 400 12px/1 var(--caps); letter-spacing: .04em; color: #7a2430; white-space: nowrap; background: var(--bone-t, none) #f4e6c6; border-radius: 3px 10px 4px 10px; box-shadow: var(--cut), 1px 2px 0 rgb(var(--sh) / .3); transform: rotate(-3deg); }
   .timer { float: none; display: flex; justify-content: center; margin: 4px 0 12px; }
   @media (max-width: 640px) { #hud { padding-right: 74px; } #council { left: auto; right: 6px; top: 6px; } #council small { display: none; } #council::before { display: none; } #council .sunstone { --sz: 58px !important; } }
-  @media (prefers-reduced-motion: reduce) { .sunstone, .sunstone *, .sunstone.tick, .sunstone.low { animation: none !important; } .sunstone .spark { opacity: .85; transform: translate(var(--dx), var(--dy)); } .sunstone .smoke { opacity: .5; transform: translate(3px, -14px) scale(1.5); } }
+  @media (prefers-reduced-motion: reduce) { .sunstone, .sunstone *, .sunstone.tick, .sunstone.low { animation: none !important; } .sunstone .spark { opacity: .85; transform: translate(var(--dx), var(--dy)); } .sunstone .p0 { opacity: 1; } .sunstone .smoke { opacity: .5; transform: translate(3px, -14px) scale(1.5); } }
