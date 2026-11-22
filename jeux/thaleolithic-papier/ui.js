@@ -50,12 +50,19 @@ export function createUI(campaign, world) {
   function fuse(frac, secs, label, key, size = 78) {
     const f = Math.max(0, Math.min(1, frac)), s = Math.max(0, Math.ceil(secs)), txt = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
     const tick = ticks[key] !== s; ticks[key] = s;
-    const R = 34, C = 2 * Math.PI * R, used = (1 - f) * C, a = (1 - f) * 2 * Math.PI - Math.PI / 2, ex = 40 + Math.cos(a) * R, ey = 40 + Math.sin(a) * R;
-    let notches = ''; for (let i = 0; i < 12; i++) { const t = i / 12 * 2 * Math.PI; notches += `<path d="M${(40 + Math.cos(t) * 24).toFixed(1)} ${(40 + Math.sin(t) * 24).toFixed(1)}L${(40 + Math.cos(t) * 28).toFixed(1)} ${(40 + Math.sin(t) * 28).toFixed(1)}"/>`; }
-    return `<span class="sunstone${tick ? ' tick' : ''}${s <= 30 ? ' low' : ''}" role="timer" aria-label="${esc(label)}" style="--sz:${size}px">`
-      + `<svg viewBox="0 0 80 80" aria-hidden="true"><g class="notches">${notches}</g>`
-      + `<circle class="wick" cx="40" cy="40" r="${R}"/><circle class="ash" cx="40" cy="40" r="${R}" stroke-dasharray="${used.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 40 40)"/>`
-      + `<g class="ember" transform="translate(${ex.toFixed(1)} ${ey.toFixed(1)})"><circle class="glow" r="7"/><circle class="core" r="3.2"/><circle class="puff" r="3"/></g></svg>`
+    const R = 34, C = 2 * Math.PI * R, used = (1 - f) * C, rem = f * C, a = (1 - f) * 2 * Math.PI - Math.PI / 2, ex = 40 + Math.cos(a) * R, ey = 40 + Math.sin(a) * R, id = 'pw-' + String(key).replace(/\W/g, '');
+    let notches = ''; for (let i = 0; i < 12; i++) { const t = i / 12 * 2 * Math.PI; notches += `<path d="M${(40 + Math.cos(t) * 22).toFixed(1)} ${(40 + Math.sin(t) * 22).toFixed(1)}L${(40 + Math.cos(t) * 26).toFixed(1)} ${(40 + Math.sin(t) * 26).toFixed(1)}"/>`; }
+    const start = -90 + (1 - f) * 360, glowLen = Math.min(used, 22);
+    // the sparks: each its own direction and delay; the phase follows the clock so the fire does not restart at each redraw
+    let sparks = ''; for (let i = 0; i < 9; i++) { const an = -Math.PI / 2 + (i - 4) * 0.42 + (i % 2 ? 0.2 : -0.15), d = 9 + (i * 7) % 8; sparks += `<circle class="spark" r="${(0.7 + (i % 3) * 0.35).toFixed(2)}" style="--dx:${(Math.cos(an) * d).toFixed(1)}px;--dy:${(Math.sin(an) * d).toFixed(1)}px;--d:${(i * 0.083).toFixed(3)}s"/>`; }
+    return `<span class="sunstone${tick ? ' tick' : ''}${s <= 30 ? ' low' : ''}" role="timer" aria-label="${esc(label)}" style="--sz:${size}px;--t:${(-(performance.now() % 6000) / 1000).toFixed(2)}s">`
+      + `<svg viewBox="0 0 80 80" aria-hidden="true"><defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="80" height="80"><circle cx="40" cy="40" r="${R}" fill="none" stroke="#fff" stroke-width="8" stroke-dasharray="${rem.toFixed(1)} ${C.toFixed(1)}" transform="rotate(${start.toFixed(1)} 40 40)"/></mask></defs>`
+      + `<g class="notches">${notches}</g><circle class="groove" cx="40" cy="40" r="${R}"/>`
+      + `<circle class="scorch" cx="40" cy="40" r="${R}" stroke-dasharray="${used.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 40 40)"/>`
+      + `<circle class="cinders" cx="40" cy="40" r="${R}" stroke-dasharray="1 2.4" stroke-dashoffset="0" style="stroke-dasharray:0 ${(used - glowLen).toFixed(1)} 1 2.2 1 2.6 1 1.8 1 2.4 1 2 1 ${C.toFixed(1)}" transform="rotate(-90 40 40)"/>`
+      + `<g mask="url(#${id})" class="powder"><circle cx="40" cy="40" r="${R}" class="heap"/><circle cx="40" cy="40" r="${R - 1.5}" stroke-dasharray="1.6 1.4"/><circle cx="40" cy="40" r="${R + 0.2}" stroke-dasharray="2.1 1.1" stroke-dashoffset="1" class="p2"/><circle cx="40" cy="40" r="${R + 1.7}" stroke-dasharray="1.2 1.9" stroke-dashoffset="2" class="p3"/></g>`
+      + (f > 0 ? `<g class="fire" transform="translate(${ex.toFixed(1)} ${ey.toFixed(1)}) scale(1.55)"><circle class="halo" r="9"/>${sparks}<path class="flame f1" d="M0 1C-3.5 -2 -2.2 -7 0 -12C1.2 -7 3.8 -3 0 1Z"/><path class="flame f2" d="M0 1C-2 -1.5 -1.4 -4.5 0 -7.5C1 -4.5 2.2 -2 0 1Z"/><circle class="core" r="2"/><circle class="smoke s1" r="3"/><circle class="smoke s2" r="2.4"/></g>` : '')
+      + `</svg>`
       + `<b>${txt}</b><i class="chip"></i><i class="chip c2"></i></span>`;
   }
   function hud() {

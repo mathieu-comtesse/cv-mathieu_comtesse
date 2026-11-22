@@ -307,12 +307,22 @@
     box-shadow: var(--cut), inset 2px 3px 0 rgb(255 250 240 / .35), inset -3px -4px 0 rgb(58 40 70 / .4), 2px 4px 0 #5a4e66, 4px 8px 10px rgb(var(--sh) / .4); }
   .sunstone svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .sunstone .notches path { stroke: #3e3650; stroke-width: 2.4; stroke-linecap: round; opacity: .75; }
-  .sunstone .wick { fill: none; stroke: #c8a870; stroke-width: 5.5; stroke-dasharray: 3 2; }
-  .sunstone .ash { fill: none; stroke: #3a302e; stroke-width: 6.5; stroke-linecap: round; transition: stroke-dasharray .3s linear; }
-  .sunstone .ember { transition: transform .3s linear; }
-  .sunstone .ember .glow { fill: #ff9a3a; opacity: .45; filter: blur(2px); animation: glow .5s steps(3) infinite; }
-  .sunstone .ember .core { fill: #fff0b0; stroke: #e0501e; stroke-width: 1.6; animation: ember .45s steps(3) infinite; transform-box: fill-box; transform-origin: center; }
-  .sunstone .ember .puff { fill: rgb(220 210 225 / .7); animation: puff 1.4s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+  .sunstone .groove { fill: none; stroke: #6e6886; stroke-width: 7.5; opacity: .8; filter: drop-shadow(0 1px 0 rgb(244 236 250 / .5)); }
+  .sunstone .powder circle { fill: none; stroke: #1a1416; stroke-width: 2.6; stroke-linecap: round; } .sunstone .powder .heap { stroke: #3a3034; stroke-width: 5.5; stroke-linecap: butt; } .sunstone .powder .p2 { stroke: #2e2628; stroke-width: 2.4; } .sunstone .powder .p3 { stroke: #5a4a44; stroke-width: 2; }
+  .sunstone .scorch { fill: none; stroke: #b8aeb0; stroke-width: 4; opacity: .75; stroke-dasharray: none; filter: blur(.4px); transition: stroke-dasharray .3s linear; }
+  .sunstone .cinders { fill: none; stroke: #ff8a2a; stroke-width: 2.4; stroke-linecap: round; filter: drop-shadow(0 0 1.5px #ff6a1a); animation: cinders .6s steps(4) infinite; animation-delay: var(--t); }
+  .sunstone .fire { transition: transform .3s linear; }
+  .sunstone .halo { fill: #ff8a2a; opacity: .4; filter: blur(3px); animation: halo .4s steps(3) infinite; animation-delay: var(--t); }
+  .sunstone .flame { transform-box: fill-box; transform-origin: 50% 100%; }
+  .sunstone .f1 { fill: #f06a1e; animation: flame .32s ease-in-out infinite alternate; animation-delay: var(--t); } .sunstone .f2 { fill: #ffd84a; animation: flame .24s ease-in-out infinite alternate-reverse; animation-delay: var(--t); }
+  .sunstone .core { fill: #fffbe0; filter: drop-shadow(0 0 2px #fff0a0); }
+  .sunstone .spark { fill: #ffe08a; filter: drop-shadow(0 0 1px #ff9a3a); opacity: 0; animation: spark .7s ease-out infinite; animation-delay: calc(var(--t) + var(--d)); }
+  .sunstone .smoke { fill: rgb(210 200 215 / .65); transform-box: fill-box; transform-origin: center; animation: smoke2 1.6s ease-out infinite; animation-delay: var(--t); } .sunstone .smoke.s2 { animation-delay: calc(var(--t) + .8s); }
+  @keyframes flame { 0% { transform: scale(1, 1) skewX(0); } 50% { transform: scale(.85, 1.18) skewX(6deg); } 100% { transform: scale(1.1, .9) skewX(-7deg); } }
+  @keyframes spark { 0% { opacity: 1; transform: translate(0, 0); } 70% { opacity: .9; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)); } }
+  @keyframes smoke2 { 0% { opacity: .75; transform: translate(0, -6px) scale(.5); } 100% { opacity: 0; transform: translate(5px, -22px) scale(2.2); } }
+  @keyframes halo { 0% { opacity: .3; } 50% { opacity: .6; } }
+  @keyframes cinders { 0% { opacity: .9; } 33% { opacity: .45; } 66% { opacity: .8; } }
   .sunstone b { position: relative; font: 400 calc(var(--sz) * .24)/1 'Kavoon', var(--caps); letter-spacing: .02em; color: #2a2236; font-variant-numeric: tabular-nums; text-shadow: 0 1px 0 rgb(244 236 250 / .6), 0 -1px 0 rgb(20 14 26 / .45); }
   .sunstone.low b { color: #9a1e1a; } .sunstone.low { animation: shake .25s linear infinite; }
   .sunstone.tick { animation: jolt .32s ease-out; } .sunstone.low.tick { animation: jolt .32s ease-out, shake .25s linear .32s infinite; }
@@ -322,13 +332,10 @@
   @keyframes shake { 0%, 100% { translate: 0 0; } 25% { translate: -1.5px 1px; } 75% { translate: 1.5px -1px; } }
   @keyframes chip { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 100% { opacity: 0; transform: translate(16px, -18px) rotate(200deg); } }
   @keyframes chip2 { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 100% { opacity: 0; transform: translate(-14px, -16px) rotate(-160deg); } }
-  @keyframes ember { 0% { transform: scale(1); } 33% { transform: scale(1.25); } 66% { transform: scale(.9); } }
-  @keyframes glow { 0% { opacity: .35; } 50% { opacity: .7; } }
-  @keyframes puff { 0% { transform: translate(0, 0) scale(.5); opacity: .8; } 100% { transform: translate(4px, -14px) scale(1.8); opacity: 0; } }
   /* the Council of the Sages hangs on a cord beside the HUD; in an activity the stone sits centred above the card */
   #council { position: absolute; left: calc(100% + 18px); top: 6px; display: grid; justify-items: center; gap: 6px; margin: 0; pointer-events: none; }
   #council::before { content: ''; position: absolute; left: 50%; top: -24px; width: 2px; height: 26px; background: repeating-linear-gradient(#c8a870 0 3px, #8a6a3a 3px 5px); }
   #council small { padding: 3px 9px 4px; font: 400 12px/1 var(--caps); letter-spacing: .04em; color: #7a2430; white-space: nowrap; background: var(--bone-t, none) #f4e6c6; border-radius: 3px 10px 4px 10px; box-shadow: var(--cut), 1px 2px 0 rgb(var(--sh) / .3); transform: rotate(-3deg); }
   .timer { float: none; display: flex; justify-content: center; margin: 4px 0 12px; }
   @media (max-width: 640px) { #hud { padding-right: 74px; } #council { left: auto; right: 6px; top: 6px; } #council small { display: none; } #council::before { display: none; } #council .sunstone { --sz: 58px !important; } }
-  @media (prefers-reduced-motion: reduce) { .sunstone, .sunstone *, .sunstone.tick, .sunstone.low { animation: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .sunstone, .sunstone *, .sunstone.tick, .sunstone.low { animation: none !important; } .sunstone .spark { opacity: .85; transform: translate(var(--dx), var(--dy)); } .sunstone .smoke { opacity: .5; transform: translate(3px, -14px) scale(1.5); } }
