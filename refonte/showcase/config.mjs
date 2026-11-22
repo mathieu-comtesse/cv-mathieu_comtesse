@@ -1,6 +1,7 @@
 /* Configuration des vitrines « outil réel » des cadres du parcours (une entrée par fiche projet). Lue par tools/build-parcours-projets.mjs.
    Statut de chaque fenêtre (jamais une simulation présentée comme une capture) :
      authentic : capture de l'interface d'un fichier HTML local fourni (ouvert hors connexion aux systèmes métier). Ne prouve pas un traitement.
+     editor    : capture du concepteur Power Automate. Elle montre la configuration du flux.
      demo      : capture ou animation de démonstration, données fictives ou interface reconstituée (pédagogique).
      mockup    : maquette ou référence graphique.
      missing   : aucun visuel disponible : emplacement documenté (need, anonymize).
@@ -11,21 +12,25 @@ const NIS = 'Nisaru (R27), capture d’un fichier HTML ouvert hors connexion : �
 const V11 = 'Metadata Studio V11 (outil distinct de l’extracteur CERFA v3 décrit dans la fiche), capture d’un fichier HTML ouvert hors connexion, sans document chargé : elle ne prouve pas un traitement. ';
 const FIC = 'Capture de la page de démonstration publiée du projet, données fictives. ';
 export const SHOWCASE = {
-  /* 1. Point financier : ouvrir le portail jusqu’à réception d’un lien approuvé vers le flux. */
+  /* 1. Point financier : un seul export de référence, le CS V8. */
   'projet-finance': {
+    label: 'Point financier 02.01 CS V8',
+    recording: {
+      src: 'assets/showcase/finance/cs-v8-power-automate-sorbonne.mp4',
+      poster: 'assets/showcase/finance/cs-v8-power-automate-apercu.jpg',
+      address: 'make.powerautomate.com',
+      chapters: [
+        [0, 'Vue d’ensemble'], [3, 'Entrée Power BI'], [7, 'Branches'],
+        [17.12, 'Alerte PRG'], [21.12, 'État final']
+      ]
+    },
+    note: 'Une exécution Power Automate, 76 actions dépliées. Données et appels externes fictifs.'
+  },
+  /* 2. VRE par VM : accès au portail pendant la collecte des captures. */
+  'projet-vmvre': {
     label: 'Power Automate',
     portal: 'https://make.powerautomate.com/',
-    note: 'Connecte-toi avec un compte autorisé pour retrouver le flux dans Mes flux.'
-  },
-  /* 2. VRE par VM : aucune capture propre à cet outil dans le dépôt ni dans le dossier */
-  'projet-vmvre': {
-    label: 'Le traitement VRE par VM en situation', layout: 'q18', steps: ['La réception', 'La file et les contrôles', 'Le suivi', 'Le résultat'],
-    windows: [
-      { id: 'sp', kind: 'sharepoint', title: 'SharePoint · dossiers VRE', step: 1, box: { x: 2, y: 5, w: 42 }, a: '16/10', status: 'missing', need: 'Dossier où le rapport VRE est détecté.', anonymize: 'noms de dossiers, identifiants OT, noms de personnes' },
-      { id: 'pdf', kind: 'pdf', title: 'Rapport VRE', step: 1, box: { x: 31, y: 30, w: 24 }, a: '3/4', status: 'missing', need: 'Première page d’un rapport VRE.', anonymize: 'client, site, numéro d’OT, signatures' },
-      { id: 'xl', kind: 'excel', title: 'Excel · suivi', step: 3, box: { x: 3, y: 46, w: 47 }, a: '16/10', status: 'missing', need: 'Ligne d’OT inscrite dans le suivi.', anonymize: 'références, noms de sites' }
-    ],
-    console: { title: 'Traitement VRE par VM', step: 2, box: { x: 56, y: 4, w: 41 }, a: '16/11' }
+    note: 'Captures à venir pour le récapitulatif Power Automate, le dépôt SharePoint et le suivi Excel.'
   },
   /* 3. Reporteur Q18 : trois emplacements, console pédagogique */
   'projet-moteur44': {
@@ -37,15 +42,17 @@ export const SHOWCASE = {
     ],
     console: { title: 'Reporteur Q18', step: 2, box: { x: 56, y: 4, w: 41 }, a: '16/11' }
   },
-  /* 4. Chaîne des PP : les médias PP du dépôt appartiennent au rapport PP + MOSO (Power BI), pas à la chaîne Power Automate : emplacements */
+  /* 4. Chaîne des PP : la vitrine utilise les captures du concepteur fournies le 27 octobre. */
   'projet-pa': {
-    label: 'La chaîne des plans de prévention en situation', layout: 'q18', steps: ['Le dépôt', 'Le traitement', 'La relance', 'Le résultat'],
+    tourSteps: [2, 3],
+    label: 'La chaîne des plans de prévention dans Power Automate', layout: 'pp-editor', steps: ['Le dépôt', 'Le traitement Excel', 'Les notifications', 'Le résultat'],
+    note: 'Captures du concepteur Power Automate du 27 octobre 2026. Elles documentent la configuration du flux.',
     windows: [
-      { id: 'sp', kind: 'sharepoint', title: 'SharePoint · dépôt des plans', step: 1, box: { x: 2, y: 5, w: 42 }, a: '16/10', status: 'missing', need: 'Bibliothèque SharePoint de dépôt et de classement des plans de prévention.', anonymize: 'entreprises, noms de personnes, références de plans' },
-      { id: 'pa', kind: 'app', title: 'Power Automate · flux de relance', step: 2, box: { x: 31, y: 30, w: 30 }, a: '16/10', status: 'missing', need: 'Vue du flux de contrôle d’échéance et de relance.', anonymize: 'adresses, noms de listes' },
-      { id: 'ol', kind: 'app', title: 'Outlook · relance', step: 3, box: { x: 3, y: 46, w: 47 }, a: '16/10', status: 'missing', need: 'Courriel de relance généré (destinataires masqués).', anonymize: 'destinataires, entreprises, dates réelles' }
-    ],
-    console: { title: 'Chaîne des PP', step: 2, box: { x: 56, y: 4, w: 41 }, a: '16/11' }
+      { id: 'sp', kind: 'sharepoint', title: 'SharePoint · dépôt des plans', step: 1, box: { x: 2, y: 5, w: 30 }, a: '16/10', status: 'missing', need: 'Bibliothèque SharePoint de dépôt et de classement des plans de prévention.', anonymize: 'entreprises, noms de personnes, références de plans' },
+      { id: 'pa', kind: 'app', title: 'Power Automate · traitement Excel', step: 2, box: { x: 32, y: 5, w: 35 }, a: '682/796', status: 'editor', browser: 'make.powerautomate.com', src: 'assets/showcase/pp/power-automate-traitement.png', alt: 'Le concepteur Power Automate montre le contrôle des lignes exploitables, leur injection dans Excel et la mise à jour des versions.', caption: 'Capture du concepteur Power Automate du 27 octobre 2026. Le flux injecte les lignes exploitables et analyse le résultat Excel.' },
+      { id: 'pa-notifications', kind: 'app', title: 'Power Automate · notifications', step: 3, box: { x: 62, y: 13, w: 34 }, a: '592/747', status: 'editor', browser: 'make.powerautomate.com', src: 'assets/showcase/pp/power-automate-notifications.png', alt: 'Le concepteur Power Automate montre les conditions Lignes ajoutées et Données incomplètes et leurs actions Outlook.', caption: 'Capture du concepteur Power Automate du 27 octobre 2026. Les branches pilotent les confirmations au déposant et les alertes au responsable.' },
+      { id: 'ol', kind: 'app', title: 'Outlook · notification', step: 3, box: { x: 3, y: 46, w: 28 }, a: '16/10', status: 'missing', need: 'Courriel de confirmation ou d’alerte généré.', anonymize: 'destinataires, entreprises, dates réelles' }
+    ]
   },
   /* 5. CERFA : Metadata Studio V11, cinq captures locales (outil distinct de CERFA v3) */
   'projet-cerfa': {

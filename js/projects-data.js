@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-projects-v20';
+import { CV, PERSO, PRO } from './data.js?v=cv-projects-v22';
 import { BUILD } from './annual-gains.js?v=cv-scene-v60';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
@@ -434,6 +434,7 @@ PRO_CARDS.find(p=>p.id==='powerbi').extraGains=[
 // « Construit avec » : langages, outils et méthodes réellement utilisés (relevés dans le code de chaque jeu). Talas : équipe et coproduction en plus.
 const T = (lang, outils, methode, dernier) => [['Langages', lang], ['Outils', outils], ['Méthode', methode], dernier];
 const TECH = {
+  villepliee: T('HTML, JavaScript', 'Three.js, Canvas 2D, Web Audio', 'Cartes imprimées en couches, pliées sur charnières à ressort', ['Rendu', 'Ombres colorées, flou de bascule, lumières au sodium']),
   lettres: T('HTML, JavaScript', 'SVG, filtres de bruit, animation image par image', 'Chaque lettre est construite par le code : pièces extrudées, hachures, mouvement', ['Export', 'SVG ou PNG, mot au choix']),
   talas: [['Moteur', 'Unity 6 · rendu WebGL 2 avec Universal Render Pipeline'], ['Interactions', 'Déplacements, dialogues, fabrication, missions et navigation partagent la même simulation sur ordinateur et en mode tactile'], ['Pédagogie', 'Observer, consulter, agir et vérifier : une mise en situation des principes de prévention et du cycle PDCA'], ['Personnages', 'Dylan, Mathieu, Aurélien, Georges, Eliott, Mathilde, Lorette, Neila, Alban et Milena']],
   atlas: T('HTML, CSS, JavaScript', 'Three.js, modèles Blender, Canvas 2D', 'Un bâtiment par étape du parcours, sur un archipel 3D', ['Livraison', 'Navigateur, progression gardée en local']),

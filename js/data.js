@@ -3,6 +3,16 @@ export const TALAS_URL = "village-talas-scene.html";
 export const CV = "jeux/";
 export const PERSO = [
  {
+  "id": "villepliee",
+  "img": "assets/screenshots/ville-pliee-v1.webp",
+  "year": 2026,
+  "n": "La Ville pliée",
+  "genre": "Pop-up noir",
+  "color": "#c98a3a",
+  "url": "ligne-papier/",
+  "desc": "Une ville de papier où il fait toujours nuit : Erratum, une coquille échappée de la presse, rallume cinq relais sous les projecteurs avant que le Bureau des Plis ne replie tout."
+ },
+ {
   "id": "lettres",
   "img": "assets/screenshots/lettres-v2.webp",
   "year": 2026,

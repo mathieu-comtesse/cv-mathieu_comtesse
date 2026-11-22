@@ -3,6 +3,28 @@
    - la progression se lit sur la position réelle du cadre (getBoundingClientRect : elle suit donc la perspective et le défilement du parcours, en HTML-in-Canvas comme en repli DOM) ;
    - aucune écoute de pointeur sur la scène : seuls les clics sur une capture réelle ou sur un onglet agissent, les gestes de navigation 3D passent ;
    - captures chargées uniquement à l'approche du cadre ; console reconstituée à partir des étapes de la fiche (aucune sortie inventée). */
+for (const recording of document.querySelectorAll('.cv-pf-video')) {
+  const video = recording.querySelector('video');
+  const chapters = [...recording.querySelectorAll('[data-video-start]')];
+  if (!video || !chapters.length) continue;
+  function selectChapter(current) {
+    for (const chapter of chapters) {
+      if (chapter === current) chapter.setAttribute('aria-current', 'step');
+      else chapter.removeAttribute('aria-current');
+    }
+  }
+  video.addEventListener('timeupdate', () => {
+    const current = chapters.findLast(chapter => Number(chapter.dataset.videoStart) <= video.currentTime + .04);
+    selectChapter(current || chapters[0]);
+  });
+  for (const chapter of chapters) {
+    chapter.addEventListener('click', () => {
+      video.currentTime = Number(chapter.dataset.videoStart);
+      selectChapter(chapter);
+      video.play().catch(() => {}); // Les commandes natives restent utilisables.
+    });
+  }
+}
 const frames = [...document.querySelectorAll('.cv-pf-showcase')];
 if (frames.length) {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -27,6 +49,43 @@ if (frames.length) {
   const chargeEtape = (st) => {
     for (const w of st.wins) if (+w.dataset.step <= st.step) chargeImage(w.querySelector('img[data-src]'));
   };
+  function bindTour(st) {
+    const button = st.f.querySelector('[data-sc-tour]');
+    if (!button) return;
+    const steps = button.dataset.scTour.split(',').map(Number);
+    let timer = 0, playing = false, run = 0;
+    const stop = () => {
+      clearTimeout(timer);
+      playing = false;
+      run++;
+      st.lock = 0;
+      st.f.classList.remove('sc-tour-playing');
+      button.setAttribute('aria-pressed', 'false');
+      button.textContent = 'Animer les captures';
+    };
+    st.tabs.forEach(tab => tab.addEventListener('click', () => { if (playing) stop(); }, {capture: true}));
+    button.addEventListener('click', () => {
+      if (playing) { stop(); return; }
+      playing = true;
+      const id = ++run;
+      const duration = reduce ? 1600 : 4200;
+      button.setAttribute('aria-pressed', 'true');
+      button.textContent = 'Arrêter l’animation';
+      const show = async index => {
+        const step = steps[index];
+        st.lock = Infinity;
+        st.f.classList.remove('sc-tour-playing');
+        apply(st, step, 1);
+        const image = st.wins.find(w => +w.dataset.step === step && w.hasAttribute('data-sc-browser'))?.querySelector('img');
+        chargeImage(image);
+        try { await image?.decode(); } catch { if (run === id) stop(); return; }
+        if (run !== id) return;
+        requestAnimationFrame(() => { if (run === id) st.f.classList.add('sc-tour-playing'); });
+        timer = setTimeout(index + 1 < steps.length ? () => show(index + 1) : stop, duration);
+      };
+      show(0);
+    });
+  }
   const apply = (st, step, frac) => {
     if (step !== st.step) {
       st.step = step;
@@ -61,6 +120,7 @@ if (frames.length) {
   const wake = (ms = 1400) => { until = performance.now() + ms; dirty = true; if (!raf && near.size && !document.hidden) raf = requestAnimationFrame(tick); };
   frames.forEach((f) => {
     const st = S.get(f); f.classList.add('sc-js');
+    bindTour(st);
     if (reduce) { apply(st, st.N, 1); return; }
     apply(st, 1, 0);
     st.tabs.forEach((b) => b.addEventListener('click', () => { apply(st, +b.dataset.go, 1); chargeEtape(st); st.lock = performance.now() + 7000; }));   // choix manuel : la progression au défilement reprend après 7 s
