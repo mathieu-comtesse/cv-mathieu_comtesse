@@ -170,8 +170,14 @@ export function buildVillage(campaign) {
   };
   const houseOf = (x, z, { w = 4.4, d = 3.4, wallH = 2.2, roofH = 2.0, wattle = false, seed = 1 } = {}) => {
     const g = boxFold({ w, d, wallH, roofH, overhang: 0.35, paper: H.paper, seed, print: { pxPerUnit: 36 }, paints: { front: daubWall(wattle, true, seed), gable: daubWall(wattle, false, seed + 1), roof: thatch(wattle) } });
+    let top = null;
+    if (!wattle) {   // a chimney of daubed stones on the ridge: it rides the roof and folds flat with it; the smoke comes from its top
+      const chH = roofH * 0.8, [cp, cpaint] = P2.drawnPiece((gg, ink) => { gg.fillStyle = ink('#8f8aa0'); D.poly(gg, [[-0.32, 0], [0.32, 0], [0.27, chH], [-0.27, chH]]); gg.fillStyle = ink('#c9a476'); for (let k = 0; k < 4; k++) D.rect(gg, -0.3 + (k % 2) * 0.1, k * chH / 4 + 0.05, 0.42, chH / 4 - 0.1, 0.06); gg.fillStyle = ink('#5a5470'); D.rect(gg, -0.36, chH - 0.12, 0.72, 0.18, 0.05); gg.fillStyle = ink('#2a1a1e'); D.ell(gg, 0, chH + 0.02, 0.2, 0.06); }, { w: 0.9, h: chH + 0.3, name: 'chimney' });
+      const ch = makeCard(cp, { paint: cpaint, paper: H.paper, thickness: 0.05, edgeWidth: 0.04, pxPerUnit: 48, seed: seed + 11, back: 'mirror', folds: [] });
+      ch.position.set(w * 0.24, -roofH * 0.25, 0.02); g.userData.ridge.add(ch); top = new THREE.Object3D(); top.position.set(0, chH + 0.15, 0); ch.add(top);
+    }
     const h = popup(null, null, { node: g, x, z, yaw: 0, height: wallH + roofH });   // lifted from the page like a card, its walls and roof unfolding
-    return { h, x, y: wallH + roofH, z };
+    return { h, x, y: wallH + roofH, z, top };
   };
   // the hearth: a ring of stones, a teepee of sticks, the flame, a spit on forked sticks, log seats round it
   // a flame: three or four tongues, red outside, fire inside, a pale heart; three prints of it alternate (stop motion)
@@ -314,7 +320,7 @@ export function buildVillage(campaign) {
     const slot = { i, x, z };
     staged(t1, () => hut(x, z, r, { hide, mark: m }), { undo: true, slot: { ...slot, kind: 'hut' } });
     staged(() => t1() && !t2(), () => houseOf(x, z - 0.3, { ...size, wattle: true, seed: 900 + i * 7 }), { slot: { ...slot, kind: 'wattle' } });
-    staged(t2, () => { const c = houseOf(x, z - 0.3, { ...size, seed: 950 + i * 7 }); c.dummy = new THREE.Object3D(); c.dummy.position.set(c.x - size.w * 0.25, c.y - 0.6, c.z - 0.4); H.scene.add(c.dummy); CHIMNEYS.push(c); }, { slot: { ...slot, kind: 'torchis' } });
+    staged(t2, () => { const c = houseOf(x, z - 0.3, { ...size, seed: 950 + i * 7 }); c.dummy = new THREE.Object3D(); c.top.add(c.dummy); CHIMNEYS.push(c); }, { slot: { ...slot, kind: 'torchis' } });
   });
   // ---- the sanctuary: the Grand Menhir at the far end; the policy tablet appears once the duel is won ---------------
   const MEN = menhir(0, -22.5); mark(0, -22.5, 7);
@@ -544,8 +550,8 @@ export function buildVillage(campaign) {
   // ---- what the campaign changes in the world -------------------------------------------------------------------------
   // the evacuation: the villagers walk to the gathering point
   const assembly = SITES.rassemblement;
-  function sendToAssembly() { let k = 0; for (const p of Object.values(people)) { if (p.h.held) continue; const a = (k++ / 19) * 6.283; p.hurry = true; p.target = [assembly.x + Math.cos(a) * 1.8, assembly.z + Math.sin(a) * 1.4]; } }
-  function sendHome() { for (const p of Object.values(people)) { p.hurry = false; p.target = p.home.slice(); } }
+  function sendToAssembly() { let k = 0; for (const p of Object.values(people)) { if (p.h.held) continue; const a = (k++ / 19) * 6.283; p.hurry = true; p.target = [assembly.x + Math.cos(a) * 1.8, assembly.z + Math.sin(a) * 1.4]; } burn.start(); }
+  function sendHome() { burn.stop(); for (const p of Object.values(people)) { p.hurry = false; p.target = p.home.slice(); } }
   // the tribe's daily life (campaign.villageStep decides, the cards walk): each villager to their goal, a slot round a site
   const ids = Object.keys(people), slotOf = (id, site) => { const s = SITES[site], a = ids.indexOf(id) * 2.4; return [s.x + Math.cos(a) * 1.5, s.z + Math.sin(a) * 1.2]; };
   const goalPoint = (id, place) => (place === 'home' ? people[id].home : SITES[place] ? slotOf(id, place) : null);
@@ -560,7 +566,7 @@ export function buildVillage(campaign) {
   // the stages unfold (or fold away) as their condition starts (or stops) to hold; a new game folds everything back
   // the dwellings change one after the other, west to east: the old one folds down flat like a sheet laid back on the
   // page, then the new one is lifted in its place; the tour cinematic follows the same order and times
-  const timers = []; let clock = 0; const swaps = [];
+  const timers = []; let clock = 0; const swaps = []; const ctl = { burn: null };   // ctl: what is built further down
   const later = (dt, fn) => timers.push([clock + dt, fn]);
   const fold = (st, at) => { st.hs.forEach((h, i) => { h.held = true; h.set(0, at + i * 0.08); }); };
   const lift = (st, at) => later(at, () => { if (!st.on) return; st.hs.forEach((h, i) => { h.held = false; h.set(1, i * 0.12); }); });
@@ -579,6 +585,7 @@ export function buildVillage(campaign) {
       const from = c.out.map((st) => st.slot.kind)[0], to = c.in.map((st) => st.slot.kind)[0];
       swaps.push({ x: c.slot.x, z: c.slot.z, at: t0, from, to, chief: c.slot.i === 0 });
     });
+    if (ctl.burn?.on && quest('V17_EMERGENCY')()) ctl.burn.stop();
     const engraved = quest(MENHIR_QUEST)();
     if (!engraved) engraving.hideAll();
     else if (!booted) engraving.showAll(false);
@@ -702,12 +709,45 @@ export function buildVillage(campaign) {
     }
   });
 
+  // ---- Au feu !: during the evacuation the fire takes in the house that once had its hearth inside, then jumps from
+  // dwelling to dwelling (the nearest next, every few seconds): towering paper flames (three prints in turn), embers
+  // rising, black smoke, a loud crackle; when the chapter is closed the flames fold down
+  const BIG = [0, 1, 2].map((k) => { const [pts, paint] = tongues(131 + k * 9, 0, 1.7); return [pts, H.printed(pts, (P) => { paint(P); P.glow((g) => { g.fillStyle = '#fff'; g.beginPath(); g.ellipse(0, 1.4, 0.55, 1.5, 0, 0, 7); g.fill(); }); }, { cross: true })]; });   // only the heart glows: the tongues keep their reds
+  const origin = HUTS[3], burnSlots = HUTS.map(([x, z], i) => ({ i, x, z, d: Math.hypot(x - origin[0], z - origin[1]) })).sort((a, b) => a.d - b.d).slice(0, 6);
+  for (const b of burnSlots) {
+    b.flames = []; b.smoke = new THREE.Object3D(); b.smoke.position.set(b.x, 4.2, b.z - 0.5); b.smoke.rotation.x = Math.PI / 2; H.scene.add(b.smoke);
+    for (const [dx, dz, sc] of [[-1.4, 1.1, 1.0], [0.3, 1.5, 1.25], [1.6, 0.9, 0.95], [-0.3, -0.4, 1.35]]) { const set = BIG.map(([pts, mat]) => { const f = popup(pts, null, { materials: mat, x: b.x + dx, z: b.z + dz, cross: true, sway: 0.7, scale: sc }); f.held = true; H.glowing(f.group); return f; }); FIRES.push(set); b.flames.push(...set); }
+  }
+  life.puffs({ at: burnSlots.map((b) => ({ object: b.smoke, offset: [0, 0, 0] })), perEmitter: 5, life: 5, rise: 0.8, size: [0.5, 0.9], colors: ['#3a2a30', '#4a3a3a', '#2a2026'] });
+  const emberMat = new THREE.MeshBasicMaterial({ color: '#ffb050', toneMapped: false, side: THREE.DoubleSide }), embers = [];
+  const burn = { on: false, lit: [] }; ctl.burn = burn;
+  burn.start = () => {
+    if (burn.on) return; burn.on = true; burn.lit = [];
+    burnSlots.forEach((b, k) => later(0.6 + k * 3.2, () => { if (!burn.on) return; burn.lit.push(b); b.flames.forEach((f, i) => { f.held = false; f.set(1, i * 0.05); }); b.smoke.rotation.x = 0; H.sfx?.play('whoosh', { v: 0.4, from: 200, to: 900, dur: 0.6 }); H.sfx?.play('crumple', { v: 0.3 }); }));
+  };
+  burn.stop = () => { if (!burn.on) return; burn.on = false; for (const b of burnSlots) { b.flames.forEach((f) => { f.held = true; f.set(0, 0); }); b.smoke.rotation.x = Math.PI / 2; } burn.lit = []; };
+  H.onStep((t, dt) => {
+    for (const b of burn.lit) if (Math.random() < dt * 14) { const m = new THREE.Mesh(bitGeo, emberMat); m.scale.setScalar(0.08 + Math.random() * 0.08); m.position.set(b.x + (Math.random() - 0.5) * 3, 1 + Math.random() * 3, b.z + 0.5); H.scene.add(m); embers.push({ m, v: [(Math.random() - 0.3) * 1.2, 1.5 + Math.random() * 2], life: 1.6 + Math.random() * 1.4 }); }
+    for (let i = embers.length - 1; i >= 0; i--) { const e = embers[i]; e.life -= dt; e.m.position.x += e.v[0] * dt + Math.sin(t * 7 + i) * 0.01; e.m.position.y += e.v[1] * dt; e.m.rotation.z += dt * 5; if (e.life < 0.4) e.m.scale.multiplyScalar(0.9); if (e.life <= 0) { H.scene.remove(e.m); embers.splice(i, 1); } }
+  });
+
   // ---- the Duel des menhirs, played in the village: Dylan and Aurélien face off before the Grand Menhir ------------
   // Dylan turns to profile; each blow is a lunge, the jump a hop, the guard a wicker shield that pops up; the chief
   // charges (Dylan recoils unless he guards), staggers when struck, bows when the duel is won; beaten, Dylan falls.
   const ARENA = { x: 1.8, z: -14.8, d: 2.5 };
   const shield = popup(...wicker(), { x: ARENA.x - ARENA.d + 1.0, z: ARENA.z + 0.45, yaw: 0, scale: 0.45 }); shield.held = true;
-  const dz = { on: false, back: null, guard: false, crowd: [] };
+  const dz = { on: false, back: null, guard: false, crowd: [], shake: 0 };
+  // the duel's effects, all cut paper: a spiky impact star where a blow lands (red, gold for a decision that strikes
+  // home, grey on the wicker guard), a swoosh arc on each swing, wood chips off the shield, dust under the charge,
+  // confetti at the victory, and the camera shaken by the big blows
+  const starCard = (cols, seed, spikes = 12) => { const [pts, paint] = P2.drawnPiece((g, ink) => { cols.forEach((c, k) => { const R = 1.1 - k * 0.3, r = R * 0.45; g.fillStyle = ink(c); g.beginPath(); for (let i = 0; i < spikes * 2; i++) { const a = i / (spikes * 2) * 6.283 + k * 0.2, rr = i % 2 ? r : R * (0.8 + 0.2 * Math.sin(i * 7.1 + seed)); g.lineTo(Math.cos(a) * rr, 1.2 + Math.sin(a) * rr); } g.closePath(); g.fill(); }); }, { w: 2.6, h: 2.6, name: 'impact' }); const m = flatCard(pts, paint, seed); m.scale.setScalar(0.001); H.scene.add(m); return { m, t: 9, dur: 0.45 }; };
+  const FX = { red: starCard(['#c8282a', '#e0a24a', '#fbf1de'], 901), red2: starCard(['#c8282a', '#f0c050', '#fbf1de'], 903, 10), gold: starCard(['#e0a24a', '#f8e08a', '#fbf1de'], 905, 16), grey: starCard(['#8f8aa0', '#d8d0e0', '#fbf6ea'], 907, 9) };
+  const [swp, swpaint] = P2.drawnPiece((g, ink) => { g.fillStyle = ink('#fbf1de'); g.beginPath(); g.arc(0, 0.2, 1.6, -0.2, 1.9); g.arc(0.25, 0.35, 1.25, 1.9, -0.2, true); g.closePath(); g.fill(); g.strokeStyle = ink('#2a1a1e', 'print'); g.lineWidth = 0.05; for (let k = 0; k < 4; k++) { const a = 0.1 + k * 0.4; g.beginPath(); g.arc(0.1, 0.25, 1.45 - k * 0.04, a, a + 0.25); g.stroke(); } }, { w: 3.6, h: 3.6, name: 'swoosh' });
+  FX.swoosh = { m: flatCard(swp, swpaint, 911), t: 9, dur: 0.32 }; FX.swoosh.m.scale.setScalar(0.001); H.scene.add(FX.swoosh.m);
+  const fx = (k, x, y, z, s = 1) => { const f = FX[k]; Object.assign(f, { t: 0, x, y, z, s, a0: Math.random() * 6.283 }); };
+  const chipMats = ['#8a5a32', '#a8885a', '#c8b090', '#e0a24a', '#c84a2a', '#f4e6c6'].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 1, side: THREE.DoubleSide }));
+  const burst = (x, y, z, n, mats, up = 6, spread = 4) => { for (let i = 0; i < n; i++) { const m = new THREE.Mesh(bitGeo, chipMats[mats[i % mats.length]]); m.scale.set(0.12 + Math.random() * 0.12, 0.08 + Math.random() * 0.1, 1); m.position.set(x, y, z); H.scene.add(m); bits.push({ m, v: [(Math.random() - 0.5) * spread, up * (0.4 + Math.random() * 0.8), (Math.random() - 0.2) * 2], w: [Math.random() * 12, Math.random() * 12], life: 3 + Math.random() * 2, down: false }); } };
+  H.onStep((t, dt) => { for (const f of Object.values(FX)) { if (f.t > f.dur) { if (f.m.scale.x > 0.001) f.m.scale.setScalar(0.001); continue; } f.t += dt; const u = Math.min(1, f.t / f.dur), k = u < 0.3 ? u / 0.3 * 1.15 : 1.15 - (u - 0.3) / 0.7 * 1.15; f.m.scale.setScalar(Math.max(0.001, k * f.s)); f.m.position.set(f.x, f.y, f.z); f.m.rotation.set(0, 0, f.a0 + u * (f === FX.swoosh ? -1.6 : 0.6)); } });
   function duelStep(dt, s, active) {
     const A = people.aurelien;
     shield.group.visible = !shield.held || shield.p > 0.02;
@@ -722,7 +762,7 @@ export function buildVillage(campaign) {
     }
     if (!dz.on) return;
     if (!active || !s) {
-      dz.on = false; A.busy = false; doll.position.set(0, 0, 0); doll.rotation.set(0, 0, 0); A.h.group.rotation.z = 0;
+      dz.on = false; dz.chief = null; A.busy = false; doll.position.set(0, 0, 0); doll.rotation.set(0, 0, 0); A.h.group.rotation.z = 0;
       shield.held = true; shield.set(0, 0); dz.guard = false;
       if (dz.back) H.placeHero(dz.back[0], dz.back[1]); A.target = A.home.slice(); H.unlook();
       for (const id of dz.crowd || []) { people[id].busy = false; people[id].target = people[id].home.slice(); } return;
@@ -737,6 +777,18 @@ export function buildVillage(campaign) {
     A.h.group.position.x = A.x - boss * 1.5 + hit * 0.35;
     A.h.group.rotation.z = won ? 0.55 : boss * 0.25 - hit * 0.32;
     if (guarding !== dz.guard) { dz.guard = guarding; shield.held = !guarding; shield.set(guarding ? 1 : 0, 0); if (guarding) H.sfx?.play('rustle'); }
+    // effects: where the blows land (read from the lives that drop), the swing, the charge, the guard, the victory
+    const hp = hero.group.position, dx0 = hp.x + doll.position.x, dyz = ARENA.z + 0.6;
+    if (dz.chief == null) { dz.chief = s.chief; dz.dylan = s.dylan; }
+    if (s.chief < dz.chief - 0.01) { const big = dz.chief - s.chief >= 10; fx(big ? 'gold' : 'red', A.h.group.position.x - 0.5, 2.0, dyz, big ? 1.6 : 1); burst(A.h.group.position.x - 0.4, 2.0, dyz, big ? 18 : 8, big ? [3, 5, 4] : [4, 3, 5]); dz.shake = Math.max(dz.shake, big ? 0.45 : 0.18); }
+    if (s.dylan < dz.dylan - 0.01) { fx('red2', dx0 + 0.3, 2.0, dyz, 1.1); burst(dx0 + 0.2, 2.0, dyz, 8, [4, 5]); dz.shake = Math.max(dz.shake, 0.3); }
+    dz.chief = s.chief; dz.dylan = s.dylan;
+    if ((s.lastHit ?? -9) !== dz.fxHit && s.lastHit != null) { dz.fxHit = s.lastHit; fx('swoosh', dx0 + 0.9, 1.9, dyz + 0.1, 0.8); }
+    if ((s.lastBoss ?? -9) !== dz.fxBoss && s.lastBoss != null) { dz.fxBoss = s.lastBoss; burst(A.x, 0.2, A.z + 0.4, 10, [1, 2], 2.5, 5); if (guarding) { fx('grey', ARENA.x - ARENA.d + 1.2, 1.4, dyz + 0.2, 0.9); burst(ARENA.x - ARENA.d + 1.1, 1.3, dyz, 12, [0, 1]); } }
+    if (won && !dz.won) { dz.won = true; burst(A.h.group.position.x, 3.2, dyz, 40, [3, 4, 5, 2], 9, 7); fx('gold', A.h.group.position.x, 2.6, dyz, 1.8); dz.shake = 0.3; }
+    if (!won) dz.won = false;
+    dz.shake = Math.max(0, dz.shake - dt * 1.4); const sk = dz.shake * dz.shake * 2.2;
+    H.look(ARENA.x - 1.6 + (Math.random() - 0.5) * sk, ARENA.z - 0.6 + (Math.random() - 0.5) * sk, 17);
     // the duel's sounds: skin drums while they fight, a bone crack on each blow, the chief's horn as he charges
     const sx = H.sfx; if (!sx) return;
     if ((s.lastHit ?? -9) !== dz.hitAt && s.lastHit != null) { dz.hitAt = s.lastHit; sx.play('hit'); }
@@ -747,7 +799,7 @@ export function buildVillage(campaign) {
   }
 
   const firePlaces = [[SITES.foyer.x, SITES.foyer.z, 1], [-11, -3.9, 0.8], ...[[-4.6, 7.2], [4.6, 7.2], [-7.6, -8.8], [7.6, -8.4], [-3.4, -17.8], [7, -17.6], [-10.6, -1.4], [10.8, -9.8]].map(([x, z]) => [x, z, 0.35])];
-  const fireNear = (x, z) => firePlaces.reduce((m, [fx, fz, k]) => Math.max(m, k * Math.max(0, 1 - Math.hypot(x - fx, z - fz) / 13)), 0);
+  const fireNear = (x, z) => [...firePlaces, ...burn.lit.map((b) => [b.x, b.z, 1.6])].reduce((m, [fx, fz, k]) => Math.max(m, Math.min(1.6, k * Math.max(0, 1 - Math.hypot(x - fx, z - fz) / 16))), 0);
   const onPath = (x, z) => Math.hypot((x - SITES.foyer.x) / 8.5, (z - SITES.foyer.z) / 5.8) < 1 || PATHS.some((pl) => P2.pathLine(pl, { step: 1 }).dist(x, z) < 1.2);
-  return { H, SITES, RIVER, people, hero, duelStep, weather, fireNear, riverNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
+  return { H, SITES, RIVER, people, hero, burn, duelStep, weather, fireNear, riverNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
 }
