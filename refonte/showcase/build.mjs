@@ -33,13 +33,21 @@ export function showcaseHTML(slug, ctx) {
   const N = c.steps.length, lines = ctx.steps.slice(0, 7), wins = c.layout === 'cascade' ? cascade(c.windows) : c.windows;
   const con = c.console ? `<figure class="sc-win sc-console" data-kind="console" data-step="${c.console.step}" style="${box(c.console.box, c.console.a)}" aria-label="${esc(c.console.title)} : animation pédagogique du déroulé"><div class="sc-bar"><i></i><i></i><i></i><span class="sc-title">${esc(c.console.title)}</span><em class="sc-badge" data-status="demo">Animation pédagogique</em></div>` +
     `<ol class="sc-log" data-lines="${q(JSON.stringify(lines))}">${lines.map((l) => `<li><span class="sc-p">✓</span>${l}</li>`).join('')}</ol></figure>` : '';
-  const res = c.layout === 'finance' ? '' : `<aside class="sc-result" data-step="${N}" aria-label="Résultat"><small>Résultat</small><b>${ctx.result.title}</b>${ctx.result.text ? `<p>${ctx.result.text}</p>` : ''}<a class="sc-fiche" href="${slug}.html">Fiche complète du projet</a></aside>`;
+  const res = c.explanation || c.camera ? '' : `<aside class="sc-result" data-step="${N}" aria-label="Résultat"><small>Résultat</small><b>${ctx.result.title}</b>${ctx.result.text ? `<p>${ctx.result.text}</p>` : ''}<a class="sc-fiche" href="${slug}.html">Fiche complète du projet</a></aside>`;
   const camera = c.camera ? `<figure class="sc-camera" data-camera="${esc(JSON.stringify(c.camera.waypoints))}">
     <div class="sc-bar"><i></i><i></i><i></i><span class="sc-title">${esc(c.camera.title)}</span><em class="sc-badge" data-status="editor">${esc(c.camera.badge)}</em></div>
     <div class="sc-address">make.powerautomate.com</div>
     <div class="sc-camera-viewport"><img src="${esc(c.camera.src)}" width="${c.camera.width}" height="${c.camera.height}" alt="${esc(c.camera.alt)}" loading="lazy" decoding="async" draggable="false"></div>
     <figcaption><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" d="M3 4h10M3 8h10M3 12h10"/></svg><span>${esc(c.camera.waypoints[0][3])}</span></figcaption>
   </figure>` : '';
+  const explanation = c.explanation ? `<ol class="sc-mec-path">${c.explanation.map((part, i) => `
+    <li data-mec-step="${i + 1}">
+      <h4>${esc(part.title)}</h4><p>${esc(part.description)}</p>
+      <figure class="sc-mec-window" data-kind="${esc(part.kind)}" aria-label="${esc(part.app)}">
+        <div class="sc-bar"><i></i><i></i><i></i><span class="sc-title">${esc(part.app)}</span></div>
+        <dl>${part.rows.map(([key, value]) => `<div><dt>${esc(key)}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl>
+      </figure>
+    </li>`).join('')}</ol>` : '';
   const tabs = c.steps.map((t, i) => `<button type="button" role="tab" data-go="${i + 1}" aria-selected="${i === N - 1}"><i>${i + 1}</i>${esc(t)}</button>`).join('');
   const kinds = [...new Set(c.windows.map((w) => w.status))];
   const legend = [
@@ -49,8 +57,8 @@ export function showcaseHTML(slug, ctx) {
     kinds.includes('mockup') && 'Maquette',
     kinds.includes('missing') && 'Captures à compléter'
   ].filter(Boolean).join(' · ');
-  return `<section class="cv-pframe cv-pf-showcase" data-showcase="${slug}" data-steps="${N}" data-layout="${c.layout}"${c.auto ? ' data-sc-auto' : ''} style="--html-in-canvas-rise:.5" aria-label="${esc(c.label)}">` +
-    `<div class="sc-stage" data-step="${N}">${wins.map(win).join('')}${con}${res}${camera}</div>` +
+  return `<section class="cv-pframe cv-pf-showcase" data-showcase="${slug}" data-steps="${N}" data-layout="${c.layout}"${c.auto ? ' data-sc-auto' : ''}${c.interval ? ` data-sc-interval="${c.interval}"` : ''} style="--html-in-canvas-rise:.5" aria-label="${esc(c.label)}">` +
+    `<div class="sc-stage" data-step="${N}">${wins.map(win).join('')}${con}${res}${camera}${explanation}</div>` +
     `<div class="sc-tabs" role="tablist" aria-label="Étapes du traitement">${tabs}</div>` +
     `<p class="cv-pf-note sc-note">${esc(c.note || legend)}</p></section>`;
 }

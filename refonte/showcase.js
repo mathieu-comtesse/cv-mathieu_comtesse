@@ -62,6 +62,7 @@ if (frames.length) {
   const S = new Map(frames.map((f) => {
     const st = { f, card: f.closest('.cv-pf-main'), N: +f.dataset.steps || 4, step: -1, lock: 0, wins: [...f.querySelectorAll('.sc-win')], res: f.querySelector('.sc-result'), log: f.querySelector('.sc-log'), tabs: [...f.querySelectorAll('.sc-tabs button')], shown: -1, queued: false, key: '' };
     st.lines = st.log ? [...st.log.children] : []; st.cstep = +(f.querySelector('.sc-console')?.dataset.step || 2);
+    st.interval = Number(f.dataset.scInterval) || 0;
     const camera=f.querySelector('.sc-camera');
     if(camera){
       const viewport=camera.querySelector('.sc-camera-viewport');
@@ -131,16 +132,16 @@ if (frames.length) {
       const threshold = Math.max(35, r.height * .16);
       if (st.position === null) {
         st.position = at;
-        st.nextStep = now + (st.camera ? 3000 : 2100);
-      } else if (Math.abs(at - st.position) >= threshold) {
+        st.nextStep = now + (st.interval || (st.camera ? 3000 : 2100));
+      } else if (!st.interval && Math.abs(at - st.position) >= threshold) {
         const change = Math.trunc((st.position - at) / threshold);
         st.position -= change * threshold;
         st.lock = 0;
         apply(st, clamp(st.step + change, 1, st.N), 1);
-        st.nextStep = now + (st.camera ? 3000 : 2100);
+        st.nextStep = now + (st.interval || (st.camera ? 3000 : 2100));
       } else if (now >= Math.max(st.nextStep, st.lock || 0)) {
         if(st.step<st.N)apply(st,st.step+1,1);
-        st.nextStep=now+(st.camera?3300:2100);
+        st.nextStep=now+(st.interval || (st.camera ? 3300 : 2100));
       }
       chargeEtape(st);
       return st.step<st.N;

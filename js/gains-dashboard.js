@@ -1,9 +1,12 @@
 import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v69';
-import { createGainsOverview } from './gains-overview.js?v=2';
+import { createGainsOverview } from './gains-overview.js?v=3';
 import { ANNUAL_GAINS, ANNUAL_DECLARED, ANNUAL_TOTAL, ANNUAL_NET, ANNUAL_COST, HOURS_PER_FTE, euroCoinRhythm } from './annual-gains.js?v=cv-scene-v60';
 
 const f = (n, digits = 0) => n.toLocaleString('fr-FR', { maximumFractionDigits: digits });
 const mean = (t, unit = 'Money') => (t['min' + unit] + t['max' + unit]) / 2;
+const projected = (item, fraction, unit = 'Money') => item.id === 'net'
+  ? mean(ANNUAL_DECLARED, unit) * fraction - (mean(ANNUAL_DECLARED, unit) - mean(item.total, unit))
+  : mean(item.total, unit) * fraction;
 const range = (t, unit, digits = 2) => f(t['min' + unit], digits) + (t['min' + unit] === t['max' + unit] ? '' : ' à ' + f(t['max' + unit], digits));
 const NS = 'http://www.w3.org/2000/svg';
 const svgNode = (tag, attrs, text) => {
@@ -36,14 +39,14 @@ export function initGainsDashboard() {
     <div><strong>${f(mean(ANNUAL_DECLARED, 'Hours'))} h</strong><span>${f(mean(ANNUAL_DECLARED, 'Hours') / HOURS_PER_FTE, 1)} postes équivalents</span></div>
     <div><strong data-rhythm-short>15,03 s</strong><span>par pièce de 1 €</span></div></div>
     <section class="gains-chart" aria-labelledby="gains-chart-title"><div class="gains-side"><div class="gains-chart-head"><h2 id="gains-chart-title">Une année de temps libéré</h2>
-    ${embedded ? '<a class="gains-details-link" href="gains.html">Voir les chiffres</a>' : ''}<div class="gains-switch" role="group" aria-label="Vue du graphique"><button type="button" data-view="overview" aria-pressed="true">Vue d’ensemble</button><button type="button" data-view="year" aria-pressed="false">Année</button><button type="button" data-view="projects" aria-pressed="false">Contributions</button></div></div>
+    ${embedded ? '<button type="button" class="gains-details-link">Voir les chiffres</button>' : ''}<div class="gains-switch" role="group" aria-label="Vue du graphique"><button type="button" data-view="overview" aria-pressed="true">Vue d’ensemble</button><button type="button" data-view="year" aria-pressed="false">Projections</button><button type="button" data-view="projects" aria-pressed="false">Contributions</button><button type="button" data-view="method" aria-pressed="false">Méthode</button></div></div>
     <p class="gains-hint">Survole une courbe · touche-la · ou explore avec Tab et les flèches.</p>
     <div class="gains-metric"><span>Volumes fournis</span><strong>${f(mean(ANNUAL_DECLARED, 'Hours'))} h</strong><small>${f(mean(ANNUAL_DECLARED))} € valorisés par an</small></div>
     <div class="gains-legend" aria-label="Légende"></div></div>
     <div class="gains-plot"><svg class="gains-svg" viewBox="0 0 800 370" aria-label="Gains annuels, courbes linéaires de projection"></svg>
     <div class="gains-tip" id="gains-tip" role="status" aria-live="polite" hidden></div></div>
 
-    <div class="gains-method"><label>Jours/an <input data-working-days type="number" min="1" max="366" step="1" value="225"></label><label>Heures/jour <input data-working-hours type="number" min="1" max="24" step="0.5" value="7"></label><span data-coin-rate></span></div>
+    <div class="gains-method"><p class="gains-method-explanation">La projection annuelle répartit le temps libéré de façon linéaire. Le mois moyen correspond à un douzième du total annuel. Le net en première année déduit les heures de conception et d’amélioration.</p><label>Jours/an <input data-working-days type="number" min="1" max="366" step="1" value="225"></label><label>Heures/jour <input data-working-hours type="number" min="1" max="24" step="0.5" value="7"></label><span data-coin-rate></span></div>
     </section></div>`;
   const box = head.querySelector('.annual-gains'), svg = box.querySelector('svg'), tip = box.querySelector('.gains-tip');
   const legend = box.querySelector('.gains-legend');
@@ -83,9 +86,7 @@ export function initGainsDashboard() {
     svg.querySelectorAll('.is-active').forEach(n => n.classList.remove('is-active')); el.classList.add('is-active');
     const r = euroCoinRhythm(ANNUAL_DECLARED, config.days, config.hours);
     const detail = item.id === 'declared' ? item.note + ' Rythme de 1 € : ' + f(r.meanMoney) + ' € ÷ ' + f(r.workingSeconds) + ' secondes travaillées/an. Les réglages changent le rythme des pièces uniquement.' : item.note;
-    tip.innerHTML = `<span class="gains-tip-kicker">${item.title}${annual ? ' · mois ' + f(fraction * 12, 1) + ' / 12' : item.estimated ? ' · estimé' : ' · volumes fournis'}</span><strong>${f(mean(t) * fraction)} € <small>· ${f(mean(t, 'Hours') * fraction, 1)} h</small></strong><p>${annual ? 'Projection linéaire · moyenne de la fourchette annuelle.' : item.basis}</p><p>Fourchette annuelle : ${range(t, 'Hours')} h · ${range(t, 'Money')} €.</p><p>${detail}</p>${item.id === 'net' ? '<p>Le net retire ' + f(ANNUAL_COST.build + ANNUAL_COST.upkeep) + ' h aux volumes fournis dès le départ dans cette projection ; ce tracé ne décrit pas le calendrier réel des dépenses.</p>' : ''}${item.id === 'total' || item.id === 'gares' ? '<p>' + excludedNote + '</p>' : ''}`;
-    // Le net soustrait le coût initial, plutôt que de l'étaler artificiellement dans la courbe.
-    if (annual && item.id === 'net') tip.querySelector('strong').innerHTML = f(mean(ANNUAL_DECLARED) * fraction - (ANNUAL_COST.build + ANNUAL_COST.upkeep) * 104.74) + ' € <small>· ' + f(mean(ANNUAL_DECLARED, 'Hours') * fraction - ANNUAL_COST.build - ANNUAL_COST.upkeep, 1) + ' h</small>';
+    tip.innerHTML = `<span class="gains-tip-kicker">${item.title}${annual ? ' · mois ' + f(fraction * 12, 1) + ' / 12' : item.estimated ? ' · estimé' : ' · volumes fournis'}</span><strong>${f(projected(item, fraction))} € <small>· ${f(projected(item, fraction, 'Hours'), 1)} h</small></strong><p>${annual ? 'Projection linéaire · moyenne de la fourchette annuelle.' : item.basis}</p><p>Fourchette annuelle : ${range(t, 'Hours')} h · ${range(t, 'Money')} €.</p><p>${detail}</p>${item.id === 'net' ? '<p>Le net retire ' + f(ANNUAL_COST.build + ANNUAL_COST.upkeep) + ' h aux volumes fournis dès le départ dans cette projection ; ce tracé ne décrit pas le calendrier réel des dépenses.</p>' : ''}${item.id === 'total' || item.id === 'gares' ? '<p>' + excludedNote + '</p>' : ''}`;
     const close=document.createElement('button');close.type='button';close.className='gains-tip-close';close.setAttribute('aria-label','Fermer le détail');close.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';close.addEventListener('click',()=>{pinned=false;hide();});tip.prepend(close);
     tip.hidden = false;
     const dot=svg.querySelector('.gains-probe');
@@ -101,7 +102,7 @@ export function initGainsDashboard() {
     path.setAttribute('aria-label', item.title + ' : ' + range(item.total, 'Money') + ' euros par an. Flèches pour explorer, Échap pour fermer.');
     path.dataset.series = item.id;
     path.addEventListener('pointerenter', () => { pinned = false; show(item, fraction, index, path); });
-    path.addEventListener('pointermove', e => { if (view === 'year') { const r = svg.getBoundingClientRect(), mobile = svg.viewBox.baseVal.width === 360; fraction = Math.max(0, Math.min(1, ((e.clientX - r.left) / r.width * svg.viewBox.baseVal.width - (mobile ? 44 : 66)) / (mobile ? 300 : 700))); } show(item, fraction, index, path); });
+    path.addEventListener('pointermove', e => { if (view === 'year') { fraction = projectionPoint(e).fraction; } show(item, fraction, index, path); });
     path.addEventListener('click', () => { pinned = true; show(item, fraction, index, path); });
     path.addEventListener('focus', () => show(item, fraction, index, path));
     path.addEventListener('blur', hide);
@@ -115,6 +116,11 @@ export function initGainsDashboard() {
   function render() {
     pinned = false; tip.hidden = true; svg.replaceChildren(); legend.replaceChildren();
     chart.dataset.view=view;
+    if(view==='method'){
+      chart.querySelector('h2').textContent='Méthode de calcul';
+      chart.querySelector('.gains-hint').textContent='Valorisation du temps libéré à 104,74 € par heure.';
+      return;
+    }
     if(view==='overview'){
       chart.querySelector('h2').textContent='Une année de temps libéré';
       chart.querySelector('.gains-hint').textContent='Explore les heures libérées par mes outils de maintenance et de qualité, et leur valorisation à 104,74 € par heure.';
@@ -139,9 +145,8 @@ export function initGainsDashboard() {
       const traces=svgNode('g',{class:'gains-reveal'});
       svg.append(traces);
       items.forEach((s, i) => {
-        const cost = s.id === 'net' ? (ANNUAL_COST.build + ANNUAL_COST.upkeep) * 104.74 : 0;
-        const end = s.id === 'net' ? mean(ANNUAL_DECLARED) - cost : mean(s.total);
-        const d = `M${start} ${y(-cost)} L${mobile?344:766} ${y(end)}`;
+        const end = projected(s, 1);
+        const d = `M${start} ${y(projected(s, 0))} L${mobile?344:766} ${y(end)}`;
         if(i===0)traces.append(svgNode('path',{d:`${d} L${mobile?344:766} 322 H${start} Z`,fill:'url(#gains-area)'}));
         traces.append(svgNode('path', { d, stroke: s.color, class: 'gains-line', 'stroke-dasharray': s.dashed ? '5 4' : '' }));
         interactive(svgNode('path', { d, class: 'gains-hit', stroke: s.color }), s, i);
@@ -169,23 +174,34 @@ export function initGainsDashboard() {
     }
   }
   const switches=[...chart.querySelectorAll('.gains-switch button')];
-  const overview=createGainsOverview({declared:ANNUAL_DECLARED,projects:ANNUAL_GAINS,net:ANNUAL_NET,select:id=>embedded&&id!=='overview'?location.assign('gains.html#work'):selectView(id),embedded});
+  const details=chart.querySelector('.gains-details-link');
+  const overview=createGainsOverview({declared:ANNUAL_DECLARED,projects:ANNUAL_GAINS,net:ANNUAL_NET,select:id=>navigate(id),embedded});
   chart.append(overview);
   function selectView(id){
     view=id;
     switches.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===id)));
     render();
   }
-  switches.forEach(b=>b.addEventListener('click',()=>selectView(b.dataset.view)));
+  function navigate(id){
+    if(id===view)return;
+    selectView(id);
+    if(id==='overview'&&embedded)overview.querySelector('[data-go="overview"]').focus({preventScroll:true});
+    else switches.find(button=>button.dataset.view===id)?.focus({preventScroll:true});
+  }
+  details?.addEventListener('click',()=>navigate('year'));
+  switches.forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.view)));
   box.querySelector('.gains-plot').addEventListener('pointerleave', hide);
   // Choisir la courbe la plus proche, même lorsque les zones de survol du brut et du net se chevauchent.
-  function nearestCurve(event,pin=false){
-    if(view!=='year')return;
+  function projectionPoint(event){
     const point=new DOMPoint(event.clientX,event.clientY).matrixTransform(svg.getScreenCTM().inverse());
     const mobile=svg.viewBox.baseVal.width===360,start=mobile?44:66,span=mobile?300:700;
-    const fraction=Math.max(0,Math.min(1,(point.x-start)/span));
-    const choices=series.map((item,index)=>{const cost=item.id==='net'?(ANNUAL_COST.build+ANNUAL_COST.upkeep)*104.74:0;
-      const total=item.id==='net'?mean(ANNUAL_DECLARED):mean(item.total),y=322-(total*fraction-cost)/1000000*282;
+    return {point,span,fraction:Math.max(0,Math.min(1,(point.x-start)/span))};
+  }
+  function nearestCurve(event,pin=false){
+    if(view!=='year')return;
+    const {point,span,fraction}=projectionPoint(event);
+    const choices=series.map((item,index)=>{
+      const total=projected(item,1)-projected(item,0),y=322-projected(item,fraction)/1000000*282;
       return {item,index,distance:Math.abs(point.y-y)/Math.hypot(1,total/1000000*282/span)};
     }).sort((a,b)=>a.distance-b.distance);
     if(choices[0].distance>20)return;

@@ -187,7 +187,16 @@ function scene(chapitres) {
   }
   /* liste fixe des chapitres, à gauche : repère de lecture pendant les transitions */
   const nav = document.createElement('nav'); nav.className = 'cv-flat-nav'; nav.setAttribute('aria-label', 'Chapitres');
-  for (const c of chapitres) { const a = document.createElement('a'); a.href = '#' + c.section.id; a.textContent = c.nom; c.lien = a; nav.append(a); }
+  const liens = new Map();
+  for (const destination of document.querySelectorAll('#hero .hero-nav-link[href]')) {
+    const a = document.createElement('a'), id = destination.hash.slice(1);
+    a.href = destination.hash;
+    a.textContent = destination.firstElementChild.textContent.trim();
+    liens.set(id, a);
+    nav.append(a);
+  }
+  for (const c of chapitres) c.lien = liens.get(c.section.id);
+  const rubriques = [...liens.keys()].map(id => document.getElementById(id)).filter(el => el?.matches('.rf-sk-grp'));
   document.body.append(nav);
   const source=document.querySelector('[data-f26-page]');
   let paper=[];
@@ -249,13 +258,14 @@ function scene(chapitres) {
     for (const c of chapitres) {
       const S = c.section.getBoundingClientRect(); if (S.top < H * 0.5 && S.bottom > H * 0.5) actif = c; if (S.top < H * 1.4) vuNav = true;
       const T = c.titre.getBoundingClientRect(), u = (H - T.top) / H;
-      if (u < -1.7 || u > 1.5) { if (u > 1.5) c.titre.style.setProperty('--cv-fill', '1'); else if (libre) c.titre.style.setProperty('--cv-fill', '0'); continue; }
-      const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
-      const relais = entrant && c===sortant ? 1-poids : c===entrant ? poids : 1;
-      const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8) * (.26+.74*relais),
-        g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, 0.02, 0.34) : 1;
+      const plein = libre ? lisse(u, 0.02, 0.34) : 1;
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
+      // Le foyer et ses branches entrent avec le titre, jamais sur le chapitre précédent.
+      const g = libre ? lisse(u, 0.06, 0.37) : Number(u >= 0.06);
+      const relais = entrant && c===sortant ? 1-poids : c===entrant ? poids : 1;
+      const alpha = g * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8) * (.26+.74*relais);
       if (alpha <= 0.004) continue;
+      const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
       const hx = W < 760 ? W * 0.5 : W * 0.6, hy = H * 0.56 - Math.max(0, u - 0.62) * H, R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g);
       ctx.save(); ctx.globalAlpha = alpha; ctx.lineCap = 'round';
       /* les branches passent derrière les fiches : la zone des fiches visibles est retirée du tracé */
@@ -307,13 +317,27 @@ function scene(chapitres) {
       ctx.fillStyle = '#fff'; ctx.fillRect(hx - 3.5, hy - 3.5, 7, 7);
       ctx.restore();
     }
-    nav.classList.toggle('vu', vuNav); for (const c of chapitres) c.lien.classList.toggle('actif', c === actif);
+    nav.classList.toggle('vu', vuNav);
+    let idActif = actif?.section.id;
+    if (idActif === 'marketing') {
+      const rubrique = rubriques.findLast(el => el.getBoundingClientRect().top <= H * .5);
+      if (rubrique) idActif = rubrique.id;
+    }
+    if (nav.dataset.activeChapter !== (idActif || '')) {
+      nav.dataset.activeChapter = idActif || '';
+      for (const [id, lien] of liens) {
+        lien.classList.toggle('actif', id === idActif);
+        if (id === idActif) lien.setAttribute('aria-current', 'location');
+        else lien.removeAttribute('aria-current');
+      }
+    }
     liensLus=0;
     const edges=[],clip=[0,0,W,H];
     const emit=fil.active?(a,b,ink,alpha,width)=>brancheSpectrale(edges,a,b,ink,alpha,clip,width):undefined;
     poussiere(ctx,W,H,libre?tt:null,scrollY);
     const notes=[];
     if(vuNav&&W>=940)for(const c of chapitres){
+      if (!c.lien) continue;
       const r=c.lien.getBoundingClientRect(),a={x:r.right-2,y:r.top+r.height/2};
       const depart=c.section===actif?.section;
       for(const card of c.fiches){

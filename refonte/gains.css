@@ -125,7 +125,8 @@ html body .gains-heading .gains-chart[data-view="overview"],html body .cv-parity
 
 html body .cv-gains .gx-main{width:min(1232px,100%);max-width:none;margin-inline:auto;padding:0;color:#fff}
 html body .gains-path-heading{font:600 clamp(22px,2.2vw,32px)/1.15 var(--expo-sans,system-ui);margin:0 0 32px;padding-top:32px;border-top:1px solid #ffffff39}
-#work[data-no-piggy] :is(.gains-stats,.gains-intro,.gains-switch){display:none!important}
+#work[data-no-piggy] :is(.gains-stats,.gains-intro){display:none!important}
+.gains-chart[data-view="overview"]:has(.gains-details-link) .gains-switch{display:none}
 html body #work[data-no-piggy] .gains-chart[data-view=overview],html body .cv-parity-part.cv-parity-slab section.gains-chart[data-view=overview]:has(.gains-details-link){
   position:relative;display:grid!important;grid-template-columns:39.77% minmax(0,60.23%);align-items:stretch;
   gap:0;width:100%;padding:0!important;border:1px solid #727272!important;background:#484848!important;overflow:hidden;
@@ -161,3 +162,12 @@ html body .gains-editorial li{position:relative;padding-left:11px;font:550 14px/
 .gains-editorial li::before{position:absolute;left:0;top:.42em;content:'';width:4px;height:4px;border:1px solid currentColor}
 .gains-editorial a{font-weight:700;color:inherit;text-decoration:underline;text-underline-offset:2px}
 @media(max-width:760px){html body .gains-editorial{grid-template-columns:1fr 1fr;gap:18px}.gains-editorial-after{margin-top:38px}}
+
+.gains-details-link{border:0;cursor:pointer}
+.gains-chart:not([data-view="overview"]) .gains-details-link,
+.gains-chart[data-view="method"] :is(.gains-plot,.gains-metric,.gains-legend),
+.gains-chart:not([data-view="method"]) .gains-method-explanation{display:none}
+.gains-chart[data-view="method"] .gains-method-explanation{flex-basis:100%;margin:0;color:#effaf5;line-height:1.5}
+@media(max-width:680px){
+  .gains-chart[data-view="overview"]:has(.gains-details-link) .gains-switch{display:flex}
+}
