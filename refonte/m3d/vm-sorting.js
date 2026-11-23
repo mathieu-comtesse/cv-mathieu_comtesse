@@ -15,7 +15,7 @@ const plateLabel = { fg: '#1f1b14', bg: '#c9ced6', font: '700 28px ui-monospace,
 function envTexture(ot) { const c = cv(176, 112), x = c.getContext('2d'); x.fillStyle = '#efe7d0'; x.fillRect(0, 0, 176, 112); x.strokeStyle = '#8a8272'; x.lineWidth = 3; x.strokeRect(3, 3, 170, 106); x.fillStyle = '#2a251d'; x.font = '700 16px ui-monospace,Menlo,Consolas,monospace'; x.fillText('PDF  R004', 12, 30); x.font = '700 22px ui-monospace,Menlo,Consolas,monospace'; x.fillText('OT ' + ot, 12, 62); x.font = '700 10px ui-monospace,Menlo,Consolas,monospace'; x.fillText('RAPPORT  DEMO FICTIVE', 12, 96); return tex(c, 8); }
 function cardTexture() { const c = cv(112, 72), x = c.getContext('2d'); x.fillStyle = '#d9e6f5'; x.fillRect(0, 0, 112, 72); x.strokeStyle = '#2f6fb3'; x.lineWidth = 3; x.strokeRect(2, 2, 108, 68); x.fillStyle = '#1b2f4a'; x.font = '700 14px ui-monospace,Menlo,Consolas,monospace'; x.fillText('DEMANDE', 10, 28); x.fillRect(10, 40, 70, 4); x.fillRect(10, 50, 50, 4); return tex(c); }
 function cabinetTexture() {
-  const c = cv(1104, 528), x = c.getContext('2d'); x.fillStyle = '#2f3138'; x.fillRect(0, 0, 1104, 528);
+  const c = cv(1104, 528), x = c.getContext('2d'); x.fillStyle = '#e8e3d4'; x.fillRect(0, 0, 1104, 528);   // bâti clair : les casiers s'impriment en noir sur crème (rendu trait)
   for (let r = 0; r < 3; r++) for (let k = 0; k < 8; k++) { const px = k * 138 + 8, py = (2 - r) * 176 + 10; x.fillStyle = '#d9dde4'; x.fillRect(px, py, 122, 156); x.strokeStyle = '#8b909a'; x.lineWidth = 3; x.strokeRect(px, py, 122, 156); x.fillStyle = '#23252b'; x.font = '700 24px ui-monospace,Menlo,Consolas,monospace'; x.fillText('L' + (r * 8 + k + 1), px + 10, py + 34); x.fillStyle = '#a9aeb8'; x.fillRect(px + 38, py + 118, 46, 10); }
   return tex(c, 8);
 }
