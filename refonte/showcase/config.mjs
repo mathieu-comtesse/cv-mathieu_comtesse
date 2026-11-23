@@ -12,31 +12,26 @@ const NIS = 'Nisaru (R27), capture d’un fichier HTML ouvert hors connexion : �
 const V11 = 'Metadata Studio V11 (outil distinct de l’extracteur CERFA v3 décrit dans la fiche), capture d’un fichier HTML ouvert hors connexion, sans document chargé : elle ne prouve pas un traitement. ';
 const FIC = 'Capture de la page de démonstration publiée du projet, données fictives. ';
 export const SHOWCASE = {
-  /* 1. Point financier : un seul export de référence, le CS V8. */
+  /* 1. Point financier : parcours du concepteur MEC 02.03. */
   'projet-finance': {
-    label: 'Point financier 02.01 CS V8', layout: 'finance', auto: true,
-    steps: ['Démarrage', 'Contrôles', 'Entrée Power BI', 'Branches', 'Alerte PRG', 'État final'],
+    label: 'Alertes budgétaires MEC · PRG, PSE et Global', layout: 'finance', auto: true,
+    steps: ['Déclenchement', 'Configuration', 'Prévention', 'Alertes préventives', 'Envois', 'État final'],
     windows: [],
     camera: {
-      src: 'assets/showcase/finance/cs-v8-canevas.webp', width: 1260, height: 1910,
-      actions: [
-        [["Autorisation_Production","Exécutée"]],
-        [["Verifier_Activation","Exécutée"],["Arreter_Avant_Production","Ignorée"],["Verifier_Table_Modele_2026","Exécutée"],["Arreter_Modele_2026","Ignorée"],["Lister_Bibliotheques_SharePoint","Exécutée"],["Trouver_Bibliotheque_GAP","Exécutée"],["Verifier_Bibliotheque_GAP","Exécutée"],["Arreter_Bibliotheque_Absente","Ignorée"],["Lire_Seuils_Excel","Exécutée"]],
-        [["RequeteDAX","Exécutée"],["Lire_Configuration_Financiere","Exécutée"],["DepassementsReels","Exécutée"],["Config_PRG","Exécutée"],["Config_PSE","Exécutée"],["Config_GLOBAL","Exécutée"],["Verifier_Lignes_Configuration","Exécutée"],["Arreter_Configuration_Manquante","Ignorée"],["Verifier_Seuils_Valides","Exécutée"],["Arreter_Seuils_Invalides","Ignorée"]],
-        [["LignesNegatives","Exécutée"],["Initialiser_Destinataire_PRG","Exécutée"],["Initialiser_Destinataire_PSE","Exécutée"],["Initialiser_Destinataire_GLOBAL","Exécutée"],["FichierEtat","Exécutée"],["LignesKO","Exécutée"],["KO_Historique_Annee_Courante","Exécutée"],["ClesKOActuelles","Exécutée"],["LignesEligiblesHorsKO","Exécutée"],["Metadata_JSON_SharePoint","Exécutée"],["LignesEligiblesPrevention","Exécutée"],["Filtre_Prevention_PRG","Exécutée"],["Nouvelles_Prevention_PRG","Exécutée"],["Cles_Prevention_PRG","Exécutée"],["Nouveaux_Critiques_PRG","Exécutée"],["Acquitter_Vigilance_Critiques_PRG","Exécutée"],["Table_Prevention_PRG","Exécutée"],["Filtre_Prevention_PSE","Exécutée"],["Nouvelles_Prevention_PSE","Exécutée"],["Cles_Prevention_PSE","Exécutée"],["Nouveaux_Critiques_PSE","Exécutée"],["Acquitter_Vigilance_Critiques_PSE","Exécutée"],["Table_Prevention_PSE","Exécutée"],["Filtre_Prevention_GLOBAL","Exécutée"],["Nouvelles_Prevention_GLOBAL","Exécutée"],["Cles_Prevention_GLOBAL","Exécutée"],["Nouveaux_Critiques_GLOBAL","Exécutée"],["Acquitter_Vigilance_Critiques_GLOBAL","Exécutée"],["Table_Prevention_GLOBAL","Exécutée"]],
-        [["Alerte_Preventive_PRG","Exécutée"],["Envoyer_Prevention_PRG","Exécutée"],["Alerte_Preventive_PSE","Exécutée"],["Envoyer_Prevention_PSE","Ignorée"],["Alerte_Preventive_GLOBAL","Exécutée"],["Envoyer_Prevention_GLOBAL","Ignorée"],["Historique_Prevention","Exécutée"],["Nouvelles_Cles_Prevention","Exécutée"],["LignesPRG","Exécutée"],["LignesPSE","Exécutée"],["LignesGlobales","Exécutée"],["ClesActuelles","Exécutée"],["EtatFinalAvecKO","Exécutée"],["NouvellesLignes","Exécutée"],["NouvellesPRG","Exécutée"],["NouvellesPSE","Exécutée"],["TableHTML_PRG","Exécutée"],["TableHTML_PSE","Exécutée"],["TableHTML_GLOBAL","Exécutée"],["Condition_PRG","Exécutée"],["Envoyer_mail_PRG","Ignorée"],["Condition_PSE","Exécutée"],["Envoyer_mail_PSE","Ignorée"],["Condition_GLOBAL","Exécutée"],["Envoyer_mail_GLOBAL","Ignorée"]],
-        [["Etat_Avec_Prevention","Exécutée"],["Mettre_à_jour_le_fichier","Exécutée"]]
-      ],
+      title: 'Alertes budgétaires MEC · 02.03',
+      badge: 'V7 TEST',
+      alt: 'Canevas du flux MEC dans le concepteur Power Automate',
+      src: 'assets/showcase/finance/mec-v7-canevas.webp', width: 784, height: 1309,
       waypoints: [
-        [526,90,520,'Récurrence · début de l’exécution'],
-        [420,295,820,'Vérification de l’activation et préparation des données'],
-        [855,420,625,'Une ligne Power BI · contrat fictif DEMO-CS-001'],
-        [730,790,1160,'Branches PRG, PSE et globale'],
-        [430,955,740,'PRG · 93 % consommés pour un seuil critique de 90 %'],
-        [245,1595,720,'Une alerte simulée · état mis à jour']
+        [433, 128, 350, 'Déclenchement et premier contrôle avant la bifurcation'],
+        [585, 291, 500, 'Lecture des seuils Excel et contrôle des configurations PRG et PSE'],
+        [512, 557, 580, 'Traitements PRG et PSE et préparation des alertes'],
+        [625, 704, 445, 'Conditions de notification préventive pour PRG, PSE et Global'],
+        [145, 1045, 510, 'Envois conditionnels des notifications'],
+        [225, 1238, 405, 'Consolidation et mise à jour du fichier d’état']
       ]
     },
-    note: 'Concepteur Power Automate, 76 actions dépliées. Le parcours suit un test simulé à partir de l’export CS V8.'
+    note: 'Capture animée du concepteur Power Automate · flux MEC 02.03 · V7 TEST.'
   },
   /* 2. VRE par VM : accès au portail pendant la collecte des captures. */
   'projet-vmvre': {

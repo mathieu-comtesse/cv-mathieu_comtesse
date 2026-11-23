@@ -51,7 +51,7 @@ Gares prioritaires (`demo-gares-poster`), Studio (`studio-poster`, `projets/stud
 ## Mapping final des onze vitrines
 | projet | machine conservée | fenêtres | statuts |
 |---|---|---|---|
-| Point financier | réservoir | cinq fenêtres issues de l’historique d’une exécution de test Power Automate, référence unique 02.01 CS V8 | copie de test avec 76 actions, 11 groupes dépliés et 12 appels externes remplacés |
+| Point financier | réservoir | une fenêtre du concepteur Power Automate, flux MEC 02.03 V7 TEST | capture animée en six étapes |
 | VRE par VM | tri postal | lien vers le portail Power Automate | captures du récapitulatif, du dépôt SharePoint et du suivi Excel à fournir |
 | Reporteur Q18 | machine à écrire | SharePoint, rapport PDF, Excel + console pédagogique | 3 manquantes |
 | Chaîne des PP | horloge-calendrier | SharePoint, traitement Excel et notifications dans Power Automate, courriel Outlook | 2 captures du concepteur, 2 manquantes |
@@ -81,7 +81,7 @@ Les onze cartes sont actives dans le parcours. L’inventaire ci-dessous indique
 
 | Carte | Écrans attendus |
 |---|---|
-| Point financier 02.01 CS V8 | Seuil dans le classeur Excel, vue du flux Power Automate et détail d’une exécution, notification Outlook déclenchée. |
+| Alertes budgétaires MEC 02.03 V7 TEST | Déclenchement, seuils Excel, prévention, notifications PRG, PSE et Global, mise à jour de l’état. |
 | Chaîne des plans de prévention | Bibliothèque SharePoint à l’arrivée et après classement, flux Power Automate avec son contrôle d’échéance, relance Outlook. |
 | VRE par VM et Reporteur Q18 | Pour chaque outil, bibliothèque SharePoint, première page du rapport traité et ligne modifiée dans Excel. Ajouter la console réelle si elle est visible pendant le traitement. |
 | CERFA, Extracteur VRE, Nisaru et Studio PDF | Écran d’import, traitement ou contrôle, puis livrable ou export de l’outil décrit dans la fiche. Le Metadata Studio V11 est un outil distinct de CERFA v3. |
