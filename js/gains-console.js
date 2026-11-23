@@ -90,7 +90,7 @@ export function initGainsConsole(head) {
   </section>`;
   const q = selector => head.querySelector(selector);
   const buttons = [...head.querySelectorAll('[data-pane]')], panels = [...head.querySelectorAll('[data-panel]')];
-  const scope = q('[data-scope]'), unit = q('[data-unit]'), model = q('[data-model]'), month = q('[data-month]'), graph = q('svg');
+  const scope = q('[data-scope]'), unit = q('[data-unit]'), model = q('[data-model]'), month = q('[data-month]'), graph = q('.gains-console-graph');
   const projectButtons = [...head.querySelectorAll('[data-project]')], bars = [...head.querySelectorAll('[data-bar]')];
   const barsUnit = q('[data-bars-unit]'), probe = q('.gains-console-probe'), tip = q('.gains-console-tip');
   const tipMoney = q('[data-tip-money]'), tipHours = q('[data-tip-hours]'), tipNet = q('[data-tip-net]');

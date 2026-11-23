@@ -245,7 +245,7 @@ html body .gains-console{
   --gc-font:Arial,Helvetica,sans-serif;
   box-sizing:border-box;position:relative;grid-template-columns:minmax(106px,19.6%) minmax(0,1fr);
   gap:8px;padding:9px;width:100%;max-width:675px;min-height:530px;margin-inline:auto;
-  background:var(--gc-shell);color:var(--gc-ink);border-radius:17px;font:500 11px/1.25 var(--gc-font);
+  background:var(--gc-shell);color:var(--gc-ink);border-radius:17px;font:500 10px/1.25 var(--gc-font);
 }
 html body .gains-console :is(nav,button,select,input,output,h3,p,li,small,strong,summary,span,dt,dd,div,label){
   font-size:inherit;line-height:inherit;letter-spacing:normal;
@@ -257,7 +257,7 @@ html body .gains-console nav{
 }
 html body .gains-console nav strong{font-size:13px!important;margin:2px 3px 12px;color:#76efc2}
 html body .gains-console nav button{display:flex;align-items:center;gap:6px;min-height:22px;padding:4px 6px;font:650 9px/1.15 var(--gc-font);border-radius:4px}
-html body .gains-console nav button[aria-pressed=true]{background:#43514a;box-shadow:inset 2px 0 #7ef0cb}
+html body .gains-console nav button[aria-pressed=true]{background:#43514a;box-shadow:none}
 .gains-console nav svg,.gains-project-name svg{width:11px;height:11px;flex:none}
 html body .gains-console nav small{margin:auto 3px 3px;font-size:9px!important}
 html body .gains-console-body{min-height:0;padding:0;background:none;border:0;border-radius:0}
@@ -269,11 +269,24 @@ html body .gains-console-fields :is(select,input){max-width:100%;border-color:#6
 .gains-console-chart{padding:9px;border:1px solid var(--gc-border);border-radius:8px;background:var(--gc-panel)}
 html body .gains-console-chart-label{font-size:9px!important;font-weight:700}
 html body .gains-console-total{margin:4px 0 0;gap:7px}
-html body .gains-console-total strong{font-size:21px!important;line-height:1!important}
+html body .gains-console-total strong{font-size:20px!important;line-height:1!important}
 html body .gains-console-total span{font-size:9px!important;color:#77ebc1}
-html body .gains-console-graph{display:block}
+html body :is(#work,[data-cv-gains-face]) .gains-console svg.gains-console-graph{
+  display:block!important;width:100%!important;height:auto!important;min-height:112px;
+  aspect-ratio:500/185;overflow:visible;max-height:185px;
+}
 html body .gains-console-period{font:600 9px/1.2 var(--gc-font)}
-html body .gains-console :is(.gains-console-status,.gains-console-note){font-size:10px!important;line-height:1.25!important;margin:5px 0 0}
+html body :is(#work,[data-cv-gains-face]) .gains-console :is(.gains-console-status,.gains-console-note){
+  font:500 10px/1.25 var(--gc-font)!important;letter-spacing:0!important;margin:5px 0 0!important;
+}
+html body :is(#work,[data-cv-gains-face]) .gains-console .gains-console-total :is(strong,span){font-family:var(--gc-font)!important;letter-spacing:0!important}
+html body :is(#work,[data-cv-gains-face]) .gains-console .gains-console-projects :is(button,strong,small){
+  font-family:var(--gc-font)!important;font-size:9px!important;line-height:1.2!important;
+}
+html body :is(#work,[data-cv-gains-face]) .gains-console .gains-console-projects small{font-size:8px!important}
+html body .gains-console-chart{box-sizing:border-box;min-height:278px}
+html body .gains-console-period input{height:13px}
+@media(max-width:680px){html body .gains-console-chart{min-height:0}}
 html body .gains-console-tip{
   left:0;top:43%;transform:translateX(-63%);width:min(275px,85vw);min-height:189px;padding:13px 12px 10px;
   background:#323e39;border-color:#54665e;color:#f2f7f5;border-radius:12px;font:650 11px/1.25 var(--gc-font);

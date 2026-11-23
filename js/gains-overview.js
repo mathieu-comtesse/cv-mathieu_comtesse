@@ -29,7 +29,7 @@ export function createGainsOverview({declared,projects,net,select,embedded}){
     ${embedded?'':box(0,0,860,639,'#4b4b4b')+seed.join('')}
     ${box(81,14,768,603,'#232a25',18)}${box(92,25,146,579,'#343f3b',9,'#5e6a66')}
     ${text(105,50,'MC',14,'fill="#77f5c2" font-weight="700"')}${text(130,50,'/ gains',11,'fill="#77f5c2" font-family="monospace"')}
-    ${box(100,73,130,25,'#44504c',4)}${box(100,81,2,9,'#96eed8')}
+    ${box(100,73,130,25,'#44504c',4)}
     ${nav.map((v,i)=>`<a href="#gains-chart-title" data-go="${actions[i]}" aria-label="${v}">${box(100,72+i*29,130,26,'transparent',4)}${icon(109,80+i*29,i)}${text(127,88+i*29,v,10)}</a>`).join('')}
     ${text(107,588,'Mathieu Comtesse',10)}
     ${text(249,51,'Une année de temps libéré',14,'font-weight="700"')}
