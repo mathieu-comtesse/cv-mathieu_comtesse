@@ -1,4 +1,4 @@
-// Effets du pointeur sur le graphe de l'accueil (à plat) : poussée par la vitesse du pointeur, retour élastique, voisins du foyer survolé (anneau, fondu), foyers non survolés estompés.
+// Effets du pointeur sur le graphe de l'accueil (à plat) : poussée par la vitesse du pointeur, retour élastique, resserrement des rayons du foyer survolé, orbite, relâche.
 // Usage : node tools/test-pointeur-graphe.mjs   (code de sortie 1 en cas d'échec)
 // Usage : node tools/test-modes.mjs   (code de sortie 1 en cas d'échec). Rendu logiciel : aucune mesure de fluidité matérielle ici.
 import fs from 'node:fs'; import path from 'node:path'; import http from 'node:http'; import { createRequire } from 'node:module';
@@ -37,8 +37,13 @@ verifie(immobile < 1, `pointeur immobile : aucune poussée (${immobile.toFixed(2
 await p.mouse.move(5, 5); await p.waitForTimeout(3000);
 const base = (await foyers()).find((f) => f.id === cible.id);
 await p.mouse.move(base.x, base.y); for (let k = 0; k < 4; k++) { await p.waitForTimeout(1200); const r = (await foyers()).find((f) => f.id === cible.id); await p.mouse.move(r.x, r.y); } await p.waitForTimeout(3500);
-const sv = await foyers(), racine = await p.evaluate(() => window.__cvHeroGraph.ciel.etoiles.get('accueil').rel), autres = sv.filter((f) => f.id !== cible.id && f.hv < 0.05).length;
-verifie(sv.find((f) => f.id === cible.id).hv > 0.5 && racine > 0.5, `survol : foyer actif, foyer central voisin allumé (${racine.toFixed(2)}), ${autres} autres foyers estompés`);
+const ser = await p.evaluate((id) => { const c = window.__cvHeroGraph.ciel, moy = (e) => { const r = e.noeuds.filter((n) => !n.par && n.vis); return r.reduce((s, n) => s + (n.hg || 0), 0) / Math.max(1, r.length); };
+  const es = [...c.etoiles.values()].filter((e) => e.parent && e.ecran); return { lui: moy(c.etoiles.get(id)), autres: Math.max(...es.filter((e) => e.id !== id).map(moy)), ob: es.map((e) => e.ob || 0) }; }, cible.id);
+verifie(ser.lui > 0.9 && ser.autres < 0.01, `survol d'un foyer : ses rayons se resserrent (prise ${ser.lui.toFixed(2)}), les autres non (${ser.autres.toFixed(3)})`);
+verifie(ser.ob.some((o) => o > 0) && ser.ob.some((o) => o < 0), `orbite lente des rayons, un foyer sur deux en sens inverse`);
+await p.mouse.move(5, 5); await p.waitForTimeout(4000);
+const relache = await p.evaluate((id) => { const e = window.__cvHeroGraph.ciel.etoiles.get(id); return Math.max(...e.noeuds.map((n) => n.hg || 0)); }, cible.id);
+verifie(relache < 0.05, `relâche après le survol (${relache.toFixed(3)})`);
 verifie(p.erreurs.length === 0, `aucune erreur de page (${p.erreurs.length})`);
 await b.close(); srv.close();
 if (echecs.length) { console.log('\nÉCHEC : ' + echecs.length); process.exit(1); } console.log('\nPASS : effets du pointeur sur le graphe de l\'accueil');

@@ -20,7 +20,8 @@ async function page(opts = {}) {
 }
 const p = await page();
 await p.waitForTimeout(9000);
-await p.screenshot({ path: process.env.OUT });
+if (process.env.SURVOL) { for (let k = 0; k < 4; k++) { const f = await p.evaluate((id) => { const e = window.__cvHeroGraph.ciel.etoiles.get(id), r = document.querySelector('.cv-hero-graph').getBoundingClientRect(); return { x: e.ecran.x + r.left, y: e.ecran.y + r.top }; }, process.env.SURVOL); await p.mouse.move(f.x, f.y); await p.waitForTimeout(1500); } }
+await p.screenshot({ path: process.env.OUT, ...(process.env.ZONE ? { clip: (([x, y, width, height]) => ({ x, y, width, height }))(process.env.ZONE.split(',').map(Number)) } : {}) });
 const f = await p.$$('header aside figure'); if (process.env.OUT2) await f[f.length - 1].screenshot({ path: process.env.OUT2 });
 console.log(await p.evaluate(() => JSON.stringify(document.querySelector('.checkpoint-stage').dataset)), p.erreurs);
 await b.close(); srv.close();

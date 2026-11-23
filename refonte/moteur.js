@@ -201,6 +201,7 @@ const frac = (x) => x - Math.floor(x);
 const adouci = (x) => { x = Math.max(0, Math.min(1, x)); return 1 - (1 - x) ** 3; };
 const OR = 2.399963;
 
+const circule = (h, t) => { const o = (((t * (0.1 + (h % 7) * 0.015) * 1.5 + ((h >>> 8) % 1000) / 1000) % 1) + 1) % 1; return h % 2 ? o : 1 - o; };
 export class Ciel {
   constructor() { this.etoiles = new Map(); this.images = new Map(); this.cibles = []; this.survol = null; this.pris = null; }
   vide() { this.etoiles.clear(); this.cibles = []; this.survol = null; }
@@ -315,19 +316,23 @@ export class Ciel {
     const qh = libre ? 1 - Math.exp(-dt / 0.12) : 1;
     this.hvTous = (this.hvTous || 0) + ((fs ? 1 : 0) - (this.hvTous || 0)) * qh;
     /* Effets du pointeur à plat (relevés sur la référence, code propre) : la vitesse du pointeur pousse les foyers proches (noyau L² entre 24 et 265 px,
-       bouclier devant le mouvement, portée de l'élan 1,45), un ressort les ramène, ceux qui ne sont pas survolés ralentissent (0,2) ;
-       les voisins du foyer survolé (parent, enfants, 6 au plus) s'allument en fondu de 0,3 s avec un anneau. */
+       bouclier devant le mouvement, portée de l'élan 1,45), un ressort les ramène ; tout ralentit (allure 0,2) quand un contenu est survolé. */
     const sv = souris.x > -1e3 && plat && !compact && libre && !this.pris, pv = this.pv || (this.pv = { x: 0, y: 0, px: souris.x, py: souris.y, ok: false });
     if (sv && pv.ok && dt > 0) { const ex = (souris.x - pv.px) / dt, ey = (souris.y - pv.py) / dt; pv.x = ex || ey ? ex : pv.x * Math.exp(-dt / 0.04); pv.y = ex || ey ? ey : pv.y * Math.exp(-dt / 0.04); } else if (!sv) { pv.x = pv.y = 0; }
     pv.px = souris.x; pv.py = souris.y; pv.ok = sv;
-    const voisins = new Set(); if (fs) { if (fs.parent) voisins.add(fs.parent); for (const q of this.etoiles.values()) if (q.parent === fs.id && voisins.size < 6) voisins.add(q.id); }
-    const qr = libre ? 1 - Math.exp(-dt / 0.1) : 1, calme = 1 - 0.8 * this.hvTous, vit = Math.hypot(pv.x, pv.y);
+    /* Lois du graphe de la référence (simulation du module renderer, réécrites) : survoler un contenu calme le graphe (calme -> 1 à 10/s,
+       allure = 1 - 0,8 × calme) ; survoler un foyer resserre ses rayons de 25 %, un par un selon leur angle (décalage jusqu'à 0,15 s, réponse 15/s,
+       relâche 3/s) ; les rayons orbitent à 0,02 rad/s, un foyer sur deux dans l'autre sens ; un rayon à moins de 15 px du pointeur s'y colle ;
+       deux traits circulent sur chaque branche (vitesse 1,5, traîne 1 s) ; le pointeur ne pousse rien pendant le survol d'un foyer. */
+    const cibleCalme = plat && !fs && this.survol && this.survol.noeud ? 1 : 0;
+    this.calme = libre ? (this.calme || 0) + (cibleCalme - (this.calme || 0)) * (1 - Math.exp(-10 * dt)) : cibleCalme;
+    const allure = 1 - 0.8 * this.calme, vit = Math.hypot(pv.x, pv.y), unite = Math.max(0.4, Math.min(3, Math.min(W, H) / 741));
     for (const e of this.etoiles.values()) {
       e.ecran = null; e.libelleEcran = null;
       const kT = e.groupe === 'titre' ? titres : 1; ctx.globalAlpha = A * kT; if (kT < 0.02) continue;   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
       if (!e.centre) { e.age = -1; continue; }
       const [c0, r0, h0] = e.centre, Fb = proj(c0, r0, h0), u = Fb && proj(c0 + 100, r0, h0);
-      if (Fb && plat && e.parent) { this.repousse(e, Fb, sv ? souris : null, pv, vit, dt, e === fs ? 1 : calme); } else { e.dx = e.dy = e.vx = e.vy = 0; }
+      if (Fb && plat && e.parent) { this.repousse(e, Fb, sv && !fs ? souris : null, pv, vit, dt, allure); } else { e.dx = e.dy = e.vx = e.vy = 0; }
       const F = Fb && (e.dx || e.dy ? { x: Fb.x + e.dx, y: Fb.y + e.dy, z: Fb.z } : Fb), OX = e.dx || 0, OY = e.dy || 0;
       if (!F || !u) continue;
       const k = Math.abs(u.x - F.x) / 100;                                       // pixels d'écran par unité, au foyer
@@ -335,9 +340,9 @@ export class Ciel {
       if (e.age < 0) e.age = 0; e.age += libre ? dt : 10;
       e.ecran = F;
       e.hv = (e.hv || 0) + ((e === fs ? 1 : 0) - (e.hv || 0)) * qh; if (e.hv < 0.004) e.hv = 0;
-      e.rel = (e.rel || 0) + ((voisins.has(e.id) ? 1 : 0) - (e.rel || 0)) * qr; if (e.rel < 0.004) e.rel = 0;
-      const lum = Math.max(e.hv, 0.75 * e.rel), estompe = plat ? 1 - 0.6 * this.hvTous * (1 - lum) : 1, vif = plat && e.hv > 0.5;
-      const ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon * (plat ? 1 - 0.35 * e.hv : 1), actifC = !!this.actif && e.chapitre === this.actif, autreC = !!this.actif && !!e.chapitre && e.chapitre !== this.actif;
+      e.tSurvol = e === fs ? (e.tSurvol || 0) + dt : 0; if (plat && libre && !e.racine) e.ob = (e.ob || 0) + 0.02 * allure * (e.rang % 2 ? -1 : 1) * dt;
+      const lum = e.hv, estompe = plat ? 1 - 0.6 * this.hvTous * (1 - lum) : 1, vif = plat && e.hv > 0.5;
+      const ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon, actifC = !!this.actif && e.chapitre === this.actif, autreC = !!this.actif && !!e.chapitre && e.chapitre !== this.actif;
       /* à plat (relevé sur la capture de la référence) : traits bleus fins, un foyer sur trois tirant sur le vert, foyer central réduit à un anneau,
          aucune trace au sol, contenus sans image en points, nom contre le foyer suivi du nombre de contenus en gris */
       const vert = plat && !!e.parent && e.rang % 3 === 1, TE = vert ? '70,225,175' : '118,146,255';
@@ -368,11 +373,16 @@ export class Ciel {
         if (g <= 0) continue;
         let x, y, cx, cy, x0 = F.x, y0 = F.y, z = F.z || 0, wc = 0, wr = 0, wh = 0, cwC = 0, cwR = 0, cwH = 0;
         if (!n.par) {
-          wc = c0 + Math.cos(n.a) * R * n.r; wr = r0 + Math.sin(n.a) * R * n.r * 0.78; wh = Math.max(0, h0 + n.dh * R * 0.45);
-          if (libre) { wc += Math.sin(tt * 0.4 + n.phase) * R * 0.02; wr += Math.cos(tt * 0.33 + n.phase * 1.7) * R * 0.018; }
+          const an = n.a + (plat ? e.ob || 0 : 0);
+          if (plat) { const dl = ((Math.atan2(Math.sin(an) * 0.78, Math.cos(an)) + Math.PI / 2) / 6.283185 % 1 + 1) % 1 * 0.15, on = e === fs && e.tSurvol >= dl;
+            n.hg = libre ? (n.hg || 0) + ((on ? 1 : 0) - (n.hg || 0)) * (1 - Math.exp(-(on ? 15 : 3) * dt)) : on ? 1 : 0; if (!on && n.hg < 1e-4) n.hg = 0; }
+          const Rn = plat ? R * (1 - 0.25 * (n.hg || 0)) : R;
+          wc = c0 + Math.cos(an) * Rn * n.r; wr = r0 + Math.sin(an) * Rn * n.r * 0.78; wh = Math.max(0, h0 + n.dh * R * 0.45);
+          if (libre && !plat) { wc += Math.sin(tt * 0.4 + n.phase) * R * 0.02; wr += Math.cos(tt * 0.33 + n.phase * 1.7) * R * 0.018; }
           const P = proj(wc, wr, wh); if (!P) continue;
           x = P.x + OX; y = P.y + OY; z = P.z;
           if (libre && !plat) { const dx = x - souris.x, dy = y - souris.y, d = Math.hypot(dx, dy); if (d < 150 && d > 1) { const q = (1 - d / 150) * 18 / d * (n.ed ? Math.min(1, d / 60) ** 2 : 1); x += dx * q; y += dy * q; } }   // une vignette ne fuit pas le pointeur qui vient la prendre
+          if (plat && sv && !this.pris) { const rm = 15 * unite, d = Math.hypot(souris.x - x, souris.y - y); if (d < rm) { const f = (1 - (d / rm) ** 2) ** 2 * 0.9; x += (souris.x - x) * f; y += (souris.y - y) * f; } }   // aimant
           x = F.x + (x - F.x) * g; y = F.y + (y - F.y) * g;
           if (this.pris && this.pris.noeud === n) { n.ox = souris.x - x; n.oy = souris.y - y; } else if (n.ox || n.oy) { n.ox *= retour; n.oy *= retour; if (Math.abs(n.ox) + Math.abs(n.oy) < 0.3) n.ox = n.oy = 0; }
           if (n.ox || n.oy) { x += n.ox; y += n.oy; }
@@ -415,6 +425,13 @@ export class Ciel {
         if (!cnt[lv * 4 + cl]) continue;
         ctx.strokeStyle = plat ? degrade(MULT[cl] * kE) : `rgba(225,238,255,${Math.min(1, BASE[lv] * MULT[cl] * kE).toFixed(3)})`; ctx.lineWidth = (plat ? 1 : LW[lv]) * (cl === 2 ? 1.5 : 1); ctx.beginPath();
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); }
+        ctx.stroke();
+      }
+      if (plat && libre) {                                                     // traits qui circulent : deux par branche, sens et vitesse propres à chaque branche
+        ctx.strokeStyle = `rgba(${TE},${(0.85 * kE).toFixed(2)})`; ctx.lineWidth = 1; ctx.beginPath();
+        for (let j = 0; j < nb; j++) { const n = N[j]; if (!n.vis || n.par || n.gg < 1) continue;
+          for (let q = 0; q < 2; q++) { const h = n.hf ? n.hf[q] : ((n.hf = [hache(e.id + ':' + j + ':0'), hache(e.id + ':' + j + ':1')])[q]), a1 = circule(h, tt), a0 = circule(h, tt - 1);
+            if (Math.abs(a1 - a0) > 0.5) continue; ctx.moveTo(n.x0 + (n.x1 - n.x0) * a0, n.y0 + (n.y1 - n.y0) * a0); ctx.lineTo(n.x0 + (n.x1 - n.x0) * a1, n.y0 + (n.y1 - n.y0) * a1); } }
         ctx.stroke();
       }
       if (!plat && cnt[4] + cnt[6]) {                                                     // rayons de niveau 1 : second passage plus clair sur leur premier tiers (dégradé foyer vers extrémité)
@@ -463,13 +480,12 @@ export class Ciel {
       const cote = (e.racine ? 9 : e.parent ? 7 : 9) * Math.min(1.25, Math.max(0.8, ech)) * (plat ? grossi : 1);
       if (plat && e.racine) { ctx.strokeStyle = 'rgba(125,152,255,.95)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(F.x, F.y, 4.2, 0, 6.283); ctx.stroke(); }   // foyer central : simple anneau
       else { ctx.fillStyle = plat ? (vif ? 'rgb(90,255,160)' : `rgb(${TE})`) : '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote); }
-      if (plat && e.rel > 0.02) { ctx.strokeStyle = `rgba(150,235,200,${(0.7 * e.rel).toFixed(2)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(F.x, F.y, 8 + 3 * (1 - e.rel), 0, 6.283); ctx.stroke(); }   // voisin du foyer survolé : anneau
       if (e.label && !e.racine) {
         const a = plat ? adouci((e.age - 0.9) / 1.0) : adouci((e.age - 0.2) / 0.6);   // à plat le nom monte en fondu après les rayons (observé)
         ctx.globalAlpha = a * A; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
         if (plat && e.parent && !compact) {                                      // à plat : nom contre le foyer, suivi du nombre de contenus en gris
           const nbEd = e.noeuds.filter((q) => q.ed).length;
-          const corps = 12 + 10 * e.hv; ctx.globalAlpha = a * A * Math.min(1, 0.55 + 0.45 * estompe + 0.45 * e.rel);
+          const corps = 12 + 10 * e.hv; ctx.globalAlpha = a * A * (0.55 + 0.45 * estompe);
           ctx.font = `400 ${corps.toFixed(1)}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(1,4,25,.75)';
           const l = ctx.measureText(e.label).width, tx = Math.min(F.x + cote / 2 + 7, W - l - 22), ty = F.y - cote / 2 - 4 + 4 * e.hv; ctx.strokeText(e.label, tx, ty); ctx.fillText(e.label, tx, ty);
           ctx.font = '400 10px "JetBrains Mono",ui-monospace,monospace'; ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillText(String(nbEd), tx + l + 6, ty - 5);

@@ -718,3 +718,21 @@ Vérification : `node tools/test-pointeur-graphe.mjs` (poussée 37 px au balayag
 - Historique : jusqu'au commit `7534fe4a`, ce cadre montait le composant `checkpoint` de la référence, chargé depuis le CDN Shopify (`PrototypeStage`, visible à partir de 940 × 693 px). Il a disparu quand l'accueil est devenu indépendant de Shopify (0 requête) ; seule l'affiche fixe (`checkpoint-stage__poster`) restait.
 - Rétabli en local : `refonte/checkpoint.js` (code propre ; lois relevées sur le module de la référence : 5 000 arrivées par minute, 3,5 % bloqués qui rebondissent, ligne à 0,5, quatre flux à 0,2 / 0,4 / 0,6 / 0,8, enveloppes calculées sur 22 tranches, points qui défilent sur les bords, impacts de 0,52 s, poussée du pointeur). Même condition d'affichage (940 × 693 px), affiche fixe conservée en dessous et en mouvement réduit.
 - Proportions des cadres de l'accueil à 2498 × 1319 comparées à la capture de référence : positions identiques à 1 px près.
+
+## Survol du graphe de l'accueil : lois de la simulation de la référence (moteur `m31`)
+
+Source : module `renderer` de la référence (fonctions de simulation et jeu de réglages `pack`), lu dans l'extraction ; réécrit dans `refonte/moteur.js`.
+
+| Loi de la référence | Valeur | Reprise |
+|---|---|---|
+| Survol d'un foyer : ses rayons raccourcissent | `hoverConstrict` 0,25 | oui |
+| Ordre du resserrement : selon l'angle de chaque rayon, à partir du haut | `hoverStagger` 0,15 s | oui |
+| Vitesse du resserrement / de la relâche | `hoverResponse` 15/s, `releaseRelaxation` 3/s | oui |
+| Survol d'un contenu : tout le graphe se calme | calme vers 1 à 10/s, allure = 1 − (1 − `hoverSlow` 0,2) × calme | oui |
+| Orbite lente des rayons autour du foyer, un foyer sur deux en sens inverse | `orbitSpeed` 0,02 rad/s, `orbitAlternate` | oui |
+| Aimant : un rayon proche du pointeur s'y colle | `magnetRadius` 15 px × échelle (min(L, H) / 741, bornée 0,4 à 3), noyau (1 − (d/r)²)², 0,9 | oui (déplacement direct vers le pointeur, sans la force de la simulation) |
+| Poussée par la vitesse du pointeur, coupée pendant le survol d'un foyer | voir section précédente | oui |
+| Deux traits qui circulent sur chaque branche | `flowSpeed` 1,5, `flowTrail` 1 s, sens et vitesse tirés du hachage de la branche | oui (couleur choisie : celle du foyer) |
+| Anneaux des voisins | appartiennent à la vue de section, pas à l'accueil | **retirés** de l'accueil |
+
+Non repris : sillage de glyphes WebGPU (rendu GPU), saisie et lancer d'un foyer (`grabPull` 38, `throwScale` 1,25), forces de répulsion entre foyers (notre disposition des foyers est fixe). Test : `node tools/test-pointeur-graphe.mjs`.
