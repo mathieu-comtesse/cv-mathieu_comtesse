@@ -712,3 +712,9 @@ Méthode : analyse statique des modules du graphe de la référence (outil REA, 
 | Sillage de glyphes fluide (WebGPU), aimant, saisie et lancer, orbite lente | fluide GPU, magnetRadius 15, orbite | **non repris** : le sillage demande un rendu GPU, le reste n'est pas relevé sur l'accueil à plat |
 
 Vérification : `node tools/test-pointeur-graphe.mjs` (poussée 37 px au balayage rapide, retour à 0,04 px, aucune poussée à pointeur immobile, voisin et foyers estompés au survol). Le réglage d'amplitude (facteur 1,5) est un choix propre, à comparer à la référence sur matériel réel.
+
+## 4e cadre de l'accueil : filtre animé (composant « checkpoint » rétabli)
+
+- Historique : jusqu'au commit `7534fe4a`, ce cadre montait le composant `checkpoint` de la référence, chargé depuis le CDN Shopify (`PrototypeStage`, visible à partir de 940 × 693 px). Il a disparu quand l'accueil est devenu indépendant de Shopify (0 requête) ; seule l'affiche fixe (`checkpoint-stage__poster`) restait.
+- Rétabli en local : `refonte/checkpoint.js` (code propre ; lois relevées sur le module de la référence : 5 000 arrivées par minute, 3,5 % bloqués qui rebondissent, ligne à 0,5, quatre flux à 0,2 / 0,4 / 0,6 / 0,8, enveloppes calculées sur 22 tranches, points qui défilent sur les bords, impacts de 0,52 s, poussée du pointeur). Même condition d'affichage (940 × 693 px), affiche fixe conservée en dessous et en mouvement réduit.
+- Proportions des cadres de l'accueil à 2498 × 1319 comparées à la capture de référence : positions identiques à 1 px près.
