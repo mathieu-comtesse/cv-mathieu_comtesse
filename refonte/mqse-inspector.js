@@ -115,6 +115,7 @@ if (instrument) {
       blend += (target-blend)*factor;
       rx += (destX-rx)*factor; ry += (destY-ry)*factor;
       device.rotation.set(rx,ry,-.13+.18*blend);
+      device.position.y=-.16;
       rear.position.set(-1.03*blend,-.14*blend,-.18*blend);
       board.position.set(.05*blend,-.27*blend,.12*blend);
       face.position.set(1.03*blend,.04*blend,.24*blend);
@@ -128,7 +129,7 @@ if (instrument) {
     function resize() {
       const width=instrument.clientWidth,height=instrument.clientHeight;
       if (!width || !height) return;
-      const ratio=width/height, halfHeight=Math.max(1.53,2.16/ratio);
+      const ratio=width/height, halfHeight=Math.max(1.84,2.42/ratio);
       camera.left=-halfHeight*ratio; camera.right=halfHeight*ratio;
       camera.top=halfHeight; camera.bottom=-halfHeight;
       camera.updateProjectionMatrix();
