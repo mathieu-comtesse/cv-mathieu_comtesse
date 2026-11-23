@@ -12,26 +12,32 @@ const NIS = 'Nisaru (R27), capture d’un fichier HTML ouvert hors connexion : �
 const V11 = 'Metadata Studio V11 (outil distinct de l’extracteur CERFA v3 décrit dans la fiche), capture d’un fichier HTML ouvert hors connexion, sans document chargé : elle ne prouve pas un traitement. ';
 const FIC = 'Capture de la page de démonstration publiée du projet, données fictives. ';
 export const SHOWCASE = {
-  /* 1. Point financier : parcours du concepteur MEC 02.03. */
+  /* 1. Point financier : présentation du flux MEC 02.03. */
   'projet-finance': {
-    label: 'Alertes budgétaires MEC · PRG, PSE et Global', layout: 'finance', auto: true,
-    steps: ['Déclenchement', 'Configuration', 'Prévention', 'Alertes préventives', 'Envois', 'État final'],
+    label: 'Alertes budgétaires MEC · PRG, PSE et Global', layout: 'mec', auto: true, interval: 8000,
+    steps: ['Sources et seuils', 'Règles de décision', 'Notifications et suivi'],
     windows: [],
-    camera: {
-      title: 'Alertes budgétaires MEC · 02.03',
-      badge: 'V7 TEST',
-      alt: 'Canevas du flux MEC dans le concepteur Power Automate',
-      src: 'assets/showcase/finance/mec-v7-canevas.webp', width: 784, height: 1309,
-      waypoints: [
-        [433, 128, 350, 'Déclenchement et premier contrôle avant la bifurcation'],
-        [585, 291, 500, 'Lecture des seuils Excel et contrôle des configurations PRG et PSE'],
-        [512, 557, 580, 'Traitements PRG et PSE et préparation des alertes'],
-        [625, 704, 445, 'Conditions de notification préventive pour PRG, PSE et Global'],
-        [145, 1045, 510, 'Envois conditionnels des notifications'],
-        [225, 1238, 405, 'Consolidation et mise à jour du fichier d’état']
-      ]
-    },
-    note: 'Capture animée du concepteur Power Automate · flux MEC 02.03 · V7 TEST.'
+    explanation: [
+      {
+        title: 'Sources et seuils',
+        description: 'Le flux relève les dépenses dans Power BI et lit les seuils définis dans Excel pour PRG, PSE et Global.',
+        app: 'Power BI et Excel', kind: 'sources',
+        rows: [['Power BI', 'Comptes et dépenses'], ['Excel', 'Seuils de vigilance et critiques'], ['SharePoint', 'État des alertes précédentes']]
+      },
+      {
+        title: 'Règles de décision',
+        description: 'Le flux écarte les lignes non éligibles, compare les taux aux seuils et consulte l’historique pour éviter les doublons.',
+        app: 'Power Automate', kind: 'rules',
+        rows: [['SI', 'La ligne est éligible'], ['ET', 'Le seuil est atteint'], ['ET', 'L’alerte est nouvelle'], ['ALORS', 'Préparer la notification']]
+      },
+      {
+        title: 'Notifications et suivi',
+        description: 'Le flux prépare les courriels selon le périmètre et inscrit les nouvelles alertes dans le fichier d’état.',
+        app: 'Outlook et SharePoint', kind: 'result',
+        rows: [['PRG', 'Notification selon le seuil'], ['PSE', 'Notification selon le seuil'], ['Global', 'Synthèse selon les règles'], ['État', 'Historique actualisé']]
+      }
+    ],
+    note: 'Flux 02.03 MEC · V7 TEST. Présentation des règles du flux.'
   },
   /* 2. VRE par VM : accès au portail pendant la collecte des captures. */
   'projet-vmvre': {

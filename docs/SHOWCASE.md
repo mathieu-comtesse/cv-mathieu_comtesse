@@ -51,7 +51,7 @@ Gares prioritaires (`demo-gares-poster`), Studio (`studio-poster`, `projets/stud
 ## Mapping final des onze vitrines
 | projet | machine conservée | fenêtres | statuts |
 |---|---|---|---|
-| Point financier | réservoir | une fenêtre du concepteur Power Automate, flux MEC 02.03 V7 TEST | capture animée en six étapes |
+| Point financier | réservoir | trois fenêtres explicatives, flux MEC 02.03 V7 TEST | sources et seuils, règles de décision, notifications et suivi |
 | VRE par VM | tri postal | lien vers le portail Power Automate | captures du récapitulatif, du dépôt SharePoint et du suivi Excel à fournir |
 | Reporteur Q18 | machine à écrire | SharePoint, rapport PDF, Excel + console pédagogique | 3 manquantes |
 | Chaîne des PP | horloge-calendrier | SharePoint, traitement Excel et notifications dans Power Automate, courriel Outlook | 2 captures du concepteur, 2 manquantes |

@@ -187,7 +187,16 @@ function scene(chapitres) {
   }
   /* liste fixe des chapitres, à gauche : repère de lecture pendant les transitions */
   const nav = document.createElement('nav'); nav.className = 'cv-flat-nav'; nav.setAttribute('aria-label', 'Chapitres');
-  for (const c of chapitres) { const a = document.createElement('a'); a.href = '#' + c.section.id; a.textContent = c.nom; c.lien = a; nav.append(a); }
+  const liens = new Map();
+  for (const destination of document.querySelectorAll('#hero .hero-nav-link[href]')) {
+    const a = document.createElement('a'), id = destination.hash.slice(1);
+    a.href = destination.hash;
+    a.textContent = destination.firstElementChild.textContent.trim();
+    liens.set(id, a);
+    nav.append(a);
+  }
+  for (const c of chapitres) c.lien = liens.get(c.section.id);
+  const rubriques = [...liens.keys()].map(id => document.getElementById(id)).filter(el => el?.matches('.rf-sk-grp'));
   document.body.append(nav);
   const source=document.querySelector('[data-f26-page]');
   let paper=[];
@@ -307,13 +316,27 @@ function scene(chapitres) {
       ctx.fillStyle = '#fff'; ctx.fillRect(hx - 3.5, hy - 3.5, 7, 7);
       ctx.restore();
     }
-    nav.classList.toggle('vu', vuNav); for (const c of chapitres) c.lien.classList.toggle('actif', c === actif);
+    nav.classList.toggle('vu', vuNav);
+    let idActif = actif?.section.id;
+    if (idActif === 'marketing') {
+      const rubrique = rubriques.findLast(el => el.getBoundingClientRect().top <= H * .5);
+      if (rubrique) idActif = rubrique.id;
+    }
+    if (nav.dataset.activeChapter !== (idActif || '')) {
+      nav.dataset.activeChapter = idActif || '';
+      for (const [id, lien] of liens) {
+        lien.classList.toggle('actif', id === idActif);
+        if (id === idActif) lien.setAttribute('aria-current', 'location');
+        else lien.removeAttribute('aria-current');
+      }
+    }
     liensLus=0;
     const edges=[],clip=[0,0,W,H];
     const emit=fil.active?(a,b,ink,alpha,width)=>brancheSpectrale(edges,a,b,ink,alpha,clip,width):undefined;
     poussiere(ctx,W,H,libre?tt:null,scrollY);
     const notes=[];
     if(vuNav&&W>=940)for(const c of chapitres){
+      if (!c.lien) continue;
       const r=c.lien.getBoundingClientRect(),a={x:r.right-2,y:r.top+r.height/2};
       const depart=c.section===actif?.section;
       for(const card of c.fiches){
