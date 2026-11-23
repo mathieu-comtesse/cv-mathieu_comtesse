@@ -753,3 +753,7 @@ Source : classe d'intro du module `controller` de la référence et ses réglage
 | Dérive lente des foyers | `driftOn` désactivé sur la référence | **retirée** (c'était un choix propre) |
 
 Remplace l'apparition estimée sur deux captures (écartement 0,45 → 1 en 1,6 s, taille × 3 → 1 en 2,6 s). Mouvement réduit : aucune apparition. Outil : `VW=1400 VH=900 REJOUE=0.15,0.4,0.7,1,1.5,2.4 OUT=x.png node tools/capture-accueil.mjs` (horloge de l'intro figée, une image par instant).
+
+## Saisie et lancer d'un foyer (moteur `m33`)
+
+Lois du module `renderer` de la référence : pendant la saisie, le foyer suit le pointeur (vitesse estimée 0,6 × ancienne + 0,4 × nouvelle), ses rayons se resserrent ; au lâcher, vitesse × 1,25 × exp(−max(0, arrêt − 80 ms) / 60 ms), plafonnée à 1 400 px/s × échelle ; freinage renforcé après le lâcher (+14, qui s'éteint à 1,5/s) puis retour à la place. Un clic (moins de 5 px parcourus) mène toujours au chapitre. Priorité au foyer quand le pointeur est à moins de 12 px de son centre. Test : `tools/test-pointeur-graphe.mjs` (suit de 120 px, pas de navigation après un glisser, retour à moins de 1 px).

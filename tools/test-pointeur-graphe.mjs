@@ -1,4 +1,4 @@
-// Effets du pointeur sur le graphe de l'accueil (à plat) : poussée par la vitesse du pointeur, retour élastique, resserrement des rayons du foyer survolé, orbite, relâche.
+// Effets du pointeur sur le graphe de l'accueil (à plat) : poussée par la vitesse du pointeur, retour élastique, resserrement des rayons du foyer survolé, orbite, relâche, saisie et lancer d'un foyer.
 // Usage : node tools/test-pointeur-graphe.mjs   (code de sortie 1 en cas d'échec)
 // Usage : node tools/test-modes.mjs   (code de sortie 1 en cas d'échec). Rendu logiciel : aucune mesure de fluidité matérielle ici.
 import fs from 'node:fs'; import path from 'node:path'; import http from 'node:http'; import { createRequire } from 'node:module';
@@ -44,6 +44,21 @@ verifie(ser.ob.some((o) => o > 0) && ser.ob.some((o) => o < 0), `orbite lente de
 await p.mouse.move(5, 5); await p.waitForTimeout(4000);
 const relache = await p.evaluate((id) => { const e = window.__cvHeroGraph.ciel.etoiles.get(id); return Math.max(...e.noeuds.map((n) => n.hg || 0)); }, cible.id);
 verifie(relache < 0.05, `relâche après le survol (${relache.toFixed(3)})`);
+/* saisie et lancer d'un foyer : il suit le pointeur, part dans le sens du geste au lâcher, puis revient à sa place */
+await p.waitForTimeout(2000);
+const g0 = (await foyers()).find((f) => f.id === cible.id);
+await p.mouse.move(g0.x, g0.y); await p.waitForTimeout(2500);
+const g1 = (await foyers()).find((f) => f.id === cible.id); await p.mouse.move(g1.x, g1.y); await p.waitForTimeout(1500);
+const g2 = (await foyers()).find((f) => f.id === cible.id); await p.mouse.move(g2.x, g2.y); await p.mouse.down();
+for (let i = 1; i <= 6; i++) { await p.mouse.move(g2.x + i * 20, g2.y + i * 6); await p.waitForTimeout(120); }
+const tenu = await p.evaluate(() => { const c = window.__cvHeroGraph.ciel; return c.prisF ? { id: c.prisF.e.id, dx: c.prisF.e.dx } : null; });
+await p.mouse.up(); await p.waitForTimeout(300);
+const lance = await p.evaluate((id) => { const e = window.__cvHeroGraph.ciel.etoiles.get(id); return { dx: e.dx, vx: e.vx, url: location.hash }; }, cible.id);
+verifie(!!tenu && tenu.id === cible.id && tenu.dx > 60, `saisie : le foyer suit le pointeur (${tenu ? tenu.dx.toFixed(0) : '-'} px)`);
+verifie(lance.dx > 60 && !lance.url.includes(cible.id.split(':')[1]), `lâcher après un glisser : pas de navigation, foyer toujours déplacé (${lance.dx.toFixed(0)} px, vitesse ${lance.vx.toFixed(0)} px/s)`);
+await p.mouse.move(5, 5); await p.waitForTimeout(6000);
+const retour = await p.evaluate((id) => Math.hypot(window.__cvHeroGraph.ciel.etoiles.get(id).dx, window.__cvHeroGraph.ciel.etoiles.get(id).dy), cible.id);
+verifie(retour < 2, `retour du foyer lancé à sa place (${retour.toFixed(2)} px)`);
 verifie(p.erreurs.length === 0, `aucune erreur de page (${p.erreurs.length})`);
 await b.close(); srv.close();
 if (echecs.length) { console.log('\nÉCHEC : ' + echecs.length); process.exit(1); } console.log('\nPASS : effets du pointeur sur le graphe de l\'accueil');

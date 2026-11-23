@@ -262,6 +262,13 @@ export class Ciel {
      lache() dit si le geste était un simple clic (moins de 5 px parcourus) et sur quel contenu. */
   saisit(x, y) { let m = null, dm = 22; for (const c of this.cibles) { const d = Math.hypot(c.x - x, c.y - y); if (d < dm) { dm = d; m = c; } } if (!m) return false; this.pris = { noeud: m.noeud, etoile: m.etoile, x0: x, y0: y, trajet: 0 }; return true; }
   tire(x, y) { if (this.pris) this.pris.trajet = Math.max(this.pris.trajet, Math.hypot(x - this.pris.x0, y - this.pris.y0)); }
+  /* saisie d'un foyer à plat (lois de la référence) : il suit le pointeur, vitesse lissée 0,6 / 0,4 ; lâché, il part à 1,25 × cette vitesse,
+     sauf si le pointeur s'était arrêté (amortie au-delà de 80 ms d'arrêt, constante 60 ms), plafonnée à 1 400 px/s × échelle */
+  saisitFoyer(x, y) { const e = this.fsBrut; if (!e || !e.ecran || Math.hypot(e.ecran.x - x, e.ecran.y - y) > 12) return false; this.prisF = { e, ox: e.ecran.x - x, oy: e.ecran.y - y, x0: x, y0: y, trajet: 0, t: performance.now() }; e.vx = e.vy = 0; return true; }
+  tireFoyer(x, y) { const q = this.prisF; if (!q) return; q.trajet = Math.max(q.trajet, Math.hypot(x - q.x0, y - q.y0)); q.mx = x + q.ox; q.my = y + q.oy; }
+  lacheFoyer(annule = false) { const q = this.prisF; if (!q) return null; this.prisF = null; const e = q.e, k = annule ? 0 : 1.25 * Math.exp(-Math.max(0, performance.now() - (q.tm || q.t) - 80) / 60);
+    e.vx = (e.vx || 0) * k; e.vy = (e.vy || 0) * k; const v = Math.hypot(e.vx, e.vy), lim = 1400 * (this.unite || 1); if (v > lim) { e.vx *= lim / v; e.vy *= lim / v; } e.recup = 1;
+    return { clic: q.trajet < 5, chapitre: e.chapitre, etoile: e }; }
   lache() { const q = this.pris; this.pris = null; return q ? { clic: q.trajet < 5, ...q.noeud.ed, chapitre: q.etoile.chapitre } : null; }
   touche(x, y) { let m = null, dm = 18; for (const c of this.cibles) { const d = Math.hypot(c.x - x, c.y - y); if (d < dm) { dm = d; m = c; } } return m ? { ...m.noeud.ed, chapitre: m.etoile.chapitre } : null; }
 
@@ -285,6 +292,9 @@ export class Ciel {
   /* Poussée du pointeur sur un foyer à plat : accélération = (direction opposée × vitesse + élan × 1,45) × L² × 2 × bouclier ; rappel par ressort. */
   repousse(e, Fb, m, pv, vit, dt, pace) {
     e.dx = e.dx || 0; e.dy = e.dy || 0; e.vx = e.vx || 0; e.vy = e.vy || 0;
+    const q = this.prisF; if (q && q.e === e) { if (q.mx !== undefined && dt > 0) { const nx = q.mx - Fb.x, ny = q.my - Fb.y, ddx = nx - e.dx, ddy = ny - e.dy;
+        if (ddx || ddy) { e.vx = e.vx * 0.6 + ddx / dt * 0.4; e.vy = e.vy * 0.6 + ddy / dt * 0.4; q.tm = performance.now(); } e.dx = nx; e.dy = ny; } return; }
+    e.recup = (e.recup || 0) * Math.exp(-1.5 * dt); const amort = 6 + 14 * e.recup;
     const n = Math.max(1, Math.ceil(dt / (1 / 60))), h = Math.min(dt, 0.25) / n;
     for (let i = 0; i < n; i++) {
       let ax = -e.dx * 16, ay = -e.dy * 16;
@@ -295,10 +305,10 @@ export class Ciel {
           ax += (T / d * y + pv.x / vit * y * 1.45) * f; ay += (P / d * y + pv.y / vit * y * 1.45) * f;
         }
       }
-      e.vx = (e.vx + ax * h) * Math.exp(-h * 6); e.vy = (e.vy + ay * h) * Math.exp(-h * 6);
+      e.vx = (e.vx + ax * h) * Math.exp(-h * amort); e.vy = (e.vy + ay * h) * Math.exp(-h * amort);
       e.dx += e.vx * h; e.dy += e.vy * h;
     }
-    const lim = 160, r = Math.hypot(e.dx, e.dy); if (r > lim) { e.dx *= lim / r; e.dy *= lim / r; }
+    const lim = e.recup > 0.01 ? 1e4 : 160, r = Math.hypot(e.dx, e.dy); if (r > lim) { e.dx *= lim / r; e.dy *= lim / r; }
     if (Math.abs(e.dx) + Math.abs(e.dy) + Math.abs(e.vx) + Math.abs(e.vy) < 0.05) e.dx = e.dy = e.vx = e.vy = 0;
   }
   dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1, plat = false, intro = null } = {}) {   /* intro : secondes écoulées depuis le début de l'apparition à plat (null : pas d'apparition) */
@@ -313,15 +323,15 @@ export class Ciel {
     let survol = null, dSurvol = 18, brancheMeilleure = null, dBranche = 7;
     /* Survol d'un foyer, à plat (observé sur la référence) : le foyer passe au vert vif, son nom grossit, ses rayons se resserrent,
        les autres foyers s'estompent et son trait vers le centre s'allume. Transitions lissées (constante de temps 0,12 s, notre choix). */
-    let fs = null;
-    if (plat && !compact && !this.pris && souris.x > -1e3) { let dm = 16;
+    let fs = this.prisF ? this.prisF.e : null;
+    if (plat && !compact && !this.pris && !this.prisF && souris.x > -1e3) { let dm = 16;
       for (const e of this.etoiles.values()) { if (!e.parent || !e.ecran) continue; const d = Math.hypot(e.ecran.x - souris.x, e.ecran.y - souris.y), l = e.libelleEcran;
         if (d < dm) { dm = d; fs = e; } else if (!fs && l && souris.x >= l.x - 2 && souris.x <= l.x + (l.w || 0) + 2 && souris.y >= l.y - (l.h || 12) && souris.y <= l.y + 4) fs = e; } }
     const qh = libre ? 1 - Math.exp(-dt / 0.12) : 1;
     this.hvTous = (this.hvTous || 0) + ((fs ? 1 : 0) - (this.hvTous || 0)) * qh;
     /* Effets du pointeur à plat (relevés sur la référence, code propre) : la vitesse du pointeur pousse les foyers proches (noyau L² entre 24 et 265 px,
        bouclier devant le mouvement, portée de l'élan 1,45), un ressort les ramène ; tout ralentit (allure 0,2) quand un contenu est survolé. */
-    const sv = souris.x > -1e3 && plat && !compact && libre && !this.pris, pv = this.pv || (this.pv = { x: 0, y: 0, px: souris.x, py: souris.y, ok: false });
+    const sv = souris.x > -1e3 && plat && !compact && libre && !this.pris && !this.prisF, pv = this.pv || (this.pv = { x: 0, y: 0, px: souris.x, py: souris.y, ok: false });
     if (sv && pv.ok && dt > 0) { const ex = (souris.x - pv.px) / dt, ey = (souris.y - pv.py) / dt; pv.x = ex || ey ? ex : pv.x * Math.exp(-dt / 0.04); pv.y = ex || ey ? ey : pv.y * Math.exp(-dt / 0.04); } else if (!sv) { pv.x = pv.y = 0; }
     pv.px = souris.x; pv.py = souris.y; pv.ok = sv;
     /* Lois du graphe de la référence (simulation du module renderer, réécrites) : survoler un contenu calme le graphe (calme -> 1 à 10/s,
@@ -336,7 +346,7 @@ export class Ciel {
     if (enIntro && !this.ordreIntro) { const fo = [...this.etoiles.values()].filter((e) => e.parent && !e.groupe?.startsWith?.('titre')), n = fo.length; let pas = Math.max(1, Math.floor(n / 2)); const pg = (a, b) => b ? pg(b, a % b) : a; while (pas > 1 && pg(pas, n) !== 1) pas--;
       const tri = [...fo].sort((a, b) => a.id.localeCompare(b.id)); this.ordreIntro = new Map(tri.map((e) => [e, (fo.indexOf(e) * pas) % n])); }
     this.introFinie = !enIntro;
-    const allure = 1 - 0.8 * this.calme, vit = Math.hypot(pv.x, pv.y), unite = Math.max(0.4, Math.min(3, Math.min(W, H) / 741));
+    const allure = 1 - 0.8 * this.calme, vit = Math.hypot(pv.x, pv.y), unite = this.unite = Math.max(0.4, Math.min(3, Math.min(W, H) / 741));
     for (const e of this.etoiles.values()) {
       e.ecran = null; e.libelleEcran = null;
       const kT = e.groupe === 'titre' ? titres : 1; ctx.globalAlpha = A * kT; if (kT < 0.02) continue;   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
@@ -520,7 +530,7 @@ export class Ciel {
         ctx.globalAlpha = A;
       }
     }
-    this.foyerSurvol = survol ? null : fs;
+    this.foyerSurvol = survol ? null : fs; this.fsBrut = fs;
     this.cibles = cibles; this.survol = survol; this.survolBranche = survol ? null : brancheMeilleure;
     /* Nom du contenu survolé. Relevés de la référence : le libellé suit le pointeur avec `left, top 0.12s ease-out` et son opacité change en
        0,15 s suivant cubic-bezier(0.65, 0, 0.35, 1) (lissage cubique symétrique). Sans pointeur (tactile, clavier) il reste contre le nœud. */
