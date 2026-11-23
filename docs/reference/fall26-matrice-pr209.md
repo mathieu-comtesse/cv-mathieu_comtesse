@@ -794,3 +794,17 @@ Sources : modules `journey`, `heroMediaFlight` (calcul de l'image de section à 
 | Entrée depuis l'accueil | zoom de la vue d'ensemble vers la première section | approché : la caméra va du centre (échelle 1) à la première étoile pendant l'effacement de l'accueil |
 
 Retiré : l'étoile blanche propre à chaque titre (`theme-stars.js`), qui n'existe pas sur la référence ; le remplissage des titres et la liste des chapitres sont conservés. Hors grand écran (moins de 940 px) et en mode expo, la couche est masquée. Test : `node tools/test-graphe-chapitres.mjs [dossier]` (cadrage, repli, contexte, dépli, relais au chapitre suivant).
+
+## Disposition des chapitres : grille et cadres (relevé sur la page de référence en ligne, 1 400 × 900)
+
+Relevé : positions et tailles des `article` de chaque section, chaîne de grilles et styles calculés (script Playwright, page de référence en ligne, aucune ressource copiée).
+
+| Élément | Référence | Avant | Après |
+|---|---|---|---|
+| Grille | 16 colonnes, gouttière 16 px, groupe de cadres col. 3 à 16 | marge latérale ajoutée `clamp(20px,3vw,64px)` | marge retirée : départ à x = 189 (187 + barre de défilement) |
+| Grand cadre (média) | 12 colonnes = 1 011 px, bordure 10 %, fond blanc 8 %, marges 24/24/16, titre 18 px | toute la largeur forcée (1 122 à 1 195 px) | 12 colonnes (1 022 px) ; projets compris |
+| Paire | 6 colonnes = 497 px | — | jeux par paires (503 px) |
+| Petite entrée | 3 colonnes = 241 px, 4 par rangée, sans cadre, carré 4 px, 14 px, 96 px entre rangées | cadres de 159 px de haut, empilés, titre 28 à 44 px | compétences en entrées de 244 px, 4 par rangée, 14 px, 96 px entre rangées ; icône et rappel du chapitre masqués |
+| Texte des cadres | 18 px | 21 à 30 px (`clamp`) ; titres 28 à 44 px forcés | 18 px, titres hérités (18 px) |
+
+Reste différent : la référence garde des cadres de 400 à 735 px de haut (texte court, média, bouton vers le détail) ; nos fiches de projets intègrent tout leur contenu (environ 3 500 px chacune). Ramener ce contenu derrière un bouton est un choix de contenu, non fait ici.
