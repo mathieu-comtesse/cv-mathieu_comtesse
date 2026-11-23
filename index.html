@@ -494,7 +494,7 @@ html .cv-parity-part .rf-contact-in .rf-cp,html .cv-parity-part .rf-contact-in h
   }
 } }</style>
 <link rel="stylesheet" href="/refonte/comtesse-motion.css?v=fall26-2" data-cv-motion>
-<link rel="stylesheet" href="refonte/gains.css?v=local-gains3"><link rel="stylesheet" href="refonte/showcase.css?v=mec10"><script type="module" src="refonte/showcase.js?v=mec8"></script><script type="module" src="refonte/defilement.js?v=d1"></script><script type="module" src="refonte/theme-stars.js?v=ts17"></script><style data-cv-fall26-timeline>/* Délai du premier chapitre après l'accueil, relevé sur la référence (ordinateur seulement) : 368 px à 700 px de haut, 554 à 900, 687 à 1 080, 954 à 1 440.
+<link rel="stylesheet" href="refonte/gains.css?v=local-gains4"><link rel="stylesheet" href="refonte/showcase.css?v=mec10"><script type="module" src="refonte/showcase.js?v=mec8"></script><script type="module" src="refonte/defilement.js?v=d1"></script><script type="module" src="refonte/theme-stars.js?v=ts18"></script><style data-cv-fall26-timeline>/* Délai du premier chapitre après l'accueil, relevé sur la référence (ordinateur seulement) : 368 px à 700 px de haut, 554 à 900, 687 à 1 080, 954 à 1 440.
    Loi ajustée sur ces quatre mesures : 0,74 × hauteur − 112 px à partir de 900 px ; en dessous, 554 px − 0,93 × (900 px − hauteur). Sans ce délai, le grand titre arrivait 554 px trop tôt. */
 @media (min-width:58.75rem){[data-f26-page]{--f26-first-delay:max(0px,calc(554px - .93*(900px - 100svh)))}}
 @media (min-width:58.75rem) and (min-height:900px){[data-f26-page]{--f26-first-delay:calc(.74*100svh - 112px)}}
@@ -861,7 +861,7 @@ function startSearch(){
 async function startGains(){
   if(!q('#work'))return;
   q('#work').setAttribute('data-no-piggy','');
-  try{const {initGainsDashboard}=await import(base+'js/gains-dashboard.js?v=local-gains3');initGainsDashboard();state.gains='ready';}catch(e){state.gains='failed';fail('gains',e);}
+  try{const {initGainsDashboard}=await import(base+'js/gains-dashboard.js?v=local-gains4');initGainsDashboard();state.gains='ready';}catch(e){state.gains='failed';fail('gains',e);}
 }
 async function startFlows(){
  try{const {initFlow}=await import(base+'refonte/flow.js');const flows=qa('.cv-legacy .rf-flow');for(const flow of flows){const steps=qa('.rf-flow-step',flow);initFlow(flow,{tops:()=>steps.map(n=>window.__cvLayoutTop?window.__cvLayoutTop(n):n.getBoundingClientRect().top+scrollY)});}state.flows=flows.length;}catch(e){fail('processus',e);}
@@ -1075,7 +1075,7 @@ function openCvCardFocus(el,details){
 // // Shopify supplies the camera, fold, hinge animation, outlines and mathematical labels.
 // Only the DOM/Three rendering adapter is local; all coordinates remain native CSS pixels.
 async function startParityPath(){
- const [T,N,{CielExpo},{filExpo,annotationExpo,origineChapitre,arcMenu},{poussiere,notesCadre,reperesAtelier},{transitionsPapier,etatCouleur,couleurBande,couchesExpo}]=await Promise.all([import('three'),import(base+'refonte/moteur.js?v=project-face1'),import(base+'refonte/ciel-expo.js?v=15'),import(base+'refonte/expo-callouts.js?v=3'),import(base+'refonte/card-effects.js?v=4'),import(base+'refonte/section-colours.js?v=2')]),source=q('[data-f26-page]');if(!source)return;
+ const [T,N,{CielExpo},{filExpo,annotationExpo,origineChapitre,arcMenu,lienMenuSurvole},{poussiere,notesCadre,reperesAtelier},{transitionsPapier,etatCouleur,couleurBande,couchesExpo}]=await Promise.all([import('three'),import(base+'refonte/moteur.js?v=project-face1'),import(base+'refonte/ciel-expo.js?v=15'),import(base+'refonte/expo-callouts.js?v=4'),import(base+'refonte/card-effects.js?v=4'),import(base+'refonte/section-colours.js?v=2')]),source=q('[data-f26-page]');if(!source)return;
  const header=q('.cv-site-nav');if(header)document.body.append(header);
  const sourceMinHeight=source.style.minHeight;
  await document.fonts?.ready;
@@ -1793,7 +1793,7 @@ async function startParityPath(){
   state.cardWires=0;
   const noteTargets=[];
   const branchSample=[];
-  const expoPreview=nav.inert?null:q('a:is(:hover,:focus-visible)',nav);
+  const expoPreview=nav.inert?null:lienMenuSurvole(nav);
   if(innerWidth>=940&&!nav.inert)arcMenu(ctx,nav,menuArc,reduced.matches?null:now/1000,expoPreview,view.rise);
   if(innerWidth>=940)for(const p of visible){
     if(!p.slab||!p.points)continue;

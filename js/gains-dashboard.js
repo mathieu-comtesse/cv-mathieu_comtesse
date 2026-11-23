@@ -1,5 +1,5 @@
 import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v69';
-import { initGainsConsole } from './gains-console.js?v=2';
+import { initGainsConsole } from './gains-console.js?v=3';
 import { createGainsOverview } from './gains-overview.js?v=3';
 import { ANNUAL_GAINS, ANNUAL_DECLARED, ANNUAL_TOTAL, ANNUAL_NET, ANNUAL_COST, HOURS_PER_FTE, euroCoinRhythm } from './annual-gains.js?v=cv-scene-v61';
 

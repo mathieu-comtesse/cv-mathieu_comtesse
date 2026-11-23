@@ -5,6 +5,19 @@ const mean = (row, unit = 'Hours') => (row['min'+unit] + row['max'+unit])/2;
 const totals = {declared: ANNUAL_DECLARED, total: ANNUAL_TOTAL, net: ANNUAL_NET};
 const units = [['Hours', 'Heures'], ['Money', 'Euros']];
 const unitOptions = units.map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
+const icons = {
+  projection: 'M2 10V3m0 7h9M3.7 8l2.2-2.3 1.8 1.2L11 3.5',
+  contribution: 'M2 11h10M3 9V6h1v3m2 0V3h1v6m2 0V5h1v4',
+  method: 'M2.5 3v4l4.3 4.2 4.4-4.4L7 2.5H2.5zm2 1.5h.1',
+  finance: 'M2 10V4l4-2 4 2v6H8V7H5v3z',
+  vmvre: 'M2 2h4v4H2zm6 0h4v4H8zM2 8h4v4H2zm6 0h4v4H8z',
+  moteur44: 'M2 5h10l-1-2H3zm1 2h8v5H3zm2 2h4',
+  vre: 'M2 3h6l4 4-5 5-5-5zm2 2h.1',
+  powerbi: 'M2 11h10M4 9V6m3 3V3m3 6V5',
+  'pp-consultation': 'M6 2a4 4 0 100 8 4 4 0 000-8zm3 7 3 3',
+  gares: 'M2 11h10V6L7 2 2 6zm3 0V7h4v4'
+};
+const icon = name => `<svg aria-hidden="true" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="${icons[name]}"/></svg>`;
 const construction = ANNUAL_COST.build + ANNUAL_COST.upkeep;
 
 export function initGainsConsole(head) {
@@ -14,16 +27,18 @@ export function initGainsConsole(head) {
       <p class="gains-hint">Explore les heures libérées par mes outils de maintenance et de qualité, et leur valorisation à ${format(ANNUAL_RATE,2)} € par heure.</p></div>
     <div class="gains-overview"><div class="gains-console">
       <nav aria-label="Tableau de bord des gains"><strong>MC / gains</strong>
-        <button type="button" data-pane="projection" aria-pressed="true">Projections</button>
-        <button type="button" data-pane="contribution" aria-pressed="false">Contributions</button>
-        <button type="button" data-pane="method" aria-pressed="false">Méthode</button></nav>
+        <button type="button" data-pane="projection" aria-pressed="true">${icon('projection')}Projections</button>
+        <button type="button" data-pane="contribution" aria-pressed="false">${icon('contribution')}Contributions</button>
+        <button type="button" data-pane="method" aria-pressed="false">${icon('method')}Méthode</button><small>Mathieu Comtesse</small></nav>
       <div class="gains-console-body">
         <section data-panel="projection" aria-label="Projections">
-          <div class="gains-console-fields">
+          <div class="gains-console-top"><h3>Une année de temps libéré</h3><div class="gains-console-fields">
             <label>Périmètre<select data-scope><option value="declared">Volumes fournis</option><option value="total">Avec estimations</option><option value="net">Net · année 1</option></select></label>
             <label>Unité<select data-unit>${unitOptions}</select></label>
             <label>Courbe<select data-model><option value="linear">Cumul à rythme constant</option><option value="exp">Scénario exponentiel</option></select></label>
           </div>
+          </div><div class="gains-console-chart">
+          <span class="gains-console-chart-label">Projection annuelle</span>
           <header class="gains-console-total"><strong data-total></strong><span data-other></span></header>
           <div class="gains-console-probe">
           <svg class="gains-console-graph" viewBox="0 0 500 185" aria-hidden="true"></svg>
@@ -41,9 +56,9 @@ export function initGainsConsole(head) {
           </div>
           <p class="gains-console-status" data-amount role="status"></p>
           <p class="gains-console-note" data-projection-note></p>
-          <div class="gains-console-projects" role="group" aria-label="Courbe par projet">
+          </div><div class="gains-console-projects" role="group" aria-label="Courbe par projet">
             <button type="button" data-project="" aria-pressed="true"><span>Tous les projets</span><strong data-project-total></strong></button>
-            ${ANNUAL_GAINS.map(p=>`<button type="button" data-project="${p.id}" aria-pressed="false"><span>${p.title}</span><strong>${format(mean(p),1)} h</strong><small data-estimated="${p.estimated}">${p.estimated?'Estimation':'Volume fourni'}</small></button>`).join('')}
+            ${ANNUAL_GAINS.map(p=>`<button type="button" data-project="${p.id}" aria-pressed="false"><span class="gains-project-name"><i data-icon="${p.id}">${icon(p.id)}</i><span>${p.title}</span></span><strong>${format(mean(p),1)} h</strong><small data-estimated="${p.estimated}">${p.estimated?'Estimation':'Volume fourni'}</small></button>`).join('')}
           </div>
         </section>
         <section data-panel="contribution" aria-label="Contributions" hidden>
@@ -51,7 +66,7 @@ export function initGainsConsole(head) {
             <label>Unité <select data-bars-unit>${unitOptions}</select></label></div>
           <div class="gains-console-rows">
             ${ANNUAL_GAINS.map(p=>`<details data-bar="${p.id}"><summary>
-              <span>${p.title}</span><strong data-bar-value></strong>
+              <span class="gains-project-name"><i data-icon="${p.id}">${icon(p.id)}</i><span>${p.title}</span></span><strong data-bar-value></strong>
               <span class="gains-bar-track" aria-hidden="true"><i data-estimated="${p.estimated}"></i></span>
             </summary><p>${p.basis}. Fourchette : <span data-bar-range></span>.</p></details>`).join('')}
           </div><p class="gains-bar-legend"><span>Volumes fournis</span><span>Estimations</span></p>

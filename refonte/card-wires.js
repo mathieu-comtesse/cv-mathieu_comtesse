@@ -117,6 +117,10 @@ export function avanceFil(state, time, visible, delay=0) {
 }
 
 // Une liaison sortante conserve ses ancrages jusqu'à la fin du retrait.
+export function lienMenuSurvole(nav) {
+  return nav.querySelector('a:hover')||nav.querySelector('a:focus-visible');
+}
+
 export function arcMenu(ctx,nav,state,time,preview,alpha=1) {
   const active=nav.querySelector('[aria-current="location"]');
   if(active!==state.active){
@@ -138,9 +142,11 @@ export function arcMenu(ctx,nav,state,time,preview,alpha=1) {
     const [start,end]=[arc.source,arc.target].map(origineChapitre);
     const gap=end.y-start.y;
     if(Math.abs(gap)<2)continue;
-    const reach=Math.min(92,22+Math.abs(gap)*.27);
-    const point=t=>({x:start.x+(end.x-start.x)*t+reach*Math.sin(Math.PI*t),
+    const reach=Math.min(105,19+Math.abs(gap)*.32);
+    // La courbe quitte le menu à l'horizontale et rejoint le point d'arrivée.
+    const point=t=>({x:start.x+(end.x-start.x)*t+reach*4*t*(1-t),
       y:start.y+gap*ease(t)});
+    const pulse=selected&&time!==null?limit((arc.progress.age-.29)/.57):0;
     ctx.save();
     ctx.lineCap='round';
     ctx.lineWidth=.85;
@@ -154,7 +160,6 @@ export function arcMenu(ctx,nav,state,time,preview,alpha=1) {
       ctx.lineTo(p.x,p.y);
     }
     ctx.stroke();
-    ctx.strokeStyle='#d5e8ff50';
     for(const row of rows){
       const ratio=(row.y-start.y)/gap;
       if(ratio<=.01||ratio>=.99)continue;
@@ -162,16 +167,19 @@ export function arcMenu(ctx,nav,state,time,preview,alpha=1) {
       for(let i=0;i<12;i++){const mid=(lo+hi)/2;if(ease(mid)<ratio)lo=mid;else hi=mid;}
       const t=(lo+hi)/2;
       if(t>=edge)continue;
-      ctx.globalAlpha=alpha*limit((edge-t)*9);
-      ctx.beginPath();ctx.moveTo(row.x+6,row.y);ctx.lineTo(point(t).x,row.y);ctx.stroke();
+      const pin=point(t), endX=row.x+5;
+      const spread=limit((edge-t)*6);
+      const branchGlow=Math.max(0,1-Math.abs(pulse-t)*7);
+      ctx.globalAlpha=alpha*spread;
+      ctx.strokeStyle=branchGlow>.2?'#a9efd994':'#c4deef45';
+      ctx.beginPath();ctx.moveTo(pin.x,row.y);ctx.lineTo(pin.x+(endX-pin.x)*spread,row.y);ctx.stroke();
     }
     ctx.globalAlpha=alpha;
     ctx.fillStyle='#e5fff9';
     ctx.beginPath();ctx.arc(start.x,start.y,2.2,0,Math.PI*2);ctx.fill();
     const tip=point(edge);
     ctx.beginPath();ctx.arc(tip.x,tip.y,edge<1?1.7:2.35,0,Math.PI*2);ctx.fill();
-    if(selected&&time!==null&&edge===1){
-      const pulse=limit((arc.progress.age-.34)/.48);
+    if(pulse>0&&pulse<edge){
       const light=point(pulse);
       ctx.globalAlpha=alpha*Math.sin(Math.PI*pulse)*.82;
       ctx.beginPath();ctx.arc(light.x,light.y,1.6,0,Math.PI*2);ctx.fill();

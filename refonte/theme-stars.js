@@ -3,7 +3,7 @@ import {initFlatColourRenderer} from './flat-colour-renderer.js?v=1';
 import {surfaceGraph,brancheSpectrale} from './fall26-graph-adapter.js?v=1';
 import {poussiere,notesCadre} from './card-effects.js?v=4';
 import { fonduChapitre } from './moteur.js?v=m36';
-import { avanceBranche, brancheCarte, origineChapitre, arcMenu, avanceFil } from './card-wires.js?v=6';
+import { avanceBranche, brancheCarte, origineChapitre, arcMenu, avanceFil, lienMenuSurvole } from './card-wires.js?v=7';
 
 /* Étoiles des titres (mode à plat). Chaque grand titre (chapitre : « Projets professionnels » ; thème : « Faire fonctionner »…)
  * garde sa taille et reçoit une étoile : un foyer carré blanc posé près du titre, d'où partent des branches.
@@ -338,7 +338,7 @@ function scene(chapitres) {
     poussiere(ctx,W,H,libre?tt:null,scrollY);
     const notes=[];
     if(vuNav&&W>=940){
-      const preview=nav.querySelector('a:is(:hover,:focus-visible)');
+      const preview=lienMenuSurvole(nav);
       arcMenu(ctx,nav,menuArc,libre?tt:null,preview);
       const focusId=preview?.hash.slice(1);
       const focusSection=document.getElementById(focusId || '')?.closest('[data-f26-page-section]');
@@ -346,7 +346,8 @@ function scene(chapitres) {
       const wireTime=libre?tt:null;
       function drawTrack(track,visible){
         track.state=avanceFil(track.state,wireTime,visible,track.delay);
-        const progress=track.progress*track.state.head;
+        const length=track.state.head;
+        const progress=track.progress*length*length*(3-2*length);
         if(!progress)return;
         ctx.save();ctx.globalAlpha=Math.min(1,track.state.head*1.6);
         if(brancheCarte(ctx,origineChapitre(track.lien),track.end,{t:wireTime,id:track.id,progress,active:track.bright,pointer:souris,emit:track.bright?undefined:emit})){
