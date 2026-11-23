@@ -3,7 +3,7 @@ import {initFlatColourRenderer} from './flat-colour-renderer.js?v=1';
 import {surfaceGraph,brancheSpectrale} from './fall26-graph-adapter.js?v=1';
 import {poussiere,notesCadre} from './card-effects.js?v=4';
 import { fonduChapitre } from './moteur.js?v=m36';
-import { avanceBranche, brancheCarte, origineChapitre, arcMenu } from './card-wires.js?v=5';
+import { avanceBranche, brancheCarte, origineChapitre, arcMenu, avanceFil } from './card-wires.js?v=6';
 
 /* Étoiles des titres (mode à plat). Chaque grand titre (chapitre : « Projets professionnels » ; thème : « Faire fonctionner »…)
  * garde sa taille et reçoit une étoile : un foyer carré blanc posé près du titre, d'où partent des branches.
@@ -186,7 +186,7 @@ function scene(chapitres) {
     c.titre.style.setProperty('--cv-fill', reduit.matches ? '1' : '0');
   }
   /* liste fixe des chapitres, à gauche : repère de lecture pendant les transitions */
-  const menuArc={};
+  const menuArc={}, cardTracks=new Map();
   const nav = document.createElement('nav'); nav.className = 'cv-flat-nav'; nav.setAttribute('aria-label', 'Chapitres');
   const liens = new Map();
   for (const destination of document.querySelectorAll('#hero .hero-nav-link[href]')) {
@@ -342,11 +342,23 @@ function scene(chapitres) {
       arcMenu(ctx,nav,menuArc,libre?tt:null,preview);
       const focusId=preview?.hash.slice(1);
       const focusSection=document.getElementById(focusId || '')?.closest('[data-f26-page-section]');
+      const visited=new Set();
+      const wireTime=libre?tt:null;
+      function drawTrack(track,visible){
+        track.state=avanceFil(track.state,wireTime,visible,track.delay);
+        const progress=track.progress*track.state.head;
+        if(!progress)return;
+        ctx.save();ctx.globalAlpha=Math.min(1,track.state.head*1.6);
+        if(brancheCarte(ctx,origineChapitre(track.lien),track.end,{t:wireTime,id:track.id,progress,active:track.bright,pointer:souris,emit:track.bright?undefined:emit})){
+          liensLus++;
+          if(track.text&&progress>.97){ctx.strokeStyle='#e6f4ffd0';ctx.lineWidth=.75;ctx.strokeRect(track.end.x-1.75,track.end.y-1.75,3.5,3.5);}
+        }
+        ctx.restore();
+      }
       for(const c of chapitres){
         if(c!==actif&&c.section!==focusSection)continue;
         const lien=c.section===focusSection ? preview : liens.get(idActif)||c.lien;
         if(!lien)continue;
-        const a=origineChapitre(lien);
         const rubrique=document.getElementById(lien.hash.slice(1));
         const cards=rubrique?.matches('.rf-sk-grp')?[rubrique]:c.fiches;
         for(const [index,card] of cards.entries()){
@@ -358,14 +370,23 @@ function scene(chapitres) {
           const fiche=card.querySelector('[data-fiche]');
           if(fiche){const edge=card.getBoundingClientRect();notes.push({element:fiche,x:edge.right,y:b.y,bottom:edge.bottom});}
           const bright=!focusSection||c.section===focusSection;
-          const progress=avanceBranche(b.y,H,!libre);
-          if(brancheCarte(ctx,a,b,{t:libre?tt:null,id:card.id||c.section.id+':'+index,progress,active:bright,pointer:souris,emit:bright?undefined:emit})){
-            liensLus++;
-            if(text&&progress>.97){ctx.strokeStyle='#e6f4ffd0';ctx.lineWidth=.75;ctx.strokeRect(b.x-1.75,b.y-1.75,3.5,3.5);}
-          }
+          const id=lien.hash+':'+(card.id||c.section.id+':'+index);
+          const track=cardTracks.get(id)||{id,lien,state:null};
+          Object.assign(track,{end:b,bright,text,marker:marker||text,progress:avanceBranche(b.y,H,!libre),delay:Math.min(.16,Math.abs(b.y-origineChapitre(lien).y)*.00055)});
+          cardTracks.set(id,track);visited.add(id);
+          drawTrack(track,true);
         }
       }
-    }
+      for(const [id,track] of cardTracks){
+        if(visited.has(id))continue;
+        const r=track.marker.getBoundingClientRect();
+        if(r.bottom>76&&r.top<H-48){
+          track.end={x:track.end.x,y:r.top+(track.text?Math.min(9,r.height/2):r.height/2)};
+          drawTrack(track,false);
+        }else track.state=null;
+        if(!track.state?.head)cardTracks.delete(id);
+      }
+    }else cardTracks.clear();
     fil.render(W,H,dpr,edges);
     notesCadre(ctx,notes,W,H,souris);
 

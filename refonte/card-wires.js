@@ -105,7 +105,18 @@ export function origineChapitre(lien) {
   return {x:r.right-2,y:r.top+r.height/2};
 }
 
-// Un arc dans la gouttière relie le chapitre lu à celui que le lecteur survole.
+const limit = n => Math.max(0, Math.min(1, n));
+const ease = n => n*n*(3-2*n);
+
+export function avanceFil(state, time, visible, delay=0) {
+  if(time===null)return {head:Number(visible),time:null,age:0};
+  const dt=state?.time==null?0:Math.min(.055,Math.max(0,time-state.time));
+  const age=visible?(state?.age||0)+dt:0;
+  const head=limit((state?.head||0)+(visible?(age>=delay?dt/.34:0):-dt/.24));
+  return {head,time,age};
+}
+
+// Une liaison sortante conserve ses ancrages jusqu'à la fin du retrait.
 export function arcMenu(ctx,nav,state,time,preview,alpha=1) {
   const active=nav.querySelector('[aria-current="location"]');
   if(active!==state.active){
@@ -113,43 +124,59 @@ export function arcMenu(ctx,nav,state,time,preview,alpha=1) {
     state.active=active;
     state.changed=time??0;
   }
-  const other=preview||((time!==null&&time-state.changed<.65)?state.previous:null);
-  const visible=Boolean(active&&other&&other!==active);
-  const dt=time===null?0:Math.min(.05,Math.max(0,time-(state.time??time)));
-  state.amount=time===null?Number(visible):Math.max(0,Math.min(1,(state.amount||0)+dt*(visible?5:-7)));
-  state.time=time;
-  if(visible)state.ends=[active,other];
-  if(!state.amount||!state.ends)return;
-  const [source,target]=state.ends.map(origineChapitre);
-  const radius=Math.max(20,Math.min(88,Math.abs(source.y-target.y)*.46));
-  const point=t=>({x:source.x+(target.x-source.x)*t+4*radius*t*(1-t),y:source.y+(target.y-source.y)*t});
-  const edge=state.amount*state.amount*(3-2*state.amount);
-  ctx.save();
-  ctx.globalAlpha=alpha;
-  ctx.lineWidth=.85;
-  ctx.strokeStyle='#d8edff91';
-  ctx.beginPath();
-  for(let i=0;i<=28;i++){
-    const p=point(i*edge/28);
-    if(i)ctx.lineTo(p.x,p.y);
-    else ctx.moveTo(p.x,p.y);
+  const target=preview||((time!==null&&time-state.changed<.68)?state.previous:null);
+  const arcs=state.arcs??=[];
+  if(active&&target&&active!==target&&!arcs.some(a=>a.source===active&&a.target===target)){
+    arcs.push({source:active,target,progress:null});
   }
-  ctx.stroke();
-  ctx.strokeStyle='#d8edff36';
-  for(const lien of nav.querySelectorAll('a')){
-    const row=origineChapitre(lien);
-    const t=(row.y-source.y)/(target.y-source.y);
-    if(t<=.02||t>=edge-.02)continue;
-    ctx.beginPath();
-    ctx.moveTo(row.x+7,row.y);
-    ctx.lineTo(point(t).x,row.y);
+  const rows=[...nav.querySelectorAll('a')].map(origineChapitre);
+  for(const arc of arcs){
+    const selected=arc.source===active&&arc.target===target;
+    arc.progress=avanceFil(arc.progress,time,selected);
+    const edge=ease(arc.progress.head);
+    if(!edge)continue;
+    const [start,end]=[arc.source,arc.target].map(origineChapitre);
+    const gap=end.y-start.y;
+    if(Math.abs(gap)<2)continue;
+    const reach=Math.min(92,22+Math.abs(gap)*.27);
+    const point=t=>({x:start.x+(end.x-start.x)*t+reach*Math.sin(Math.PI*t),
+      y:start.y+gap*ease(t)});
+    ctx.save();
+    ctx.lineCap='round';
+    ctx.lineWidth=.85;
+    const light=ctx.createLinearGradient(start.x,start.y,end.x,end.y);
+    light.addColorStop(0,'#c1f7edbb');light.addColorStop(.56,'#b4d7fc48');light.addColorStop(1,'#e5f7ffaf');
+    ctx.strokeStyle=light;
+    ctx.globalAlpha=alpha*Math.min(1,edge*2);
+    ctx.beginPath();ctx.moveTo(start.x,start.y);
+    for(let i=1;i<=32;i++){
+      const p=point(i*edge/32);
+      ctx.lineTo(p.x,p.y);
+    }
     ctx.stroke();
+    ctx.strokeStyle='#d5e8ff50';
+    for(const row of rows){
+      const ratio=(row.y-start.y)/gap;
+      if(ratio<=.01||ratio>=.99)continue;
+      let lo=0,hi=1;
+      for(let i=0;i<12;i++){const mid=(lo+hi)/2;if(ease(mid)<ratio)lo=mid;else hi=mid;}
+      const t=(lo+hi)/2;
+      if(t>=edge)continue;
+      ctx.globalAlpha=alpha*limit((edge-t)*9);
+      ctx.beginPath();ctx.moveTo(row.x+6,row.y);ctx.lineTo(point(t).x,row.y);ctx.stroke();
+    }
+    ctx.globalAlpha=alpha;
+    ctx.fillStyle='#e5fff9';
+    ctx.beginPath();ctx.arc(start.x,start.y,2.2,0,Math.PI*2);ctx.fill();
+    const tip=point(edge);
+    ctx.beginPath();ctx.arc(tip.x,tip.y,edge<1?1.7:2.35,0,Math.PI*2);ctx.fill();
+    if(selected&&time!==null&&edge===1){
+      const pulse=limit((arc.progress.age-.34)/.48);
+      const light=point(pulse);
+      ctx.globalAlpha=alpha*Math.sin(Math.PI*pulse)*.82;
+      ctx.beginPath();ctx.arc(light.x,light.y,1.6,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
   }
-  ctx.fillStyle='#fff';
-  for(const p of [source,point(edge)]){
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,2.25,0,Math.PI*2);
-    ctx.fill();
-  }
-  ctx.restore();
+  state.arcs=arcs.filter(arc=>arc.progress.head>0||arc.source===active&&arc.target===target);
 }

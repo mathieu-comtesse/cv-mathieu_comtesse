@@ -198,3 +198,43 @@ html body .gains-editorial li{position:relative;padding-left:11px;font:550 14px/
 .gains-console-rows summary small{grid-column:1/-1;color:#9dedcd}.gains-console-rows details p{font-size:12px}
 @media(max-width:1050px){.gains-console nav{gap:4px;padding:6px}.gains-console{grid-template-columns:1fr}.gains-console nav{flex-flow:row wrap;align-items:center}.gains-console nav strong{margin:0 3px}}
 @media(max-width:480px){.gains-chart:has(.gains-console) .gains-overview{padding:10px 6px}.gains-console{padding:6px}.gains-console-body{padding:8px}}
+
+.gains-chart:has(.gains-console){overflow:visible!important}
+.gains-console-body{height:auto;min-height:clamp(335px,36vw,495px);overflow:visible}
+.gains-console [hidden]{display:none!important}
+.gains-console-probe{position:relative}
+.gains-console-tip{position:absolute;z-index:6;left:0;top:42%;transform:translateX(-87%);width:min(220px,85vw);box-sizing:border-box;padding:12px;border:1px solid #65786f;border-radius:12px;background:#303d37;box-shadow:0 12px 28px #050c0955;color:#effaf5;pointer-events:none;font:600 11px/1.35 var(--expo-sans,system-ui)}
+.gains-console-tip>strong{display:block;margin-bottom:9px}
+.gains-console-tip>strong span{color:#84eac5;margin-right:4px}
+.gains-console-tip dl{margin:0}
+.gains-console-tip dl>div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:4px 0}
+.gains-console-tip dl>div:nth-child(3){border-top:1px solid #64756b;margin-top:4px;padding-top:8px}
+.gains-console-tip dd{margin:0;text-align:right;white-space:nowrap}
+.gains-console-tip dl>div:first-child dd{font-size:18px;line-height:1}
+.gains-console-projects{margin-top:10px;border:1px solid #63766c;border-radius:8px;overflow:hidden}
+.gains-console-projects button{display:grid;align-items:center;grid-template-columns:minmax(0,1fr) auto;gap:2px 7px;width:100%;border:0;border-bottom:1px solid #52665c;padding:5px 7px;text-align:left;background:#2b3731;color:#effaf5;font:600 11px/1.2 var(--expo-sans,system-ui);cursor:pointer}
+.gains-console-projects button:last-child{border-bottom:0}
+.gains-console-projects button:is(:hover,[aria-pressed="true"]){background:#466257}
+.gains-console-projects button:focus-visible{outline-offset:-2px}
+.gains-console-projects small{grid-column:1/-1;width:max-content;background:#365a4e;color:#c2fae6;border-radius:8px;padding:2px 6px;line-height:1;font-size:9px}
+.gains-console-projects small[data-estimated=true]{background:#504763;color:#eee1ff}
+.gains-console-section-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.gains-console-section-head h3{margin:0}
+.gains-console-section-head select{background:#212e28;color:#effaf5;border:1px solid #80988b;border-radius:4px;padding:4px}
+.gains-console-rows summary{row-gap:5px}
+.gains-bar-track{grid-column:1/-1;display:block;height:7px;background:#1c2b25;border-radius:5px;overflow:hidden}
+.gains-bar-track i{display:block;width:var(--bar-length,0%);height:100%;background:#82dfc4;border-radius:5px;transition:width .25s}
+.gains-bar-track i[data-estimated=true]{background:#cbb5ee}
+.gains-console-rows p,.gains-console [data-panel="method"] :is(li,p){font-size:12px;line-height:1.35}
+.gains-bar-legend{display:flex;flex-wrap:wrap;gap:8px 12px;font-size:11px!important}
+.gains-bar-legend span::before{content:"";display:inline-block;width:8px;height:6px;margin-right:5px;border-radius:2px;background:#82dfc4}
+.gains-bar-legend span:last-child::before{background:#cbb5ee}
+.gains-console [data-panel="method"] ul{display:grid;gap:7px;padding-left:16px;margin:0 0 12px}
+@media(max-width:1050px){.gains-console-tip{left:auto;right:0;top:35%;transform:none}}
+@media(prefers-reduced-motion:reduce){.gains-bar-track i{transition:none}}
+.gains-chart:has(.gains-console) .gains-overview{overflow:visible}
+@media(min-width:1220px){
+ .gains-console-projects button{grid-template-columns:minmax(0,1fr) auto minmax(72px,auto)}
+ .gains-console-projects button:first-child{grid-template-columns:minmax(0,1fr) auto}
+ .gains-console-projects small{grid-column:auto;justify-self:end}
+}

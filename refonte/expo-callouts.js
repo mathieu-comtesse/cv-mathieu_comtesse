@@ -1,12 +1,10 @@
-import {brancheCarte} from './card-wires.js?v=5';
-export {origineChapitre,arcMenu} from './card-wires.js?v=5';
+import {brancheCarte,avanceFil} from './card-wires.js?v=6';
+export {origineChapitre,arcMenu} from './card-wires.js?v=6';
 
 const top=72,bottom=76,clearance=32;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 export function progressionFilExpo(previous,time,expose){
-  if(time===null)return {head:Number(expose),time:0};
-  const dt=previous?clamp(time-previous.time,0,.1):0;
-  return {head:clamp((previous?.head||0)+dt*(expose?1/.32:-1/.24),0,1),time};
+  return avanceFil(previous,time,expose,.045);
 }
 
 export function filExpo(ctx,last,time,{id,menu,marker,corners,height,active,pointer,opacity}){
