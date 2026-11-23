@@ -8,17 +8,17 @@ const read = (f) => readFileSync(new URL(f, ROOT), 'utf8');
 const one = (re, s) => (re.exec(s) || ['', ''])[1].trim();
 
 const summaries = {
-  'projet-finance': 'Power Automate surveille les seuils de quatre budgets et alerte quand les dépenses dépassent les fonds disponibles.',
-  'projet-vmvre': 'Une VM Windows relève les demandes SharePoint, traite les rapports VRE et met à jour le suivi Excel.',
-  'projet-moteur44': 'Le Reporteur Q18 retrouve dans Excel les contrôles à suivre pour alimenter Power BI.',
-  'projet-pa': 'Les plans de prévention déposés sont extraits, classés sur SharePoint et suivis par des alertes et des relances.',
-  'projet-cerfa': 'Les données des fiches CERFA alimentent le suivi du parc d’équipements.',
-  'projet-vre': 'Les contrôles électriques des rapports VRE deviennent des données que l’équipe peut filtrer et suivre.',
-  'projet-lecteur-vre': 'Le lecteur extrait les données des rapports VRE et permet de les contrôler dans le document source.',
-  'projet-powerbi': 'Power BI réunit l’extraction de données, leur rangement sur SharePoint et leur archivage.',
-  'projet-studio': 'Le studio permet de construire un extracteur PDF sans code et de le réutiliser pour une famille de documents.',
-  'projet-suivi': 'Une interface réunit le suivi d’un ordre de travail, d’un équipement ou d’un bâtiment.',
-  'projet-gares': 'Un rapport Power BI aide à repérer les gares qui demandent une surveillance prioritaire.',
+  'projet-finance': 'Repère les dépassements budgétaires et préviens les équipes dès qu’un seuil est franchi.',
+  'projet-vmvre': 'Du dépôt SharePoint au suivi Excel, les rapports VRE avancent automatiquement.',
+  'projet-moteur44': 'Relie chaque contrôle Q18 à son rapport et retrouve-le dans le suivi.',
+  'projet-pa': 'Classe les plans de prévention à leur arrivée et relance les dossiers à échéance.',
+  'projet-cerfa': 'Vérifie les documents liés aux fluides frigorigènes et repère les pièces manquantes.',
+  'projet-vre': 'Transforme les observations des rapports électriques en données à filtrer et à suivre.',
+  'projet-lecteur-vre': 'Extrait les données des rapports et vérifie chaque champ dans le PDF.',
+  'projet-powerbi': 'Réunit les données de suivi pour les analyser, les classer et les archiver.',
+  'projet-studio': 'Compose un lecteur de PDF et réutilise ses règles sur toute une famille de documents.',
+  'projet-suivi': 'Retrouve l’historique d’un ordre de travail, d’un équipement ou d’un bâtiment au même endroit.',
+  'projet-gares': 'Identifie les gares à surveiller en priorité à partir des indicateurs disponibles.',
 };
 const horizontal = new Set(['projet-finance', 'projet-vmvre', 'projet-moteur44']);
 const BP_FIG = {};   // figures du livre en dessin à plat (refonte/post.js : moteur 16, pp 52, vm 69) : non utilisées, ces trois projets sont en volume 3D
