@@ -206,21 +206,10 @@ export const ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u)
 export const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 export const hash = (i) => { let h = Math.imul(i + 5, 2654435761) >>> 0; h ^= h >>> 15; return (Math.imul(h, 2246822519) >>> 0) / 4294967296; };
 
-/* Scène d'une machine : lumières douces, ombre portée sur le plan (ShadowMaterial) et groupe mis à l'échelle. */
+/* Scène d'une machine en rendu trait (voir lines.js) : ni lumière, ni ombre, ni sol ; fond transparent sur le plan blueprint. */
 export function makeStage(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: !diagOn('aa'), alpha: true, powerPreference: 'low-power' });
   renderer.setPixelRatio(dprCap(Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1.5 : 2)));
   renderer.setClearColor(0x000000, 0); renderer.localClippingEnabled = true;
-  renderer.shadowMap.enabled = !diagOn('shadow'); renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  const scene = new THREE.Scene();
-  scene.add(DA.on ? new THREE.HemisphereLight(0xffe9d6, 0xf2a68c, 0.9) : new THREE.HemisphereLight(0xffffff, 0xa9b8e6, 1.9));
-  const sun = new THREE.DirectionalLight(DA.on ? 0xffe3c4 : 0xffffff, DA.on ? 2.6 : 2.3);
-  sun.position.set(-9, 16, 8); sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048); sun.shadow.radius = 5; sun.shadow.bias = -.0005;
-  Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 1, far: 50 });
-  scene.add(sun);
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial(DA.on ? { opacity: .5, color: 0x563a92 } : { opacity: .38, color: 0x000a50 }));
-  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; ground.position.y = .004;
-  scene.add(ground);
-  return { renderer, scene };
+  return { renderer, scene: new THREE.Scene() };
 }
