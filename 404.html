@@ -17,6 +17,13 @@ ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 a{display:inline-flex;align-items:center;min-height:44px;color:#b9c9ff}
 a:focus-visible{outline:2px solid #b9c9ff;outline-offset:3px;border-radius:4px}
 </style>
+<script>
+/* anciennes pages supprimées : on part sur le nouveau site, la fiche d'un projet ouvre sa carte sur l'accueil */
+(function(){var p=location.pathname.replace(/\.html$/,'').replace(/\/$/,'').split('/').pop()||'',
+ m=p.match(/^(?:projet|article)-(cerfa|finance|gares|lecteur-vre|moteur44|pa|powerbi|studio|suivi|vmvre|vre)$/),
+ h=m?'#projet-'+m[1]:p==='gains'?'#work':p==='blog'?'#cv-blog':/^(experiences|info|parcours|cv)$/.test(p)?'#rf-tl':'';
+ location.replace('/'+h);})();
+</script>
 </head>
 <body>
 <main>
@@ -25,7 +32,7 @@ a:focus-visible{outline:2px solid #b9c9ff;outline-offset:3px;border-radius:4px}
   <ul>
     <li><a href="/">Accueil</a></li>
     <li><a href="/#projets">Projets</a></li>
-    <li><a href="/experiences">Parcours et expériences</a></li>
+    <li><a href="/#rf-tl">Parcours</a></li>
     <li><a href="/assets/cv-ats-mathieu-comtesse.pdf">CV (PDF)</a></li>
     <li><a href="/#contact">Contact</a></li>
   </ul>
