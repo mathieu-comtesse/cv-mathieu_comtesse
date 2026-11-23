@@ -831,3 +831,18 @@ Chaque position garde son identifiant, sa couleur et sa ligne de temps (chaîne 
 ## Fiches de projets compactes
 
 Référence : cadres de 400 à 735 px de haut (titre, texte court, média, bouton vers le détail). Avant : chaque fiche de projet affichait tout son contenu (environ 3 500 px). Après (`tools/compacte-projets.py`, passage unique) : rubrique, titre, sous-titre, « L'idée », **deux chiffres clés** tirés de « Ce que ça change » (temps libéré, valorisation), image de la machine et ses boutons restent visibles ; « L'objet en action », la démo, le projet, « Comment ça marche » et la construction se déplient avec « Voir le détail » (élément `details` natif, accessible au clavier, ouvert automatiquement quand un lien pointe à l'intérieur). Hauteur mesurée à 1 400 × 900 : 499 px par fiche (3 514 px une fois dépliée), aucune erreur de page.
+
+## Prose au ton des Éditions Shopify Automne 2026 (version française relevée en ligne)
+
+Relevé du ton (`shopify.com/fr/editions/fall2026`, 11 sections) : grand cadre = titre-bénéfice en groupe nominal (« Toute votre boutique gérée depuis une vue unique »), une ou deux phrases au présent, l'outil en sujet, chute courte (« Demandez-lui une fois : il s'en souviendra. ») ; petite entrée = une phrase à l'impératif ; boutons « En savoir plus », « Afficher l'aide » ; légendes chiffrées (« Plus de 12 000 … chaque minute »).
+
+| Texte | Avant | Après | Règle |
+|---|---|---|---|
+| 11 fiches de projets | rubrique, nom de l'outil, sous-titre, « L'idée » | titre-bénéfice (« Des dépassements de budget signalés le matin même ») + 1 à 2 phrases (outil en sujet) + chiffres clés | `tools/prose-projets.py` ; chaque phrase reprend un fait de la fiche |
+| 4 introductions de types | 2 à 4 notes | une phrase de promesse | idem |
+| Bouton de détail | « Voir le détail » | « En savoir plus » | libellé de la référence |
+| Légendes de l'accueil | « 3 200 à 4 000 h libérées… » | « Plus de 3 200 heures libérées chaque année pour les équipes » | format chiffre en tête |
+| Présentation (Parcours) | ton familier (« Salut ! ») | phrases courtes, mêmes faits | `tools/prose-accueil-parcours.py` |
+| Tailles | titre de fiche ≈ 28 px, texte 16 px, colonne ≈ 220 px | titre et texte 18 px, texte atténué, colonne 400 px | relevés de la référence |
+
+Non réécrit, faute de matière : les 46 compétences et les 11 jeux n'ont qu'un nom dans le site. Les transformer en phrases d'action, comme les petites entrées de la référence, demanderait d'inventer ce qu'ils recouvrent ; une ligne par compétence et par jeu fournie par Mathieu permettrait de le faire. Les détails dépliables des projets gardent leur texte d'origine.
