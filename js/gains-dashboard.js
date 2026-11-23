@@ -1,6 +1,7 @@
 import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v69';
+import { initGainsConsole } from './gains-console.js?v=1';
 import { createGainsOverview } from './gains-overview.js?v=3';
-import { ANNUAL_GAINS, ANNUAL_DECLARED, ANNUAL_TOTAL, ANNUAL_NET, ANNUAL_COST, HOURS_PER_FTE, euroCoinRhythm } from './annual-gains.js?v=cv-scene-v60';
+import { ANNUAL_GAINS, ANNUAL_DECLARED, ANNUAL_TOTAL, ANNUAL_NET, ANNUAL_COST, HOURS_PER_FTE, euroCoinRhythm } from './annual-gains.js?v=cv-scene-v61';
 
 const f = (n, digits = 0) => n.toLocaleString('fr-FR', { maximumFractionDigits: digits });
 const mean = (t, unit = 'Money') => (t['min' + unit] + t['max' + unit]) / 2;
@@ -32,6 +33,7 @@ export function initGainsDashboard() {
   if (!head) return;
   head.classList.add('gains-heading');
   const embedded=head.closest('[data-no-piggy]')!==null;
+  if (embedded) { initGainsConsole(head); return; }
   head.innerHTML = `<div class="annual-gains"><div class="annual-pig-wrap"></div>
     <div class="gains-intro"><span class="gains-eyebrow">Du temps rendu aux équipes</span><h1>Les gains, en clair.</h1>
     <p>Du temps libéré, valorisé à 104,74 €/h.</p></div>

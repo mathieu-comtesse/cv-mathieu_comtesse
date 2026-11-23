@@ -293,3 +293,7 @@ html body .cv-pf-main .sc-mec-path p{margin:0 0 10px!important;color:#e2e8ff;fon
   html body :is(.cv-flat-nav,.cv-parity-nav) a[data-chapter]::after,
   html body .cv-flat-nav a::after{width:6px;height:6px}
 }
+
+.cv-vre-flow{display:grid;place-items:center;padding:9px;background:#fff;border-radius:0 0 11px 11px}
+.cv-vre-flow img{display:block;width:auto;max-width:100%;height:clamp(175px,19vw,260px);object-fit:contain}
+.cv-vre-flow:focus-visible{outline:2px solid #1d4ed8;outline-offset:-4px}

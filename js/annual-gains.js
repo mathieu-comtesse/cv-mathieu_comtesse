@@ -5,7 +5,7 @@ const hours=(minutes,volume)=>minutes*volume/60;
 const row=(id,title,min,max,basis,estimated=false)=>({id,title,minHours:min,maxHours:max,basis,estimated,minMoney:min*ANNUAL_RATE,maxMoney:max*ANNUAL_RATE});
 export const ANNUAL_GAINS=[
  row('finance','Point financier',hours(25,ANNUAL_DAYS),hours(25,ANNUAL_DAYS),'25 min/jour × 225 jours/an'),
- row('vmvre','VRE · VM',hours(30,4000),hours(30,5000),'30 min × 4 000 à 5 000 rapports/an'),
+ row('vmvre','VRE · dépôt et suivi Excel',hours(30,4000),hours(30,5000),'30 min × 4 000 à 5 000 rapports/an'),
  row('moteur44','Reporteur Q18',hours(15,4000),hours(15,5000),'15 min × 4 000 à 5 000 rapports/an'),
  row('vre','Extracteur VRE',hours(25,4000),hours(25,5000),'25 min × 4 000 à 5 000 rapports/an. Capacité théorique',true),
  row('powerbi','PP & MOSO · traitement',hours(15,400),hours(20,500),'15 à 20 min × 400 à 500 plans/an'),
