@@ -36,10 +36,11 @@ verifie(!/shopify/i.test(metas.site) && !metas.compte && metas.cdn === 0, `méta
 verifie(st.ok.every(Boolean), `chaque section : id, chronologie --f26-page-0 à 10, titre relié (${st.ok.filter(Boolean).length}/11)`);
 verifie(st.dup.length === 0, `aucun identifiant HTML dupliqué (${st.dup.length}${st.dup.length ? ' : ' + st.dup.slice(0, 5).join(', ') : ''}) ; les dégradés SVG des machines, répétés par instance, sont hors périmètre`);
 verifie(st.menu.every((n) => n === 2), `menu des chapitres : une entrée par chapitre, dans les deux menus (${st.menu.join(',')})`);
-verifie(st.cartes.slice(0, 7).join(',') === '6,4,7,7,6,8,8', `cartes des 7 premiers chapitres = compétences d'origine (${st.cartes.slice(0, 7).join(',')})`);
-verifie(st.sk === 0 && st.renvoi.join(',') === IDS.slice(0, 7).join(','), `« Parcours » ne duplique pas les compétences : ${st.sk} bloc, renvoi vers ${st.renvoi.length} chapitres`);
+verifie(st.cartes.slice(0, 7).join(',') === '3,6,3,3,1,10,14', `cartes des 7 premiers chapitres = 4 types de projets (introduction + projets), gains, compétences regroupées (${st.cartes.slice(0, 7).join(',')})`);
+verifie(st.sk === 0 && st.renvoi.join(',') === IDS.slice(5, 8).join(','), `« Parcours » ne duplique pas les compétences : ${st.sk} bloc, renvoi vers ${st.renvoi.length} chapitres de compétences`);
 const noeuds = await p.evaluate((IDS) => { const r = window.__cvHeroGraph.ciel, res = []; for (const e of r.etoiles.values()) for (const n of e.noeuds) if (n.ed) res.push([e.chapitre, n.ed.handle]); return res.map(([c, h]) => { const el = document.getElementById(h), s = el && el.closest('section[data-f26-page-section]'); return !!s && s.id === c; }); }, IDS);
-verifie(noeuds.length === 83 && noeuds.every(Boolean), `les ${noeuds.length} nœuds du graphe pointent vers un élément de leur propre chapitre (${noeuds.filter(Boolean).length} valides)`);
+verifie(noeuds.length === 79 && noeuds.every(Boolean),   // 79 : 11 projets, gains, 38 compétences, 8 savoir-être, 11 jeux, 10 articles
+  `les ${noeuds.length} nœuds du graphe pointent vers un élément de leur propre chapitre (${noeuds.filter(Boolean).length} valides)`);
 
 const TOPS = {}; for (const id of IDS) TOPS[id] = await haut(id);   /* positions à plat : en expo le DOM d'origine est déplacé, le moteur garde ces mesures */
 
