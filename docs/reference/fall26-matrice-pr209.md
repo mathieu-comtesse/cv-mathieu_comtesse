@@ -696,3 +696,19 @@ Décision de l'auteur : annulation du retrait décidé en PR 209 ; mini-jeu orig
 | Fluidité, rendu et ressenti sur GPU | sans objet | banc logiciel de cette session : 0,8 image/s avec le jeu, non représentatif. Une autre session déclare (commit `b275c1f`) 24 vérifications réussies sur un GPU matériel, une partie de 93,8 s au clavier et une vidéo ; non reproduit ici | DÉCLARÉ PAR UNE AUTRE SESSION ; autres GPU, son et tactile réel OUVERTS |
 
 Tests : `tools/test-jeu-coeur.mjs` (noyau, 0,3 s) et `tools/test-jeu.mjs` (navigateur, partie complète au clavier seul) PASS ; non-régression : `test-modes`, `test-branches`, `test-entrypoints`, `test-objets-3d`, `test-machines`, `test-navigation`, `test-site-consistency`, `test-no-shopify --strict`, `test-chapitres expo` PASS ; `test-defilement` : passe seul, échoue par intermittence quand le banc est chargé (timing de 250 ms), module de défilement non modifié.
+
+## Effets du pointeur sur le graphe de l'accueil (analyse REA des scripts publics, code propre)
+
+Méthode : analyse statique des modules du graphe de la référence (outil REA, mode inerte, aucune exécution de code tiers), lecture des paramètres par défaut du moteur de simulation. Aucun code ni asset de la référence n'est copié ; les formules ci-dessous sont réécrites dans `refonte/moteur.js` (`repousse`).
+
+| Comportement observé (réf.) | Paramètre relevé | Reprise dans `moteur.js?v=m30` |
+|---|---|---|
+| Le pointeur repousse les foyers d'après sa **vitesse**, pas sa position | portée 265, intérieur 24, seuil de vitesse 24, vitesse max 1800, élan 1,45, noyau L² | oui, mêmes bornes et même forme |
+| Bouclier : un foyer situé devant le mouvement est moins poussé | bouclier 1 | oui |
+| Retour vers la position d'origine | ressort de rappel | oui (ressort 16, amortissement 6 : choix propre, la référence n'expose pas d'équivalent direct) |
+| Foyers non survolés ralentis | hoverSlow 0,2 | oui (poussée et rappel × 0,2 quand un foyer est survolé) |
+| Voisins du foyer survolé : anneau, étiquette, arête allumée, fondu 0,3 s | 6 voisins au plus | oui (fondu 0,1 s de constante de temps) |
+| Resserrement des rayons du foyer survolé | hoverConstrict 0,25 | déjà présent (0,35) |
+| Sillage de glyphes fluide (WebGPU), aimant, saisie et lancer, orbite lente | fluide GPU, magnetRadius 15, orbite | **non repris** : le sillage demande un rendu GPU, le reste n'est pas relevé sur l'accueil à plat |
+
+Vérification : `node tools/test-pointeur-graphe.mjs` (poussée 37 px au balayage rapide, retour à 0,04 px, aucune poussée à pointeur immobile, voisin et foyers estompés au survol). Le réglage d'amplitude (facteur 1,5) est un choix propre, à comparer à la référence sur matériel réel.
