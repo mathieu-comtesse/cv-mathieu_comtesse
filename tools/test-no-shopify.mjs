@@ -22,7 +22,7 @@ const onze = ['agentic', 'sidekick', 'online', 'merchandising', 'retail', 'payme
 verifie(etat.sections[0] === 'agentic' && onze.every((id, i) => etat.sections.indexOf(id) >= 0 && (i === 0 || etat.sections.indexOf(id) > etat.sections.indexOf(onze[i - 1]))), `sections présentes : les 11 chapitres dans l'ordre, le premier est Prévention & sécurité (${etat.sections.join(', ')})`);
 verifie(etat.secours, 'la feuille de style locale (refonte/site.css) est la feuille principale');
 verifie(etat.largeurTitre > 200, `le titre du premier chapitre est mis en page (${etat.largeurTitre} px)`);
-verifie(etat.etoiles >= 8, `titres en étoile : ${etat.etoiles}`);
+verifie(etat.etoiles >= 5, `titres en étoile : ${etat.etoiles}`);   // 4 intertitres de types de projets devenus titres de chapitre : seuil abaissé de 8 à 5
 verifie(etat.decor, 'la carte du décor est en place');
 verifie(etat.machines > 0, `machines 3D présentes : ${etat.machines}`);
 verifie(etat.parite, 'le moteur du chemin (cadres, graphe) a démarré');
@@ -33,7 +33,7 @@ verifie(bascule && await p.evaluate(() => document.documentElement.classList.con
 /* graphe de l'accueil à plat (relevé avant la bascule), puis contrôles du mode expo sur le moteur original */
 verifie(grapheAPlat && grapheAPlat.foyers >= 12 && grapheAPlat.editoriaux >= 60 && grapheAPlat.total > grapheAPlat.editoriaux * 2, `graphe de l'accueil à plat : ${grapheAPlat?.foyers} foyers, ${grapheAPlat?.editoriaux} nœuds éditoriaux, ${grapheAPlat?.total} nœuds`);
 const expo = await p.evaluate(async () => { const P = window.__cvParity, attend = (ms) => new Promise((r) => setTimeout(r, ms)); scrollTo(0, 0); await attend(5000);
-  const accueil = P.heroNodes().length, cadres = P.boxes().length, titres = P.titles().length; scrollTo(0, document.querySelector('.cv-theme-heading h2').getBoundingClientRect().top + scrollY + 206); await attend(2500);   /* 206 px sous le premier intitulé de thème (« Faire fonctionner »), position de l'ancien contrôle à 3 300 px */
+  const accueil = P.heroNodes().length, cadres = P.boxes().length, titres = P.titles().length; scrollTo(0, document.querySelector('#agentic h2').getBoundingClientRect().top + scrollY + 206); await attend(2500);   /* 206 px sous le titre du premier chapitre (« Faire fonctionner ») */
   const etoiles = P.etoiles(), visible = P.boxes().find((b) => b.shown && !b.hero && b.title); P.raise(visible?.title || ''); await attend(4000);
   const leve = P.boxes().find((b) => b.title === visible?.title), moteur = window.__cvState?.parity?.moteur;
   return { accueil, cadres, titres, etoiles: etoiles.length, etoilesVues: etoiles.filter((e) => e.visible && e.libelle).length, etoilesNoms: etoiles.filter((e) => e.visible).map((e) => e.name + (e.libelle ? '' : ' (sans libellé)')).join(' | '), scrollY: Math.round(scrollY), inclinaison: leve?.pitchDeg, moteur, objets: ['.annual-pig-wrap canvas', '#rf-win', '.pc-inf canvas'].map((s) => !!document.querySelector(s)) }; });

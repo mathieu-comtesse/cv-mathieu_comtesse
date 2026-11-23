@@ -808,3 +808,22 @@ Relevé : positions et tailles des `article` de chaque section, chaîne de grill
 | Texte des cadres | 18 px | 21 à 30 px (`clamp`) ; titres 28 à 44 px forcés | 18 px, titres hérités (18 px) |
 
 Reste différent : la référence garde des cadres de 400 à 735 px de haut (texte court, média, bouton vers le détail) ; nos fiches de projets intègrent tout leur contenu (environ 3 500 px chacune). Ramener ce contenu derrière un bouton est un choix de contenu, non fait ici.
+
+## Ordre des chapitres : projets en tête, par type (avis de Mathieu, confronté et retenu)
+
+Raisonnement : la référence ouvre sur son offre phare ; pour un CV, la preuve la plus forte est la réalisation concrète, et chaque type de projet porte une promesse lisible. Contre-avis retenu : sept chapitres de compétences de 4 à 7 lignes chacun sont trop minces pour un chapitre ; ils sont regroupés pour garder 11 chapitres.
+
+| Position (section) | Avant | Après |
+|---|---|---|
+| 1 `agentic` | Prévention & sécurité | **Faire fonctionner** (introduction + 2 projets) |
+| 2 `sidekick` | Maintenance & exploitation | **Fichiers retrouvés** (introduction + 5 projets) |
+| 3 `online` | Data & automatisation | **Construire une fois** (introduction + 2 projets) |
+| 4 `merchandising` | IA appliquée | **Savoir où regarder** (introduction + 2 projets) |
+| 5 `retail` | Référentiels | **Gains** (tirelire des gains annuels) |
+| 6 `payments` | Méthodes | Maintenance & prévention (10 compétences) |
+| 7 `operations` | Savoir-être | Data & IA (14) |
+| 8 `shop` | Projets professionnels | Référentiels & méthodes (14) |
+| 9 `marketing` | Parcours | Parcours + savoir-être (8) |
+| 10, 11 | Mondes & jeux, Blog & études | inchangés |
+
+Chaque position garde son identifiant, sa couleur et sa ligne de temps (chaîne de couleurs inchangée). Script reproductible : `python3 -I tools/reordonne-chapitres.py index.html` (contrôles : sections équilibrées, 73 cadres avant, 76 après = 3 introductions de types en plus). Menus, liste de l'accueil, données du graphe et liens de Parcours mis à jour ; titres en double des introductions retirés (ancres `s-p0` à `s-p3` conservées).

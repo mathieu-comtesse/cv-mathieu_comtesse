@@ -15,7 +15,7 @@ p.on('pageerror', (e) => erreurs.push(String(e.message).slice(0, 200)));
 await p.goto('http://talas.test/index.html', { waitUntil: 'load' }); await p.waitForFunction(() => window.__cvStandardPath && window.__cvHeroGraph, null, { timeout: 90000 }); await p.waitForTimeout(3000);
 
 const IDS = ['agentic', 'sidekick', 'online', 'merchandising', 'retail', 'payments', 'operations', 'shop', 'marketing', 'fulfillment', 'developer'];
-const NOMS = ['Prévention & sécurité', 'Maintenance & exploitation', 'Data & automatisation', 'IA appliquée', 'Référentiels', 'Méthodes', 'Savoir-être', 'Projets professionnels', 'Parcours', 'Mondes & jeux', 'Blog & études'];
+const NOMS = ['Faire fonctionner', 'Fichiers retrouvés', 'Construire une fois', 'Savoir où regarder', 'Gains', 'Maintenance & prévention', 'Data & IA', 'Référentiels & méthodes', 'Parcours', 'Mondes & jeux', 'Blog & études'];   // projets en tête, par type (réorganisation validée par Mathieu)
 const COULEURS = ['#051DAA', '#7000A9', '#B2005B', '#B03400', '#051DAA', '#00632E', '#B2005B', '#7000A9', '#B03400', '#00632E', '#0F0F0F'];
 const attend = (ms) => p.waitForTimeout(ms);
 const stable = async () => { let der = -1, n = 0; for (let i = 0; i < 100; i++) { const y = await p.evaluate(() => Math.round(scrollY)); if (y === der) { if (++n >= 6) return y; } else { n = 0; der = y; } await attend(400); } return der; };   /* défilement doux : on attend l'arrêt de la page, lente en rendu logiciel */
