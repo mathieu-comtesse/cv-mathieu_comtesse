@@ -336,3 +336,47 @@ html body .cv-pf-main .sc-mec-path p{margin:0 0 10px!important;color:#e2e8ff;fon
  .sc-finance-window,.sc-finance-preview img,.cv-finance-lightbox::backdrop{transition:none}
  .sc-finance-window:is(:hover,:focus-within),.sc-finance-preview:is(:hover,:focus-visible) img{scale:1}
 }
+
+/* Trois fenêtres de lecture sur toute la largeur de la fiche VRE. */
+@media(min-width:940px){
+  html body .cv-card-content.cv-pf-main[data-fiche="projet-vmvre"][data-card-variant="horizontal"]{
+    grid-template-columns:minmax(0,1fr) minmax(170px,.34fr);
+    grid-template-areas:"copy machine" "demo demo";
+    grid-template-rows:auto auto;align-items:start;
+  }
+  html body .cv-pf-main[data-fiche="projet-vmvre"]>.cv-machine{align-self:start}
+}
+html body .cv-pf-main [data-showcase="vmvre-parcours"] .sc-mec-path{
+  gap:clamp(14px,1.6vw,25px);
+}
+html body .cv-pf-main [data-showcase="vmvre-parcours"] .sc-mec-path>li{
+  grid-template-rows:auto 1fr auto;min-width:0;gap:8px;
+}
+html body [data-showcase="vmvre-parcours"] .sc-mec-path h4{
+  margin:0;font:650 clamp(15px,1.15vw,19px)/1.23 var(--expo-sans,system-ui)!important;
+  text-transform:none;letter-spacing:0;
+}
+html body .cv-pf-main [data-showcase="vmvre-parcours"] .sc-mec-path p{
+  margin:0 0 4px!important;font:500 clamp(13px,1.03vw,16px)/1.38 var(--expo-sans,system-ui)!important;
+  letter-spacing:0;text-wrap:pretty;
+}
+html body [data-showcase="vmvre-parcours"] .sc-mec-window{
+  box-sizing:border-box;display:flex;flex-direction:column;align-self:end;min-height:220px;
+}
+html body [data-showcase="vmvre-parcours"] .sc-mec-window .sc-bar{
+  flex:none;min-width:0;gap:5px;padding-inline:12px;font:600 12px/1.2 var(--expo-mono,monospace)!important;
+}
+html body [data-showcase="vmvre-parcours"] .sc-mec-window dl{flex:1;min-height:0;margin:0;padding:10px 13px}
+html body [data-showcase="vmvre-parcours"] .sc-mec-window dl>div{grid-template-columns:minmax(76px,30%) minmax(0,1fr);padding:10px 0;gap:8px}
+html body [data-showcase="vmvre-parcours"] .sc-mec-window :is(dt,dd){
+  font:500 13px/1.35 var(--expo-sans,system-ui)!important;letter-spacing:0;
+  overflow-wrap:normal;word-break:normal;margin:0;opacity:1;
+}
+html body [data-showcase="vmvre-parcours"] .sc-mec-window dt{font-weight:700!important}
+html body [data-showcase="vmvre-parcours"] .cv-vre-flow{flex:1;min-height:0}
+html body [data-showcase="vmvre-parcours"] .cv-vre-flow img{height:166px}
+@media(max-width:919px){
+  html body .cv-pf-main [data-showcase="vmvre-parcours"] .sc-mec-path{grid-template-columns:minmax(0,1fr);gap:22px}
+  html body .cv-pf-main [data-showcase="vmvre-parcours"] .sc-mec-window::after{display:none}
+  html body [data-showcase="vmvre-parcours"] .sc-mec-window{min-height:0}
+}
