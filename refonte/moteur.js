@@ -569,9 +569,9 @@ export function dessineContours(ctx, view, boxes, souris = null) {
   for (const [rang, b] of ordre.entries()) {
     /* les flancs d'un bloc passent derrière le dessus des blocs plus proches (leur contenu est du DOM, sous ce canevas) */
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, view.W, view.H);
-    for (const n of ordre.slice(rang + 1)) { const q = face(n, true); if (q.every(Boolean)) { ctx.moveTo(q[0].x, q[0].y); for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y); ctx.closePath(); } }
+    for (const n of ordre.slice(rang + 1)) { const q = n.screenTop ?? face(n, true); if (q.every(Boolean)) { ctx.moveTo(q[0].x, q[0].y); for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y); ctx.closePath(); } }
     ctx.clip('evenodd');
-    const haut = face(b, true), bas = face(b, false);
+    const haut = b.screenTop ?? face(b, true), bas = face(b, false);
     if (!haut.every(Boolean) || !bas.every(Boolean)) { ctx.restore(); continue; }
     const trace = (pts) => { ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath(); };
     if (b.slab && b.tilted > 0.02) {                                             // ombre portée au sol d'un cadre relevé
