@@ -827,3 +827,7 @@ Raisonnement : la référence ouvre sur son offre phare ; pour un CV, la preuve 
 | 10, 11 | Mondes & jeux, Blog & études | inchangés |
 
 Chaque position garde son identifiant, sa couleur et sa ligne de temps (chaîne de couleurs inchangée). Script reproductible : `python3 -I tools/reordonne-chapitres.py index.html` (contrôles : sections équilibrées, 73 cadres avant, 76 après = 3 introductions de types en plus). Menus, liste de l'accueil, données du graphe et liens de Parcours mis à jour ; titres en double des introductions retirés (ancres `s-p0` à `s-p3` conservées).
+
+## Fiches de projets compactes
+
+Référence : cadres de 400 à 735 px de haut (titre, texte court, média, bouton vers le détail). Avant : chaque fiche de projet affichait tout son contenu (environ 3 500 px). Après (`tools/compacte-projets.py`, passage unique) : rubrique, titre, sous-titre, « L'idée », **deux chiffres clés** tirés de « Ce que ça change » (temps libéré, valorisation), image de la machine et ses boutons restent visibles ; « L'objet en action », la démo, le projet, « Comment ça marche » et la construction se déplient avec « Voir le détail » (élément `details` natif, accessible au clavier, ouvert automatiquement quand un lien pointe à l'intérieur). Hauteur mesurée à 1 400 × 900 : 499 px par fiche (3 514 px une fois dépliée), aucune erreur de page.
