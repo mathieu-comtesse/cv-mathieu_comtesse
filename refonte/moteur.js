@@ -434,6 +434,11 @@ export class Ciel {
         const dim = focus && !hl && e === focusE;
         n.cl = voile ? 3 : hl ? 2 : dim ? 1 : 0;
         n.x0 = x0; n.y0 = y0; n.x1 = x; n.y1 = y; n.cx = cx; n.cy = cy; n.gg = g; n.z = z; n.vis = true; cnt[n.niveau * 4 + n.cl]++;
+        if (plat && libre) {                                                     // lueur (module glow de la référence) : blanchit près du pointeur, s'éteint en décalé
+          const rg = 265 * unite, dd = sv ? Math.hypot(x - souris.x, y - souris.y) : rg, o = dd < rg ? 1 - dd / rg : 0, cib = o * o * (3 - 2 * o), cur = n.lu || 0;
+          if (n.gs === undefined) n.gs = (hache(e.id + ':' + j + ':glow') % 1000) / 1000 * 0.35;
+          if (cib >= cur) { if (cib > 0) n.tlu = tt; n.lu = cur + (cib - cur) * (1 - Math.exp(-24 * dt)); } else if (tt - (n.tlu || 0) >= n.gs) n.lu = cur + (cib - cur) * (1 - Math.exp(-3 * dt / 0.6));
+          if (Math.abs(n.lu - cib) < 0.002) n.lu = cib; }
       }
       /* 2. ombres portées au sol des branches éditoriales et des cartes (expo) */
       if (ombre) {
@@ -454,6 +459,8 @@ export class Ciel {
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); }
         ctx.stroke();
       }
+      if (plat && libre) { ctx.fillStyle = '#fff'; for (let j = 0; j < nb; j++) { const n = N[j]; if (!n.vis || n.par || !(n.lu > 0.02)) continue;   // points en lueur : mêlés de blanc
+          ctx.globalAlpha = A * n.lu; ctx.beginPath(); ctx.arc(n.x1, n.y1, (n.ed ? 2.6 : 1.9) * (n.tI ?? 1), 0, 6.283); ctx.fill(); } ctx.globalAlpha = A; }
       if (plat && libre) {                                                     // traits qui circulent : deux par branche, sens et vitesse propres à chaque branche
         ctx.strokeStyle = `rgba(${TE},${(0.85 * kE).toFixed(2)})`; ctx.lineWidth = 1; ctx.beginPath();
         for (let j = 0; j < nb; j++) { const n = N[j]; if (!n.vis || n.par || n.gg < 1) continue;

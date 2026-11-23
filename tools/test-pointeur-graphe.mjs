@@ -30,7 +30,7 @@ await p.mouse.move(5, 5); await p.waitForTimeout(4000);
 const repos = Math.max(...(await foyers()).map((f) => Math.hypot(f.dx, f.dy)));
 verifie(repos < 1, `retour élastique au repos (${repos.toFixed(2)} px restants)`);
 /* pointeur immobile près d'un foyer : aucune poussée */
-await p.mouse.move(cible.x + 90, cible.y + 90); await p.waitForTimeout(5000);
+await p.mouse.move(cible.x + 90, cible.y + 90); await p.waitForTimeout(9000);   // rendu logiciel : quelques images par seconde
 const immobile = Math.max(...(await foyers()).map((f) => Math.hypot(f.dx, f.dy)));
 verifie(immobile < 1, `pointeur immobile : aucune poussée (${immobile.toFixed(2)} px)`);
 /* survol d'un foyer : voisins allumés (6 au plus), autres estompés */
@@ -44,6 +44,11 @@ verifie(ser.ob.some((o) => o > 0) && ser.ob.some((o) => o < 0), `orbite lente de
 await p.mouse.move(5, 5); await p.waitForTimeout(4000);
 const relache = await p.evaluate((id) => { const e = window.__cvHeroGraph.ciel.etoiles.get(id); return Math.max(...e.noeuds.map((n) => n.hg || 0)); }, cible.id);
 verifie(relache < 0.05, `relâche après le survol (${relache.toFixed(3)})`);
+/* lueur : les points proches du pointeur (265 px) blanchissent, puis s'éteignent */
+const lueur = async () => p.evaluate(() => Math.max(...[...window.__cvHeroGraph.ciel.etoiles.values()].flatMap((e) => e.noeuds.map((n) => n.lu || 0))));
+const gl0 = (await foyers()).find((f) => f.id === cible.id); await p.mouse.move(gl0.x + 60, gl0.y + 40); await p.waitForTimeout(2500);
+const lu1 = await lueur(); await p.mouse.move(5, 5); await p.waitForTimeout(5000); const lu2 = await lueur();
+verifie(lu1 > 0.5 && lu2 < 0.05, `lueur des points près du pointeur (${lu1.toFixed(2)}), éteinte après son départ (${lu2.toFixed(3)})`);
 /* saisie et lancer d'un foyer : il suit le pointeur, part dans le sens du geste au lâcher, puis revient à sa place */
 await p.waitForTimeout(2000);
 const g0 = (await foyers()).find((f) => f.id === cible.id);
@@ -56,7 +61,7 @@ await p.mouse.up(); await p.waitForTimeout(300);
 const lance = await p.evaluate((id) => { const e = window.__cvHeroGraph.ciel.etoiles.get(id); return { dx: e.dx, vx: e.vx, url: location.hash }; }, cible.id);
 verifie(!!tenu && tenu.id === cible.id && tenu.dx > 60, `saisie : le foyer suit le pointeur (${tenu ? tenu.dx.toFixed(0) : '-'} px)`);
 verifie(lance.dx > 60 && !lance.url.includes(cible.id.split(':')[1]), `lâcher après un glisser : pas de navigation, foyer toujours déplacé (${lance.dx.toFixed(0)} px, vitesse ${lance.vx.toFixed(0)} px/s)`);
-await p.mouse.move(5, 5); await p.waitForTimeout(6000);
+await p.mouse.move(5, 5); await p.waitForTimeout(12000);
 const retour = await p.evaluate((id) => Math.hypot(window.__cvHeroGraph.ciel.etoiles.get(id).dx, window.__cvHeroGraph.ciel.etoiles.get(id).dy), cible.id);
 verifie(retour < 2, `retour du foyer lancé à sa place (${retour.toFixed(2)} px)`);
 verifie(p.erreurs.length === 0, `aucune erreur de page (${p.erreurs.length})`);

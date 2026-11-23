@@ -2,14 +2,17 @@
  * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
  * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
  * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
-import { Ciel } from './moteur.js?v=m33';
+import { Ciel } from './moteur.js?v=m34';
 
 export function demarre(chapitres) {
   const zone = document.querySelector('.hero-entrance-hold'); if (!zone || zone.querySelector('.cv-hero-graph')) return;
   const cv = document.createElement('canvas'), ctx = cv.getContext('2d'), reduit = matchMedia('(prefers-reduced-motion: reduce)');
   cv.className = 'cv-hero-graph'; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'Graphe des chapitres du site et de leurs contenus');
   cv.style.cssText = 'position:absolute;top:0;left:0;height:100%;z-index:3;touch-action:pan-y';
-  zone.append(cv); zone.querySelector('.hero-graph-spinner-track')?.remove();
+  /* sillage de glyphes sous le graphe (WebGL2, pointeur fin seulement) : même emprise que le canevas du graphe */
+  const zs = document.createElement('div'); zs.className = 'cv-sillage-zone'; zs.style.cssText = 'position:absolute;top:0;left:0;height:100%;z-index:2;pointer-events:none';
+  zone.append(zs, cv); zone.querySelector('.hero-graph-spinner-track')?.remove();
+  let sillage = null; import('./sillage.js?v=s3').then((m) => { sillage = m.monteSillage(zs); }).catch(() => {});
   const ciel = new Ciel(), souris = { x: -1e4, y: -1e4 };
   ciel.definit('accueil', { groupe: 'accueil', racine: true, label: 'Mathieu Comtesse' });
   chapitres.forEach((r, i) => ciel.definit('accueil:' + r.id, { groupe: 'accueil', parent: 'accueil', num: String(i + 1).padStart(2, '0'), label: r.name, chapitre: r.id, editoriaux: r.cards, sol: true }));
@@ -19,7 +22,7 @@ export function demarre(chapitres) {
   const mesure = () => { const r = zone.getBoundingClientRect(); let x0 = 0;
     for (const c of document.querySelectorAll('#hero .hero-chrome')) { const q = c.getBoundingClientRect(); if (q.width && q.height && q.top < r.bottom - 40 && q.bottom > r.top + 40 && q.right > r.left) x0 = Math.max(x0, q.right - r.left); }
     if (x0 > r.width - 160) x0 = 0;
-    x0 = Math.max(0, x0); cv.style.left = x0 + 'px'; cv.style.width = (r.width - x0) + 'px'; W = Math.round(r.width - x0); H = Math.round(r.height); };
+    x0 = Math.max(0, x0); cv.style.left = zs.style.left = x0 + 'px'; cv.style.width = zs.style.width = (r.width - x0) + 'px'; W = Math.round(r.width - x0); H = Math.round(r.height); };
   const taille = () => { mesure(); dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.max(1, Math.round(W * dpr)); cv.height = Math.max(1, Math.round(H * dpr)); };
   new ResizeObserver(taille).observe(zone); addEventListener('resize', taille); document.fonts?.ready.then(taille); taille();
   new IntersectionObserver(([e]) => { vu = e.isIntersecting; }).observe(zone);
@@ -72,5 +75,5 @@ export function demarre(chapitres) {
     { const c = ciel.pris || ciel.prisF ? 'grabbing' : ciel.touche(souris.x, souris.y) ? 'pointer' : ciel.foyerSurvol ? 'pointer' : ''; if (cv.style.cursor !== c) { cv.style.cursor = c; document.documentElement.style.cursor = c; } }
   }
   requestAnimationFrame(image);
-  window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H, intro, introFinie: !!ciel.introFinie }), rejoue: () => { debut = 0; ciel.ordreIntro = null; }, figeIntro: (x) => { figee = x; }, ciel };
+  window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H, intro, introFinie: !!ciel.introFinie }), sillage: () => sillage, rejoue: () => { debut = 0; ciel.ordreIntro = null; }, figeIntro: (x) => { figee = x; }, ciel };
 }

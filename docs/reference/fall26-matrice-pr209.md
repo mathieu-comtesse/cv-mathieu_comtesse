@@ -757,3 +757,20 @@ Remplace l'apparition estimée sur deux captures (écartement 0,45 → 1 en 1,6 
 ## Saisie et lancer d'un foyer (moteur `m33`)
 
 Lois du module `renderer` de la référence : pendant la saisie, le foyer suit le pointeur (vitesse estimée 0,6 × ancienne + 0,4 × nouvelle), ses rayons se resserrent ; au lâcher, vitesse × 1,25 × exp(−max(0, arrêt − 80 ms) / 60 ms), plafonnée à 1 400 px/s × échelle ; freinage renforcé après le lâcher (+14, qui s'éteint à 1,5/s) puis retour à la place. Un clic (moins de 5 px parcourus) mène toujours au chapitre. Priorité au foyer quand le pointeur est à moins de 12 px de son centre. Test : `tools/test-pointeur-graphe.mjs` (suit de 120 px, pas de navigation après un glisser, retour à moins de 1 px).
+
+## Sillage de glyphes et lueur des points (sillage `s3`, moteur `m34`)
+
+Sources : shaders `fluid`, `fluid-ambient` et `glyph-glitch` de la référence, réglages par défaut du `renderer` (`fluidGlyphSize` 6, `fluidRadius` 6, `fluidForce` 0,6, `fluidDye` 0,15, `fluidFade` 4, `fluidTurbulence` 200, `fluidGlitch` 3, `fluidAir` 0,95, `fluidMask` 0,1, `fluidMarksOnly`, `fluidAmbient` 100, opacités accueil 0,4 et 0,6), module `glow` (`glowStagger` 0,35, `glowFade` 0,6). Réécrits ; aucun fichier de la référence n'est versionné ni chargé.
+
+| Élément | Référence | Ici |
+|---|---|---|
+| Moteur | WebGPU | **WebGL2** (carte graphique, textures demi-flottantes), même suite de passes : advection, divergence, 16 itérations de Jacobi, projection, choix des glyphes par cellule, composition |
+| Grille | une cellule par glyphe, 4 × 6 px (taille 6, proportion 30/48) | identique |
+| Pointeur | une poussée par mouvement (16 par image au plus), ignorée après 0,25 s d'arrêt ; fluide arrêté sous 0,015 d'énergie | identique (énergie décomptée au pas de la simulation) |
+| Glyphes | marques du graphe (cercle, carré, plein, creux, 2 tailles), rampe de 22, bords plus clairs, 95 % de cellules vides, masque de bruit, bascules d'un quart de tour, déchirures, scintillement × 5 | identique ; défilement des marques de bord approché (sans le décalage de rangée du texte) |
+| Page nue | 100 marques isolées sur une grille 3 × 4 px, chacune à son rythme (0,5/s), ordre mélangé par réseau de Feistel | identique (atlas commun aux deux grilles) |
+| Teinte | surface bleue `#0822B5` relevée vers le blanc (0,2 ; bords 0,6) | identique |
+| Conditions | pointeur fin avec survol, mouvement normal | identique |
+| Lueur | points à moins de 265 px du pointeur mêlés de blanc (lissage 3 − 2x), montée 24/s, extinction 0,6 s après un délai propre à chaque point (0 à 0,35 s) | identique (points des rayons et contenus sans image) |
+
+Mesures (rendu logiciel) : grille 249 × 139, teinte maximale 0,33 pendant un geste, retombée sous le seuil du premier glyphe (0,025) au repos. Le rendu sur carte graphique matérielle reste à comparer visuellement à la référence. Tests : `tools/test-sillage.mjs`, `tools/test-pointeur-graphe.mjs` (lueur).
