@@ -69,7 +69,7 @@ Test de disponibilité lu dans le code de la référence : `requestPaint` sur le
 | `tilt.angle` | 55° | inclinaison des cadres | identique (55°, vérifié par test) |
 | `phone.tilt` | 35° | inclinaison du téléphone dans la scène | non repris : aucun téléphone dans la scène de comtesse.me |
 
-Non établi : la courbe d'accélération de la caméra de la référence (la fonction `Do` n'a pas été retrouvée ; la nôtre reste un lissage de cinquième ordre sur le temps).
+La courbe d’accélération était encore inconnue lors de ce relevé. Elle a depuis été retrouvée et vérifiée dans [le comparatif de trajectoire](fall26-camera.md).
 
 ## Observations visuelles (Chrome 157)
 
@@ -850,3 +850,15 @@ Non réécrit, faute de matière : les 46 compétences et les 11 jeux n'ont qu'u
 ## Machines et « Voir la magie » repris de main
 
 La branche de la PR n'avait pas reçu les commits de `main` sur les machines (#240 à #243). Repris de `main` : le dossier `refonte/m3d/` (rendu trait `lines.js` : aplat bleu à tons de faces, contours blancs, halo au sol, accent sur la pièce qui bouge) et son accroche dans le montage des machines de `index.html`. Retirés : les 11 boutons « Voir la magie » des fiches et les 11 des schémas « Comment ça marche ». Légendes des cadres de l'accueil rétablies dans leur texte d'origine (seuls les noms de chapitres ont changé). Le reste de `main` (nouveau moteur du graphe, nouvelles fiches et nouveaux cadres de l'accueil) n'est pas fusionné : les deux versions ont divergé.
+
+## Fusion avec main
+
+Base : `main` (115 commits absents de la PR). Repris de `main` tel quel : en-tête et accueil (les 4 cadres), styles et scripts, moteur du graphe (`CielExpo`, adaptateur spectral, transitions de chapitres par fondu), machines en trait, fiches des 11 projets (captures, fenêtres animées), tableau de bord des gains, Parcours, Mondes & jeux, Blog & études, menu des chapitres de l'en-tête.
+
+Réappliqué depuis la PR : les **11 sections** dans le nouvel ordre (4 types de projets, Gains, 3 chapitres de compétences, Parcours, Mondes & jeux, Blog & études) avec leurs introductions, noms courts dans les menus et la liste de l'accueil, enregistrements des chapitres ; les 7 groupes de compétences que `main` plaçait dans Parcours sont remplacés par le renvoi vers les 3 chapitres de compétences, et leurs 46 ancres en double retirées ; règles de disposition alignées sur la référence ; mini-jeu de la sphère (bouton, invitation, `jeuMonde` et dessin par image raccordés au script Expo de `main`). Script : reconstruction d'`index.html` (tête, accueil et fin de page de `main`, sections de la PR, contenus récents de `main` transplantés par identifiant).
+
+Non reporté sur le nouveau moteur (retiré, conservé dans l'historique Git) : survol, apparition, saisie et lancer, lueur et sillage de glyphes de l'ancien graphe d'accueil, graphe des chapitres à caméra, filtre animé du 4e cadre de l'accueil. Les fiches de projets reprennent le texte de `main` (la prose au ton de la référence portait sur les anciennes fiches).
+
+Tests : `test-no-shopify --strict` vert (contrôle de la tirelire remplacé par le tableau de bord des gains, qui l'a remplacée dans `main`) ; `test-modes` de `main` : le contrôle du curseur échoue aussi sur `main` seul ; caméra et saisie instables en rendu logiciel. `test-chapitres` adapté à l'interface de `main` (menu d'en-tête, courbe de remplissage 0,02 à 0,34).
+
+Mesures après fusion : `test-chapitres` 33 contrôles verts (11 transitions, couleurs, navigation à plat et expo, mobile) ; attribution `twitter:site` « @Shopify » réintroduite par `main` retirée. Mini-jeu : entrée, commandes, chute, relance, partie complète au clavier, résultats, sortie et tactile verts ; la page fusionnée est plus courte (parcours de 29 431 px au lieu de 77 833), d'où une partie de 31 s (cible 60 à 180 s) et moins d'objets, et le saut n'est pas compté dans un passage : rééquilibrage à faire.

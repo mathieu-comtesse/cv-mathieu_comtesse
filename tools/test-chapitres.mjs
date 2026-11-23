@@ -73,10 +73,10 @@ for (const id of IDS) {
   for (const u of US) { await calage(id, u); await attend(300); bas.push(await fill(id)); }
   for (const u of [...US].reverse()) { await calage(id, u); await attend(300); haut_.push(await fill(id)); } haut_.reverse();
   const mono = bas.every((v, i) => i === 0 || v >= bas[i - 1] - 0.01), ecart = Math.max(...bas.map((v, i) => Math.abs(v - haut_[i]))), saut = Math.max(...bas.map((v, i) => i ? Math.abs(v - bas[i - 1]) : 0));
-  const bornes = bas[0] <= 0.01 && bas[2] <= 0.15 && bas[US.indexOf(0.22)] >= 0.99 && bas.at(-1) >= 0.99;
+  const bornes = bas[0] <= 0.01 && bas[2] <= 0.15 && bas.at(-1) >= 0.99   /* courbe de main : lisse(u, 0,02, 0,34) */;
   if (!(mono && ecart < 0.05 && saut < 0.45 && bornes)) pbRempli.push(`${id} (mono ${mono}, écart ${ecart.toFixed(2)}, saut ${saut.toFixed(2)}, bornes ${bornes}: ${bas.map((v) => v.toFixed(2)).join(' ')})`);
 }
-verifie(pbRempli.length === 0, `remplissage des 11 titres : nul avant u = 0,08, complet dès 0,22, croissant, identique en descendant et en remontant (écart < 0,05), saut < 0,45 par pas de 0,02 à 0,04${pbRempli.length ? ' ; défauts : ' + pbRempli.join(' | ') : ''}`);
+verifie(pbRempli.length === 0, `remplissage des 11 titres : nul au départ, complet à u = 0,34 (courbe de main), croissant, identique en descendant et en remontant (écart < 0,05), saut < 0,45 par pas de 0,02 à 0,04${pbRempli.length ? ' ; défauts : ' + pbRempli.join(' | ') : ''}`);
 
 /* ---- 4. liste latérale à plat : chapitre actif, navigation ---- */
 for (let k = 0; k < 11; k++) {
@@ -100,10 +100,10 @@ for (let k = 0; k < 11; k++) {
   ex.push(await p.evaluate(([id, nom]) => { const P = window.__cvParity, cur = [...document.querySelectorAll('.cv-parity-nav a[aria-current]')].map((a) => a.dataset.chapter); return { actif: window.__cvStandardPath.chapitreActif, cur, etoile: P.etoiles().some((e) => e.visible && e.libelle && e.libelle.texte === nom) }; }, [IDS[k], NOMS[k]]));
 }
 verifie(ex.every((e, k) => e.actif === IDS[k]), `expo : chapitre actif du moteur = le bon pour chacun des 11 (${ex.map((e) => e.actif).join(' ')})`);
-verifie(ex.every((e, k) => e.cur.length === 1 && e.cur[0] === IDS[k]), `expo : liste des chapitres, un seul chapitre marqué (aria-current), le bon (${ex.map((e) => e.cur.join('+') || '-').join(' ')})`);
+/* main ne met plus la liste latérale des chapitres dans la page en mode expo (menu d'en-tête à la place) : contrôle du marquage retiré */
 verifie(ex.every((e) => e.etoile), `expo : l'étoile de chaque chapitre est visible avec son nom (${ex.filter((e) => e.etoile).length}/11)`);
 nav = []; await va(0, 1500); await stable();
-for (const id of IDS) { const y0 = await p.evaluate(() => Math.round(scrollY)); await p.evaluate((id) => document.querySelector('.cv-parity-nav a[data-chapter="' + id + '"]').click(), id); for (let i = 0; i < 40 && Math.abs((await p.evaluate(() => Math.round(scrollY))) - y0) < 50; i++) await attend(500); const y = await stable(); await p.waitForFunction((id) => window.__cvStandardPath.chapitreActif === id, id, { timeout: 15000 }).catch(() => {}); nav.push([id, y, TOPS[id], await p.evaluate(() => window.__cvStandardPath.chapitreActif)]); }
+for (const id of IDS) { const y0 = await p.evaluate(() => Math.round(scrollY)); await p.evaluate((id) => document.querySelector('#cv-header-chapters a[href="#' + id + '"]').click(), id); for (let i = 0; i < 40 && Math.abs((await p.evaluate(() => Math.round(scrollY))) - y0) < 50; i++) await attend(500); const y = await stable(); await p.waitForFunction((id) => window.__cvStandardPath.chapitreActif === id, id, { timeout: 15000 }).catch(() => {}); nav.push([id, y, TOPS[id], await p.evaluate(() => window.__cvStandardPath.chapitreActif)]); }
 verifie(nav.every(([id, y, h, a]) => a === id && y - h >= -700 && y - h <= 400), `expo : navigation vers chacun des 11 chapitres, défilement doux : chapitre actif à l'arrivée = le bon, atterrissage entre 700 px avant et 400 px après le haut de section (première carte moins 30 % de la fenêtre) (écarts : ${nav.map(([, y, h]) => y - h).join(', ')} px)`);
 
 /* ---- 6. mobile 390 × 844 : les 11 chapitres existent, rien ne déborde, les cartes sont lisibles, la navigation et le remplissage fonctionnent ---- */

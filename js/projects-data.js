@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-projects-v20';
+import { CV, PERSO, PRO } from './data.js?v=cv-projects-v22';
 import { BUILD } from './annual-gains.js?v=cv-scene-v60';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
@@ -401,7 +401,7 @@ const G = (id, title, sub, time, timeCtx, money, moneyCtx, img, pro) => ({ id, t
 
 export const PRO_CARDS = [
   G('finance', 'Point financier · Power Automate', 'CS, Locatif, MEC et PPTM', '25 min / jour', '5 minutes de vérification par périmètre et par jour évitées, sur cinq périmètres de suivi', '≈ 9 800 € / an', '93,75 heures de contrôle libérées sur 225 jours. Valorisées à 104,74 €/h', 'assets/dioramas/finance.png?v=cv-scene-v18', 'projet-financier'),
-  G('vmvre', 'VRE · traitement par VM', 'Rapports, OT, liens Excel et récapitulatif', '30 min / rapport', '2 000 à 2 500 h par an pour 4 000 à 5 000 rapports VRE : rapprochement de l’OT, inscription du lien et vérification dans Excel', '209 480 à 261 850 € / an', 'temps de traitement libéré, valorisé à 104,74 €/h, soit 52,37 € par rapport', 'assets/dioramas/vmvre.png?v=cv-scene-v18', 'projet-vm-vre'),
+  G('vmvre', 'VRE · des rapports SharePoint au suivi Excel', 'Rapports, OT, liens Excel et récapitulatif', '30 min / rapport', '2 000 à 2 500 h par an pour 4 000 à 5 000 rapports VRE : rapprochement de l’OT, inscription du lien et vérification dans Excel', '209 480 à 261 850 € / an', 'temps de traitement libéré, valorisé à 104,74 €/h, soit 52,37 € par rapport', 'assets/dioramas/vmvre.png?v=cv-scene-v18', 'projet-vm-vre'),
   G("moteur44", "Reporteur Q18", "SharePoint → bonne ligne Excel · Q18 visibles", "15 min / rapport", "4 000 à 5 000 rapports/an : 1 000 à 1 250 h libérées sur le report SharePoint vers la bonne ligne Excel. Q18 désormais visibles", "104 740 à 130 925 € / an", "15 min × 4 000 à 5 000 rapports à 104,74 €/h, soit 26,19 € par rapport", "assets/dioramas/moteur44.png?v=cv-scene-v29", "projet-moteur44"),
   G('pa', 'Power Automate · chaîne des PP', 'Dépôt, classement, alerte, relance', '40 min', 'de contrôles et de saisie rendues chaque jour', '15 700 €', 'par an, soit ≈ 17 € et 10 min par plan de prévention', 'assets/projets/pp.jpg?v=bf01a16', 'projet-3'),
   G("cerfa", "CERFA v3", "Fiches et attestations devenues données du parc", "20 à 25 h → 1 min 20 s", "pour traiter un lot de 300 fiches CERFA et attestations", "Audit national", "sur les CERFA fluides frigorigènes. Pénalités applicables et non-conformités remontées", "assets/projets/cerfa.jpg?v=bf01a16", "projet-1"),
@@ -434,6 +434,7 @@ PRO_CARDS.find(p=>p.id==='powerbi').extraGains=[
 // « Construit avec » : langages, outils et méthodes réellement utilisés (relevés dans le code de chaque jeu). Talas : équipe et coproduction en plus.
 const T = (lang, outils, methode, dernier) => [['Langages', lang], ['Outils', outils], ['Méthode', methode], dernier];
 const TECH = {
+  villepliee: T('HTML, JavaScript', 'Three.js, Canvas 2D, Web Audio', 'Cartes imprimées en couches, pliées sur charnières à ressort', ['Rendu', 'Ombres colorées, flou de bascule, lumières au sodium']),
   lettres: T('HTML, JavaScript', 'SVG, filtres de bruit, animation image par image', 'Chaque lettre est construite par le code : pièces extrudées, hachures, mouvement', ['Export', 'SVG ou PNG, mot au choix']),
   talas: [['Moteur', 'Unity 6 · rendu WebGL 2 avec Universal Render Pipeline'], ['Interactions', 'Déplacements, dialogues, fabrication, missions et navigation partagent la même simulation sur ordinateur et en mode tactile'], ['Pédagogie', 'Observer, consulter, agir et vérifier : une mise en situation des principes de prévention et du cycle PDCA'], ['Personnages', 'Dylan, Mathieu, Aurélien, Georges, Eliott, Mathilde, Lorette, Neila, Alban et Milena']],
   atlas: T('HTML, CSS, JavaScript', 'Three.js, modèles Blender, Canvas 2D', 'Un bâtiment par étape du parcours, sur un archipel 3D', ['Livraison', 'Navigateur, progression gardée en local']),

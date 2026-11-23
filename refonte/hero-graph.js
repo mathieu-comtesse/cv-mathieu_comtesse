@@ -1,79 +1,143 @@
-/* Graphe de l'accueil en mode à plat. Code original : même système d'étoiles que le chemin 3D (refonte/moteur.js, classe Ciel),
- * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
- * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
- * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
-import { Ciel } from './moteur.js?v=m36';
+/* Graphe à plat. Les foyers et vignettes utilisent la même constellation que le chemin Expo. */
+import { CielExpo } from './ciel-expo.js?v=15';
+import {surfaceGraph,brancheSpectrale,nœudSpectral} from './fall26-graph-adapter.js?v=1';
+
+const borne = t => Math.max(0, Math.min(1,t));
+const lisse = t => { const t0=borne(t); return t0*t0*(3-2*t0); };
+const imagesCles = fabrique => Array.from({length:21},(_,i)=>({offset:i/20,...fabrique(i/20)}));
+
+function entreeAccueil(zone, reduit) {
+  const hero=zone.closest('#hero');
+  if(!hero||reduit.matches||innerWidth<940||scrollY>4)return;
+  const items=[...hero.querySelectorAll('.hero-entrance-item')];
+  const wordmark=hero.querySelector('.hero-logo.global-lg\\:block')||hero.querySelector('.hero-logo');
+  const tagline=hero.querySelector('.hero-tagline');
+  const rect=zone.getBoundingClientRect(), width=document.documentElement.clientWidth;
+  if(!items.length||rect.width<120)return;
+  const travel=rect.left-(width-rect.right);
+  const temps = seconds => seconds/1.18*1000;
+  const timing={delay:temps(1.4),duration:temps(1.2),easing:'cubic-bezier(.83,0,.17,1)',fill:'backwards'};
+  const cover=document.createElement('div');
+  cover.className='cv-hero-intro-cover';
+  cover.setAttribute('aria-hidden','true');
+  Object.assign(cover.style,{left:'10px',top:rect.top+'px',width:Math.max(0,rect.left-10)+'px',height:rect.height+'px'});
+  zone.prepend(cover);
+  hero.setAttribute('data-cv-intro','');
+  const curtain=cover.animate([{transform:'scaleX(1)'},{transform:'scaleX(0)'}],{...timing,fill:'both'});
+  const animations=[curtain];
+  const widgetFrames=imagesCles(t=>({
+    transform:'translateX('+(-1.11*travel*(1-t))+'px)',
+    marginLeft:(-65*(1-t)**1.5)+'%',
+    opacity:lisse(t*2)
+  }));
+  for(const [i,item] of items.entries())animations.push(item.animate(widgetFrames,{...timing,delay:temps(1.4+.08*i)}));
+  if(wordmark)animations.push(wordmark.animate(imagesCles(t=>({
+    transform:'translateX('+(-140*(1-t))+'px)',opacity:lisse(t*2)
+  })),{...timing,delay:temps(1.75),duration:temps(1.05)}));
+  const wordmarkWidth=wordmark?.getBoundingClientRect().width;
+  if(tagline&&wordmarkWidth){
+    const span=1.2+.08*(items.length-1),count=Math.ceil(temps(span)*.06);
+    const widgetWidth=items[0].offsetWidth;
+    const frames=Array.from({length:count+1},(_,i)=>{
+      const seconds=i/count*span;
+      let intrusion=0;
+      for(let j=0;j<items.length;j++){
+        const t=borne((seconds-j*.08)/1.2);
+        const remaining=1-(t<.5?16*t**5:1-(-2*t+2)**5/2);
+        intrusion=Math.min(intrusion,-1.11*travel*remaining-.65*widgetWidth*remaining**1.5);
+      }
+      return {opacity:lisse((1+intrusion/wordmarkWidth-.72)/.28)};
+    });
+    animations.push(tagline.animate(frames,{delay:timing.delay,duration:temps(span),fill:'backwards'}));
+  }
+  let actif=true;
+  const events=new AbortController();
+  function termine(){
+    if(!actif)return;
+    actif=false;
+    for(const animation of animations)animation.cancel();
+    cover.remove();
+    hero.removeAttribute('data-cv-intro');
+    events.abort();
+  }
+  for(const type of ['wheel','touchstart','keydown','resize','pointerdown'])addEventListener(type,termine,{once:true,passive:true,signal:events.signal});
+  addEventListener('scroll',()=>{if(scrollY>4)termine();},{passive:true,signal:events.signal});
+  reduit.addEventListener('change',termine,{once:true,signal:events.signal});
+  Promise.allSettled(animations.map(a=>a.finished)).then(termine);
+  return {
+    decalage:()=>actif?travel*(1-(curtain.effect.getComputedTiming().progress??0))*.5:0,
+    enCours:()=>actif,
+    termine
+  };
+}
 
 export function demarre(chapitres) {
   const zone = document.querySelector('.hero-entrance-hold'); if (!zone || zone.querySelector('.cv-hero-graph')) return;
   const cv = document.createElement('canvas'), ctx = cv.getContext('2d'), reduit = matchMedia('(prefers-reduced-motion: reduce)');
   cv.className = 'cv-hero-graph'; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'Graphe des chapitres du site et de leurs contenus');
   cv.style.cssText = 'position:absolute;top:0;left:0;height:100%;z-index:3;touch-action:pan-y';
-  /* sillage de glyphes sous le graphe (WebGL2, pointeur fin seulement) : même emprise que le canevas du graphe */
-  const zs = document.createElement('div'); zs.className = 'cv-sillage-zone'; zs.style.cssText = 'position:absolute;top:0;left:0;height:100%;z-index:2;pointer-events:none';
-  zone.append(zs, cv); zone.querySelector('.hero-graph-spinner-track')?.remove();
-  let sillage = null; import('./sillage.js?v=s3').then((m) => { sillage = m.monteSillage(zs); }).catch(() => {});
-  const ciel = new Ciel(), souris = { x: -1e4, y: -1e4 };
-  ciel.definit('accueil', { groupe: 'accueil', racine: true, label: 'Mathieu Comtesse' });
-  chapitres.forEach((r, i) => ciel.definit('accueil:' + r.id, { groupe: 'accueil', parent: 'accueil', num: String(i + 1).padStart(2, '0'), label: r.name, chapitre: r.id, editoriaux: r.cards, sol: true }));
-  let W = 0, H = 0, dpr = 1, vu = false, dernier = 0, penche = 0, debut = 0, intro = null, figee = null;
+  const graph=surfaceGraph('position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none');
+  graph.canvas.dataset.cvSpectralGraph='';
+  zone.append(graph.canvas,cv); zone.querySelector('.hero-graph-spinner-track')?.remove();
+  const ciel = new CielExpo(), souris = { x: -1e4, y: -1e4 };
+  ciel.accueil(chapitres,'Mathieu Comtesse');
+  const etiquette = document.createElement('span');
+  etiquette.className = 'cv-graph-hover';
+  etiquette.setAttribute('aria-hidden','true');
+  document.body.append(etiquette);
+  const entree=entreeAccueil(zone,reduit);
+  const arrivee=performance.now();
+  let W = 0, H = 0, dpr = 1, vu = false, dernier = 0;
   /* le canevas n'occupe que la partie libre de la zone : à droite du nom et des cartes quand ils la recouvrent (grand écran) */
   let largeurVue = 0;
   const mesure = () => { const r = zone.getBoundingClientRect(); let x0 = 0;
     for (const c of document.querySelectorAll('#hero .hero-chrome')) { const q = c.getBoundingClientRect(); if (q.width && q.height && q.top < r.bottom - 40 && q.bottom > r.top + 40 && q.right > r.left) x0 = Math.max(x0, q.right - r.left); }
     if (x0 > r.width - 160) x0 = 0;
-    x0 = Math.max(0, x0); cv.style.left = zs.style.left = x0 + 'px'; cv.style.width = zs.style.width = (r.width - x0) + 'px'; W = Math.round(r.width - x0); H = Math.round(r.height); };
+    x0 = Math.max(0, x0); cv.style.left = x0 + 'px'; cv.style.width = (r.width - x0) + 'px'; W = Math.round(r.width - x0); H = Math.round(r.height); };
   const taille = () => { mesure(); dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.max(1, Math.round(W * dpr)); cv.height = Math.max(1, Math.round(H * dpr)); };
   new ResizeObserver(taille).observe(zone); addEventListener('resize', taille); document.fonts?.ready.then(taille); taille();
   new IntersectionObserver(([e]) => { vu = e.isIntersecting; }).observe(zone);
   const local = (ev) => { const r = cv.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; };
-  /* curseurs : normal sur la zone du graphe (relevé de la référence : `auto` sur ses canevas, jamais `crosshair`),
-   * `pointer` sur une vignette ou un foyer (relevé), main fermée pendant qu'on tient un nœud (saisie propre au site) */
-  cv.style.cursor = '';
+  cv.style.cursor = 'auto';
   const va = (n) => { const cible = document.getElementById(n.handle) || document.getElementById(n.chapitre); if (cible) cible.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' }); };
-  addEventListener('pointermove', (ev) => { [souris.x, souris.y] = local(ev); ciel.tire(souris.x, souris.y); ciel.tireFoyer(souris.x, souris.y); const c = ciel.pris || ciel.prisF ? 'grabbing' : ciel.touche(souris.x, souris.y) ? 'pointer' : ciel.foyerSurvol ? 'pointer' : '';   /* foyer : lien vers son chapitre (`pointer` relevé sur les canevas de la référence) */ cv.style.cursor = c; if (!document.documentElement.classList.contains('cv-parity-active')) document.documentElement.style.cursor = c; }, { passive: true });
+  addEventListener('pointermove', ev => {
+    [souris.x, souris.y] = local(ev);
+    ciel.tire(souris.x, souris.y);
+    const node = ev.pointerType==='mouse'&&dessus(ev)&&ciel.touche(souris.x,souris.y);
+    cv.style.cursor = node?'pointer':'auto';
+    etiquette.toggleAttribute('data-visible',Boolean(node));
+    if(node){
+      etiquette.textContent=node.title;
+      etiquette.style.left=Math.max(12,Math.min(innerWidth-etiquette.offsetWidth-12,ev.clientX+14))+'px';
+      etiquette.style.top=Math.max(12,ev.clientY-28)+'px';
+    }
+  }, { passive: true });
   cv.addEventListener('pointerleave', () => { if (!ciel.pris) souris.x = souris.y = -1e4; });
   /* écoute au niveau du document : d'autres calques de l'accueil passent au-dessus du canevas et recevraient l'appui à sa place */
   const dessus = (ev) => { const r = cv.getBoundingClientRect(); return !document.documentElement.classList.contains('cv-parity-active') && ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom && !ev.target.closest('a,button,input,select,textarea,.cv-site-nav'); };
-  document.addEventListener('pointerdown', (ev) => { if (ev.button !== 0 || !dessus(ev)) return; [souris.x, souris.y] = local(ev); if (ciel.saisitFoyer(souris.x, souris.y) || ciel.saisit(souris.x, souris.y)) { ev.preventDefault(); document.documentElement.style.cursor = 'grabbing'; } }, { capture: true });
-  const fin = (annule) => { const r = ciel.lache(); if (!r) return; document.documentElement.style.cursor = ''; if (r.clic && !annule) va(r); };
-  const finFoyer = (annule) => { const r = ciel.lacheFoyer(annule); if (!r) return; document.documentElement.style.cursor = ''; if (r.clic && !annule) va({ chapitre: r.chapitre }); };   // foyer : un clic mène au chapitre, un glisser le déplace et le lance
-  document.addEventListener('pointerup', () => { fin(false); finFoyer(false); }, { capture: true }); document.addEventListener('pointercancel', () => { fin(true); finFoyer(true); });
+  document.addEventListener('pointerdown', (ev) => { if (ev.button !== 0 || !dessus(ev)) return; [souris.x, souris.y] = local(ev); ciel.saisit(souris.x, souris.y); }, { capture: true });
+  const fin = (annule) => { const r = ciel.lache(); if (r?.clic && !annule) va(r); };
+  document.addEventListener('pointerup', () => fin(false), { capture: true }); document.addEventListener('pointercancel', () => fin(true));
   function image(t) {
     requestAnimationFrame(image);
     if (!vu || document.hidden || W < 120 || H < 120 || t - dernier < 30 || document.documentElement.classList.contains('cv-parity-active')) return;
     const dt = Math.min(0.1, (t - dernier) / 1000); dernier = t;
-    /* le plan du graphe penche légèrement vers le pointeur : la hauteur des nœuds donne la profondeur */
-    penche += ((souris.x > -1e3 ? (souris.x / W - 0.5) : 0) - penche) * 0.06;
-    const proj = (c, r, h) => ({ x: c + h * penche * 0.9, y: r - h * 0.62, z: 2000 - h });
+    const proj = (x, y, h) => ({ x, y, z:2000-h });
     /* sortie de l'accueil : le graphe s'ouvre (les foyers s'écartent) et s'efface ; l'étoile du premier chapitre prend le relais */
-    const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + 1.9 * s * s;
+    const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + .8 * s * s;
     cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
-    /* moins de 940 px de large : foyers rangés en grille, nom sous chaque foyer, sans foyer central (disposition relevée sur la référence) */
-    const grille = innerWidth < 940;
-    if (grille) {
-      const n = chapitres.length, cols = W < 520 ? 2 : 4, rangs = Math.ceil(n / cols), cw = W / cols, ch = H / rangs, R = Math.min(cw * 0.4, ch * 0.36);
-      ciel.place('accueil', null);
-      /* dernière rangée incomplète : centrée */
-      chapitres.forEach((r, k) => { const reste = n - Math.floor(k / cols) * cols, cx = (k % cols + 0.5 + (reste < cols ? (cols - reste) / 2 : 0)) * cw, cy = (Math.floor(k / cols) + 0.42) * ch;
-        ciel.place('accueil:' + r.id, [W / 2 + (cx - W / 2) * ouvre, H / 2 + (cy - H / 2) * ouvre, 10], R); });
-    } else {
-      /* grand écran (mesuré sur la référence à 1 400 × 900) : foyers répartis sur tout le cadre, rayons longs (jusqu'au tiers de la largeur),
-         dérive lente de chaque foyer (de l'ordre d'un pixel par seconde ; immobile en mouvement réduit) */
-      const R0 = Math.min(W * 0.41, H * 0.5);
-      /* apparition : séquence du module « intro » de la référence, calculée par le moteur (option intro = secondes depuis le début) ;
-         aucune dérive des foyers (réglage driftOn de la référence : désactivé), les rayons orbitent (moteur) */
-      if (!debut) debut = t;
-      intro = reduit.matches ? null : figee ?? (t - debut) / 1000;
-      ciel.place('accueil', [W / 2, H * 0.5, 0], R0 * ouvre);
-      chapitres.forEach((r) => { const e = ciel.etoiles.get('accueil:' + r.id); e.rayon = R0 * 0.52; e.centre[2] = 0; });
-    }
+    const reveal=entree?.enCours()?lisse((t-arrivee)/1017):1;
+    ciel.place('accueil',[W/2-(entree?.decalage()||0),H*.5,Math.min(H*.12,90)],Math.min(W,H)*.48,{
+      largeur:W*.51,hauteur:H*.48,etalement:ouvre
+    });
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, compact: grille, plat: true, intro: grille ? null : intro });
-    /* le foyer survolé n'est connu qu'une fois l'image dessinée : le curseur est remis à jour ici, pas seulement au mouvement */
-    { const c = ciel.pris || ciel.prisF ? 'grabbing' : ciel.touche(souris.x, souris.y) ? 'pointer' : ciel.foyerSurvol ? 'pointer' : ''; if (cv.style.cursor !== c) { cv.style.cursor = c; document.documentElement.style.cursor = c; } }
+    const edges=[],marks=[],clip=[0,0,W,H];
+    const traitPlat=graph.active?(a,b,ink,alpha,width)=>brancheSpectrale(edges,a,b,ink,alpha,clip,width):undefined;
+    const pointPlat=graph.active?(p,ink,alpha,radius,shape)=>nœudSpectral(marks,p,ink,alpha,clip,radius,shape):undefined;
+    ciel.dessine(ctx,proj,reduit.matches?null:t/1000,{souris,W,H,dt,plat:true,traitPlat,pointPlat,ouverture:reveal});
+    graph.canvas.style.opacity=cv.style.opacity;graph.render(W,H,dpr,edges,undefined,marks);
   }
   requestAnimationFrame(image);
-  window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H, intro, introFinie: !!ciel.introFinie }), sillage: () => sillage, rejoue: () => { debut = 0; ciel.ordreIntro = null; }, figeIntro: (x) => { figee = x; }, ciel };
+  window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };
 }

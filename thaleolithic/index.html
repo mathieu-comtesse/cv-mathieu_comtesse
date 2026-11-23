@@ -1,20 +1,79 @@
 <!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#171b17"><meta name="description" content="Incarne Dylan dans un village préhistorique. Observe les dangers, dialogue et transforme les ateliers pour découvrir la prévention des risques."><title>THALEOLITHIC : L’âge de la prévention · Jouer</title><link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="canonical" href="https://comtesse.me/thaleolithic/">
-<link rel="stylesheet" href="title-screen.css?v=12a"><link rel="preload" as="image" href="thaleolithic-accueil.webp?v=12a"></head><body>
-<main id="game"><canvas id="unity-canvas" width="1280" height="720" tabindex="-1" aria-label="THALEOLITHIC : village préhistorique en 3D"></canvas><button id="resume-pointer" hidden>Cliquer pour reprendre la caméra</button><button id="resume-game" hidden>Reprendre la partie</button></main>
-<section id="welcome" aria-labelledby="title">
-<img class="title-art" src="thaleolithic-accueil.webp?v=12a" alt="" width="1672" height="941" fetchpriority="high">
-<div class="intro"><p class="kicker">Les Crânes Fendus</p><h1 id="title">THALEOLITHIC</h1><p class="subtitle">L’âge de la prévention</p>
-<nav class="buttons" aria-label="Menu principal"><button id="continue" disabled>Continuer</button><button id="play" disabled>Nouvelle partie</button><button id="settings">Paramètres</button><button id="credits">Crédits</button></nav></div>
-<div class="loading"><progress id="progress" max="1" value="0" aria-label="Chargement du jeu"></progress><p id="loading-label" role="status" aria-live="polite">Préparation du village…</p></div>
-<footer class="title-footer"><button id="commands">Commandes et accessibilité</button><span class="edition">ISO 45001</span><a class="home" href="../projet-talas">Découvrir le projet</a></footer>
-</section>
-<dialog id="credits-dialog"><button aria-label="Fermer les crédits">Fermer</button><h2>THALEOLITHIC</h2><p><b>L’âge de la prévention</b><br>Une aventure des Crânes Fendus, adaptée au scénario pédagogique de Mathieu Comtesse.</p><p>Incarne Dylan, accompagné de Mathieu, son mentor. Le jeu relie exploration, échanges avec la tribu et prévention des risques.</p><p>Décor d’accueil original créé avec ImageGen, dans une direction low poly inspirée des références fournies et du rendu du jeu. Le décor est une illustration ; la partie se déroule dans le village 3D Unity.</p><p>Polylithic est une référence artistique. Cet accueil ne constitue pas une affiliation officielle. Humour noir et accidents fictifs ; intensité des effets réglable dans la partie.</p><a class="home" href="../projet-talas">Présentation et contexte du projet</a></dialog>
-<dialog id="new-dialog" aria-labelledby="new-title"><h2 id="new-title">Commencer une nouvelle partie ?</h2><p>Ta progression enregistrée dans ce navigateur sera remplacée. Choisis Continuer dans le menu pour reprendre ta sauvegarde.</p><div class="dialog-actions"><button id="cancel-new">Annuler</button><button id="confirm-new" class="danger">Commencer et remplacer</button></div></dialog>
-<dialog id="command-dialog"><button aria-label="Fermer les commandes">Fermer</button><h2>Commandes</h2><p><b>Tactile</b> : joystick à gauche, caméra à droite. Approche un habitant puis touche « Parler ». Sac, fabrication et journal restent accessibles en haut de l’écran. Touche la minicarte pour l’agrandir.</p><p><b>Clavier</b> : W A S D pour marcher, Maj pour courir, Espace pour sauter, C pour s’accroupir, E pour interagir, Tab pour le sac, V pour fabriquer, M pour la carte, J pour les missions, T pour l’arbre ISO. Les touches sont modifiables dans les réglages.</p><p>Les dialogues du village arrêtent le compte à rebours. Le duel du menhir possède ses propres commandes affichées à l’écran : J/K pour les coups, L pour la garde et E pour décider.</p></dialog>
-<dialog id="settings-dialog"><button aria-label="Fermer les paramètres">Fermer</button><h2>Paramètres de démarrage</h2><div class="options"><label>Commandes<select id="input-mode"><option value="0">Automatiques</option><option value="1">Tactiles</option><option value="2">Clavier et souris</option></select></label><label>Graphismes<select id="quality"><option value="3">Automatiques</option><option value="0">Économes</option><option value="1">Moyens</option><option value="2">Élevés</option></select></label></div><p>Les sous-titres, les aides, les touches et les effets d’accidents se règlent dans le jeu.</p></dialog>
-<div id="error" hidden role="alert"><div><h2>Le lancement de THALÉOLITHIC a échoué.</h2><p id="error-message"></p><p id="error-environment"></p><button id="retry">Réessayer</button> <button id="copy-diagnostic">Copier le diagnostic</button></div></div><div id="save-warning" role="status"></div><div id="tools"><button id="fullscreen">Plein écran</button></div>
-<details id="dev-diagnostic" hidden><summary>Diagnostic</summary><button id="download-diagnostic">Exporter en JSON</button> <button id="download-metrics">Exporter les mesures en CSV</button><pre id="diagnostic-data"></pre></details>
-<style>#game{inset:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);width:auto;height:auto}canvas{position:absolute}#resume-pointer,#resume-game{position:absolute;bottom:3rem;left:50%;transform:translateX(-50%);z-index:2}#dev-diagnostic{position:fixed;bottom:0;left:0;z-index:8;max-width:min(30rem,90vw);background:#171b17;color:#fff;padding:.5rem}#diagnostic-data{max-height:50vh;overflow:auto}@media(pointer:coarse){#tools,#resume-pointer{display:none!important}}</style>
-<script src="render-budget.js?v=23.1"></script>
-<script src="browser-bridge.js?v=24.1"></script></body></html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>THALEOLITHIC en papier</title>
+<meta name="description" content="THALEOLITHIC en pop-up de papier : la même campagne ISO 45001 et les mêmes mini-jeux que le jeu Unity, dans un village préhistorique en carton.">
+<meta name="theme-color" content="#2a1830">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="ui.css">
+<script type="importmap">{ "imports": { "three": "../vendor/three-r187/three.module.js", "papercraft/": "./papercraft/" } }</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- icônes extravagantes en papier découpé : pièces superposées, trait de coupe brun, yeux et dents ; aucune lettre -->
+  <symbol id="i-people" viewBox="0 0 40 40"><g stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round">
+    <path d="M27 9.5l9-6.5-2.4 10.2z" fill="#c8402e"/><path d="M13 9.5L3.6 3.4l2.8 10z" fill="#6f7fb0"/>
+    <path d="M10.6 38.6l1.6-11.4h15.6l1.8 11.4z" fill="#9a3328"/>
+    <rect x="11.2" y="16.4" width="17.6" height="12" rx="4.6" fill="#e0a24a"/>
+    <path d="M12.2 17.4c-.6-11.8 16.2-11.8 15.6 0z" fill="#a9b27a"/></g>
+    <circle cx="16.6" cy="12.6" r="2.4" fill="#fbf1de" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><circle cx="17.200000000000003" cy="13.0" r="1.08" fill="#2a1a1e"/><circle cx="23.4" cy="12.2" r="2.8" fill="#fbf1de" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><circle cx="22.9" cy="12.799999999999999" r="1.26" fill="#2a1a1e"/><circle cx="16.4" cy="21.6" r="2.2" fill="#fbf1de" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><circle cx="17.099999999999998" cy="21.3" r="0.99" fill="#2a1a1e"/><circle cx="23.8" cy="21.8" r="2.2" fill="#fbf1de" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><circle cx="23.2" cy="22.0" r="0.99" fill="#2a1a1e"/>
+    <path d="M15.4 33.4l1.6-2 1.6 2 1.6-2 1.6 2 1.6-2 1.6 2" fill="none" stroke="#fbf1de" stroke-width="1.4" stroke-linejoin="round"/><path d="M17 25.6c1.8 1.2 4.2 1.2 6 0" fill="none" stroke="#3a2018" stroke-width="1.2" stroke-linecap="round"/></symbol>
+  <symbol id="i-map" viewBox="0 0 40 40"><path d="M4.4 9.6c3.6-3.4 8-1 11.6-3.6 4.2 2.6 9.2-.8 13.2 1.6 3.4 2 6.6.4 7.2 3.8-1.6 6 1.4 11.4-.4 17.6-.8 3.4-4.6 3.6-7.4 5.6-4.4-1.8-9.4 1-13.6-.6-3.8 2.4-8.6.4-10.2-2.6 1.6-6-1.6-11.6-.4-17.4z" fill="#d8b483" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/>
+    <path d="M7 11.4l.8 1.6M7.4 17l.8 1.4M7 23.2l.8 1.6M32.6 12l.8 1.4M33 19l.8 1.6M32.4 26l.8 1.4" stroke="#3a2018" stroke-width="1.1" stroke-linecap="round"/>
+    <path d="M11 29c-1-5 4-8 7.4-5.4 3 2.4-.4 6.6-3 4-2.4-2.6 1.6-9 6.8-9.2 4.6-.2 5.4-4.6 6.4-7.4" fill="none" stroke="#9a3328" stroke-width="1.7" stroke-dasharray="2 2.1" stroke-linecap="round"/>
+    <path d="M26.6 9.4l5.2 5.2M31.8 9.4l-5.2 5.2" stroke="#9a3328" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="11" cy="14" r="3" fill="#e0a24a" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><path d="M11 9.2v1.4M11 17.4v1.4M6.2 14h1.4M14.4 14h1.4" stroke="#e0a24a" stroke-width="1.3" stroke-linecap="round"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 40 40"><g stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"><path d="M12.4 15.4c-6.4 4.4-8.6 13-4.6 18.4 4.4 5 19.6 5 24.4 0 4.2-5.4 1.8-14-4.6-18.4z" fill="#8a5a3a"/>
+    <path d="M14 15.8l2-8.6c2.6 1.4 5.4 1.4 8 0l2 8.6c-3.8 1.4-8.2 1.4-12 0z" fill="#a0683e"/><path d="M15.2 16.4c3.4 1.4 6.2 1.4 9.6 0l-1 3.6c-2.4.8-5.2.8-7.6 0z" fill="#f4e6c6"/>
+    <path d="M10.4 30.6c3.2 2 15.6 2 19.2 0" fill="none" stroke="#e0a24a" stroke-width="1.6"/></g>
+    <ellipse cx="20" cy="25" rx="5.4" ry="4.6" fill="#fbf1de" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><circle cx="21.2" cy="25.6" r="2.4" fill="#6f7fb0"/><circle cx="21.4" cy="25.8" r="1.2" fill="#2a1a1e"/><path d="M14.6 23.2c3-3.8 7.8-3.8 10.8 0" fill="none" stroke="#3a2018" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M7.6 8.6c2.4 1.6 4 4 4.4 6.8M32.4 8.6c-2.4 1.6-4 4-4.4 6.8" fill="none" stroke="#3a2018" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="2 1.6"/><circle cx="7" cy="8" r="2" fill="#9a3328" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><circle cx="33" cy="8" r="2" fill="#e0a24a" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/></symbol>
+  <symbol id="i-tech" viewBox="0 0 40 40"><g stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"><path d="M8.4 36.4l20.4-24.8 2.6 2.2-20.4 24.8z" fill="#8a5a3a"/>
+    <path d="M21.4 4.4l9.6-1 6.4 8.4-4.6 7.4-9.2-4.6z" fill="#a9a2bc"/><path d="M31 3.4l1.6 7.6-9.2 4.2" fill="none" stroke="#3a2018" stroke-width="1"/>
+    <path d="M31.4 36.6L12.2 14.4l2.4-2.2 19.2 22.2z" fill="#a0683e"/>
+    <path d="M10.4 13.8c-4.6-3.6-3-9.6 1-12.2-.2 3.4 2.4 3.4 3.6 1.4 2.4 3.6 1.6 8.8-1.8 11z" fill="#c8402e"/><path d="M11.4 12.4c-1.8-2-1-4.6.8-5.6.4 1.6 1.6 1.4 2 .6.8 2 .2 4.2-1.6 5.2z" fill="#f0c050"/></g>
+    <path d="M24.4 9.8l3 1.6M23.4 12l3 1.6" stroke="#fbf1de" stroke-width="1.1" stroke-linecap="round"/><path d="M4 22l2.4-1M5.6 27.4l2.2.4M35.6 24l-2.4-.4" stroke="#e0a24a" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-quests" viewBox="0 0 40 40"><g stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"><path d="M8 7.4h22.6c2.6 0 3.4 3 1 4.4v20.4c2.4 1.4 1.6 4.4-1 4.4H8c-2.6 0-3.4-3-1-4.4V11.8c-2.4-1.4-1.6-4.4 1-4.4z" fill="#f4e6c6"/>
+    <rect x="4.4" y="4.6" width="30.6" height="6" rx="3" fill="#e0a24a"/><rect x="4.4" y="31.6" width="30.6" height="6" rx="3" fill="#e0a24a"/></g>
+    <path d="M19.4 21.6c0-1 1.6-1 1.6.2 0 1.8-3 1.8-3-.4 0-3 4.8-3 4.8.4 0 4-6.4 4-6.4-.6 0-5.2 8-5.2 8 .6" fill="none" stroke="#3a2018" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="29" cy="28" r="3.8" fill="#9a3328" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><path d="M27.2 28.4l1.4 1.4 2.6-3" fill="none" stroke="#fbf1de" stroke-width="1.2" stroke-linecap="round"/><path d="M26.6 31.4l-1.2 5M31 31.6l1.4 4.6" stroke="#9a3328" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-codex" viewBox="0 0 40 40"><g stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"><path d="M7.4 6.2h22.4c2 0 3.2 1.4 3.2 3.2v24.4H10.6c-2 0-3.2-1.4-3.2-3.2z" fill="#7a3858"/>
+    <path d="M10.4 29.6h22.6v4.6H10.6c-1.4 0-2.4-1-2.4-2.3s1-2.3 2.2-2.3z" fill="#f4e6c6"/>
+    <path d="M20.6 10c-4.4 0-7 2.8-7 6.4 0 2.4 1.2 4 3 5v3h8v-3c1.8-1 3-2.6 3-5 0-3.6-2.6-6.4-7-6.4z" fill="#f4e6c6"/>
+    <path d="M27.4 33.6v5.6l1.8-1.6 1.8 1.6v-5.6" fill="#e0a24a"/></g>
+    <circle cx="18" cy="16.6" r="2.1" fill="#2a1a1e"/><circle cx="23.2" cy="16.6" r="2.1" fill="#2a1a1e"/><circle cx="18.4" cy="16.2" r=".6" fill="#e0a24a"/><path d="M20.6 19l-.9 1.6h1.8z" fill="#2a1a1e"/><path d="M17.8 24.4v-2M19.6 24.4v-2M21.4 24.4v-2M23.2 24.4v-2" stroke="#3a2018" stroke-width="1"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M3.4 12.4c1.4-1.4 3-1.2 3.8.4l2 3.4c3-5.6 6.6-9.4 11-11.6 1.4.2 1.8 1.6.8 2.6-3.6 3-6.8 7.4-9.6 12.6-1 1.4-2.8 1.4-3.6 0z" fill="#e0a24a" stroke="#3a2018" stroke-width="1.1" stroke-linejoin="round"/></symbol>
+  <symbol id="i-cross" viewBox="0 0 24 24"><g fill="#f4e6c6" stroke="#3a2018" stroke-width="1" stroke-linejoin="round"><path d="M6.2 4.4l13.2 13.2a2.2 2.2 0 1 1-1.8 1.8L4.4 6.2a2.2 2.2 0 1 1 1.8-1.8z"/><path d="M17.8 4.4L4.6 17.6a2.2 2.2 0 1 0 1.8 1.8L19.6 6.2a2.2 2.2 0 1 0-1.8-1.8z"/></g></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M3.4 9.6l9-.6L12 4.4l9.2 7.6-9.2 7.6.4-4.6-9 -.6c-1.6-1.4-1.6-3.4 0-4.8z" fill="#a9a2bc" stroke="#3a2018" stroke-width="1.1" stroke-linejoin="round"/><path d="M14 9.4l3.4 2.6" stroke="#fbf1de" stroke-width="1" stroke-linecap="round"/></symbol>
+</svg>
+<div class="hint" id="hint"></div>
+<div id="hud" class="paper" aria-live="polite"><p id="act"></p><p id="quest"></p><p id="next"></p><div class="track"><div id="progress"></div></div><p id="vitals"></p><p id="prosper"></p><p id="council"></p></div>
+<button id="mini" class="paper" type="button" aria-label="Mini-carte : ouvrir la carte"><canvas id="minimap" width="236" height="168"></canvas></button>
+<nav id="tools" aria-label="Écrans"><button class="btn" id="btn-people" type="button" aria-label="Peuple"><svg class="ico"><use href="#i-people"/></svg><span>Peuple</span></button><button class="btn" id="btn-map" type="button" aria-label="Carte"><svg class="ico"><use href="#i-map"/></svg><span>Carte</span></button><button class="btn" id="btn-inventory" type="button" aria-label="Inventaire"><svg class="ico"><use href="#i-bag"/></svg><span>Inventaire</span></button><button class="btn" id="btn-tech" type="button" aria-label="Technologie"><svg class="ico"><use href="#i-tech"/></svg><span>Technologie</span></button><button class="btn" id="btn-quests" type="button" aria-label="Quêtes"><svg class="ico"><use href="#i-quests"/></svg><span>Quêtes</span></button><button class="btn" id="btn-journal" type="button" aria-label="Codex"><svg class="ico"><use href="#i-codex"/></svg><span>Codex</span></button></nav>
+<div id="pin" class="paper" hidden><b>!</b><span></span></div>
+<button id="prompt" class="paper" type="button" hidden><kbd>E</kbd><span></span></button>
+<div id="work" class="paper" hidden>Action en cours<i></i></div>
+<section id="panel" class="paper" hidden aria-live="polite"><div id="panel-body"></div></section>
+<div id="fight" hidden></div>
+
+<div class="sheet" id="intro">
+  <div class="paper">
+    <h1>THALEOLITHIC</h1>
+    <p class="sub">L’âge de la prévention, édition papier</p>
+    <p>Dylan, apprenti préventeur, découvre le village des Crânes Fendus avec Mathieu, son mentor. La campagne ISO 45001 est celle du jeu : neuf quêtes, vingt-quatre activités, le Duel des menhirs et l’abri à vérifier, de la clause 4 à la clause 10.</p>
+    <p class="small">Le repère <b>!</b> indique où aller. <kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> ou les flèches pour marcher, <kbd>E</kbd> pour agir, <kbd>I</kbd> inventaire, <kbd>M</kbd> carte, glisser pour regarder autour. Les acquis sont gardés dans ce navigateur.</p>
+    <button class="btn go" id="continue" type="button" hidden>Continuer</button>
+    <button class="btn" id="play" type="button">Nouvelle partie</button>
+  </div>
+</div>
+
+<div id="cine" hidden aria-live="polite"><div class="band top"><p id="cine-title"></p></div><div class="band bottom"></div><div class="sub"><b id="cine-who"></b><span id="cine-line"></span><button class="btn go" id="cine-next" type="button">Suivant <kbd>Entrée</kbd></button></div><button class="btn quiet" id="cine-skip" type="button">Passer</button></div>
+
+<div class="stick" id="stick" aria-hidden="true"><i class="nick n"></i><i class="nick e"></i><i class="nick s"></i><i class="nick w"></i><div class="knob"><svg class="ico"><use href="#i-arrow"/></svg></div></div>
+<button class="act-btn off" id="act-btn" type="button" aria-label="Agir"><span>Agir</span></button>
+<script src="../jeux/talas-config.js?v=2"></script>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

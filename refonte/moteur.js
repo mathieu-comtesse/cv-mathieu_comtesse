@@ -14,20 +14,73 @@
 export const L = { tilt: { angle: 55 }, city: 0.005, cityGrow: 4, layers: { graph: { heroLift: 0.1, spread: 0.17 } } };
 const PAS = 64, PROCHE = 40;
 
-export const cvAnchor = (H) => ({ row: 2.298 * H });
+const RAD = Math.PI / 180;
+const PITCH_EXPO = -30.2 * RAD, FOV_PLAT = 50 * RAD, FOV_EXPO = 45 * RAD;
+const CAMERA_HEIGHT = 1.015, CAMERA_BACK = -1;
+const mix = (a, b, t) => a + (b - a) * t;
+
+function profilSol(progression, H) {
+  const T = 5 * H, ds = T / PAS;
+  const pts = new Float32Array(2 * (PAS + 1)), ang = new Float32Array(PAS + 1);
+  const sharpness = 6.54, vitessePli = Math.expm1(sharpness);
+  let y = 0, z = 0;
+  for (let i = 0; i < PAS; i++) {
+    const face = Math.PI / 2 + Math.atan2(y - CAMERA_HEIGHT * H, CAMERA_BACK * H - z);
+    const pli = progression * Math.expm1(sharpness * (i + .5) / PAS) / vitessePli * face;
+    y += ds * Math.sin(pli);
+    z -= ds * Math.cos(pli);
+    pts[2 * i + 2] = y;
+    pts[2 * i + 3] = z;
+    if (i === 0) ang[0] = pli;
+    ang[i] = (ang[i] + pli) / 2;
+    ang[i + 1] = pli;
+  }
+  return { T, ds, pts, ang };
+}
+
+// Le centre en mode expo est l’intersection de l’axe optique avec le sol déplié.
+function ancreExpo() {
+  const { T, ds, pts } = profilSol(1, 1);
+  const dy = Math.sin(PITCH_EXPO), dz = -Math.cos(PITCH_EXPO);
+  for (let i = 0; i < PAS; i++) {
+    const y = pts[2 * i], z = pts[2 * i + 1];
+    const sy = pts[2 * i + 2] - y, sz = pts[2 * i + 3] - z;
+    const det = dy * sz - dz * sy;
+    if (Math.abs(det) < 1e-9) continue;
+    const segment = (dz * (y - CAMERA_HEIGHT) - dy * (z - CAMERA_BACK)) / det;
+    const dist = (sz * (y - CAMERA_HEIGHT) - sy * (z - CAMERA_BACK)) / det;
+    if (segment >= 0 && segment <= 1 && dist > 0) return { row: T - (i + segment) * ds, dist };
+  }
+  return { row: .5, dist: 1 };
+}
+const ANCRE = ancreExpo();
+export const cvAnchor = (H) => ({ row: ANCRE.row * H });
+
+// Le fondu suit une distance de défilement, donc se rembobine à la remontée.
+export function fonduChapitre(position, debut, distance) {
+  const t = Math.max(0, Math.min(1, (position - debut) / distance));
+  return t * t * (3 - 2 * t);
+}
 
 /* Vue : profil du sol (65 points, 65 angles) et caméra.
  * `progress` va de 0 (vue à plat : caméra à la verticale, à la distance où un pixel du chemin vaut un pixel d'écran, sol plan,
  * hauteurs nulles : l'image coïncide avec la page) à 1 (vue expo). Entre les deux, la caméra tourne autour du point visé :
  * la bascule entre les deux modes est une vraie transformation de la scène, réversible à tout instant. */
-const RISE_AT = 0.35;   // « riseAt » relevé dans la configuration de la scène de la référence (usage lu dans son bundle : hauteurs = lissage de (progression − riseAt) / (1 − riseAt))
+const RISE_AT = .35;
 export function cvView(progress, W, H, lead = 0) {
-  const e = Math.max(0, Math.min(1, progress)), T = 5 * H, ds = T / PAS, pts = new Float32Array(2 * (PAS + 1)), ang = new Float32Array(PAS + 1);
-  for (let i = 0; i <= PAS; i++) ang[i] = e * 1.44 * Math.exp(7.33 * (i / PAS - 1));
-  for (let i = 0; i < PAS; i++) { const th = (ang[i] + ang[i + 1]) / 2; pts[2 * i + 2] = pts[2 * i] + ds * Math.sin(th); pts[2 * i + 3] = pts[2 * i + 1] - ds * Math.cos(th); }
-  const focusRow = lead + H / 2, fov = Math.PI / 4, a = Math.PI / 2 + (0.52709 - Math.PI / 2) * e, d = (0.5 / Math.tan(fov / 2) + (2.018 - 0.5 / Math.tan(fov / 2)) * e) * H, vise = -(T - focusRow) - 0.041 * H * e;
-  const montee = Math.max(0, Math.min(1, (e - RISE_AT) / (1 - RISE_AT))), rise = montee * montee * (3 - 2 * montee);   // les hauteurs ne montent qu'une fois la caméra engagée ; courbe de lissage déduite, non lue
-  return { W, H, T, ds, pts, ang, e, rise, focusRow, fov, camY: d * Math.sin(a), camZ: vise + d * Math.cos(a), pitch: -a };
+  const t = Math.max(0, Math.min(1, progress));
+  const e = t < .5 ? 4 * t ** 3 : 1 - 4 * (1 - t) ** 3;
+  const rise = 1 - (1 - Math.max(0, (t - RISE_AT) / (1 - RISE_AT))) ** 3;
+  const profil = profilSol(e, H);
+  const focusRow = lead + H / 2;
+  const row = Math.max(0, Math.min(PAS, (profil.T - focusRow) / profil.ds));
+  const i = Math.min(Math.floor(row), PAS - 1), f = row - i;
+  const y = mix(profil.pts[2 * i], profil.pts[2 * i + 2], f);
+  const z = mix(profil.pts[2 * i + 1], profil.pts[2 * i + 3], f);
+  const pitch = mix(-Math.PI / 2, PITCH_EXPO, e);
+  const dist = H * mix(.5 / Math.tan(FOV_PLAT / 2), ANCRE.dist, e);
+  return { W, H, ...profil, e, rise, focusRow, fov: mix(FOV_PLAT, FOV_EXPO, e),
+    camY: y - dist * Math.sin(pitch), camZ: z + dist * Math.cos(pitch), pitch };
 }
 
 /* point du monde (x, y, z) pour une position du chemin */
@@ -40,7 +93,11 @@ export function monde(view, col, row, h = 0) {
 
 /* projection à l'écran : { x, y, z } (z : distance à la caméra), ou null derrière la caméra */
 export function p(view, col, row, h = 0) {
-  const [X, Y, Z] = monde(view, col, row, h), dy = Y - view.camY, dz = Z - view.camZ, c = Math.cos(view.pitch), s = Math.sin(view.pitch);
+  return pMonde(view, ...monde(view, col, row, h));
+}
+
+export function pMonde(view, X, Y, Z) {
+  const dy = Y - view.camY, dz = Z - view.camZ, c = Math.cos(view.pitch), s = Math.sin(view.pitch);
   const y = dy * c + dz * s, d = dy * s - dz * c;
   if (!(d > PROCHE)) return null;
   const f = view.H / 2 / Math.tan(view.fov / 2);
@@ -104,22 +161,75 @@ export function cvFont(family = 'Inter, ui-sans-serif, system-ui, sans-serif', w
   return font;
 }
 
-export function cvTextLayout(font, texte, { maxWidth = Infinity, lineHeight = 1.1 } = {}) {
-  const c = ctxMesure(font), mots = texte.split(/\s+/).filter(Boolean), lignes = [];
-  let ligne = '';
-  for (const m of mots) { const essai = ligne ? ligne + ' ' + m : m; if (ligne && c.measureText(essai).width / CORPS > maxWidth) { lignes.push(ligne); ligne = m; } else ligne = essai; }
-  if (ligne) lignes.push(ligne);
+export function cvTextLayout(font, texte, { maxWidth = Infinity, lineHeight = 1.1, letterSpacing = 0, lignes = [], premiereLigne = false } = {}) {
+  const c = ctxMesure(font);
+  c.letterSpacing = letterSpacing * CORPS + 'px';
+  if (!lignes.length) {
+    lignes = [];
+    let ligne = '';
+    for (const mot of texte.split(/\s+/).filter(Boolean)) {
+      const essai = ligne ? ligne + ' ' + mot : mot;
+      if (ligne && c.measureText(essai).width / CORPS > maxWidth) {
+        lignes.push(ligne);
+        ligne = mot;
+      } else ligne = essai;
+    }
+    if (ligne) lignes.push(ligne);
+  }
   const marge = 8, larg = Math.ceil(Math.max(1, ...lignes.map((l) => c.measureText(l).width))) + 2 * marge, haut = Math.ceil(CORPS * (lineHeight * (lignes.length - 1) + 1.45)) + 2 * marge;
   const cv = document.createElement('canvas'); cv.width = larg; cv.height = haut;
-  const g = cv.getContext('2d', { willReadFrequently: true }); g.font = c.font; g.fillStyle = '#000'; g.textBaseline = 'alphabetic';
+  const g = cv.getContext('2d', { willReadFrequently: true }); g.font = c.font; g.letterSpacing = c.letterSpacing; g.fillStyle = '#000'; g.textBaseline = 'alphabetic';
   const base0 = marge + CORPS * 1.08;                                   // ligne de base de la première ligne, en pixels du canevas
   lignes.forEach((l, k) => g.fillText(l, marge, base0 + k * lineHeight * CORPS));
-  const baseDerniere = base0 + (lignes.length - 1) * lineHeight * CORPS;
-  const boucles = contours(g.getImageData(0, 0, larg, haut)).map((b) => b.map(([x, y]) => [(x - marge) / CORPS, (baseDerniere - y) / CORPS]));   // en cadratins, y vers le haut, ligne de base de la dernière ligne à 0
+  const origine = premiereLigne ? base0 : base0 + (lignes.length - 1) * lineHeight * CORPS;
+  const boucles = contours(g.getImageData(0, 0, larg, haut)).map((b) => b.map(([x, y]) => [(x - marge) / CORPS, (origine - y) / CORPS]));
   const bounds = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
   for (const b of boucles) for (const [x, y] of b) { bounds.minX = Math.min(bounds.minX, x); bounds.maxX = Math.max(bounds.maxX, x); bounds.minY = Math.min(bounds.minY, y); bounds.maxY = Math.max(bounds.maxY, y); }
   if (!boucles.length) Object.assign(bounds, { minX: 0, maxX: 0, minY: 0, maxY: 0 });
   return { boucles, bounds, width: bounds.maxX - bounds.minX, lignes };
+}
+
+// Lit les retours à la ligne et le rectangle du texte dans la mise en page à plat.
+export function cvMesureTitre(el, font) {
+  const style = getComputedStyle(el), boite = el.getBoundingClientRect();
+  const taille = parseFloat(style.fontSize), interligne = parseFloat(style.lineHeight) || taille;
+  const range = document.createRange(), lignes = [];
+  const textes = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+    acceptNode: node => node.parentElement.closest('[aria-hidden="true"]')
+      ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+  });
+  let gauche = Infinity, haut = Infinity, bas = -Infinity, ligne;
+  for (let node = textes.nextNode(); node; node = textes.nextNode()) {
+    let i = 0;
+    for (const caractere of node.data) {
+      range.setStart(node, i);
+      i += caractere.length;
+      range.setEnd(node, i);
+      const rect = range.getBoundingClientRect();
+      if (!rect.height) continue;
+      if (caractere.trim()) {
+        if (!ligne || rect.top > ligne.top + rect.height / 2) {
+          ligne = { top: rect.top, texte: '' };
+          lignes.push(ligne);
+        }
+        gauche = Math.min(gauche, rect.left);
+        haut = Math.min(haut, rect.top);
+        bas = Math.max(bas, rect.bottom);
+      }
+      if (ligne) ligne.texte += caractere;
+    }
+  }
+  if (!lignes.length) return null;
+  const c = ctxMesure(font);
+  c.font = style.font;
+  const { fontBoundingBoxAscent: ascent, fontBoundingBoxDescent: descent } = c.measureText('M');
+  const ajustement = (bas-haut)/(ascent+descent+(lignes.length-1)*interligne);
+  return {
+    lignes: lignes.map(l => l.texte.trim().normalize('NFC')),
+    x: gauche-boite.left, y: haut-boite.top,
+    em: taille*ajustement, baseline: ascent*ajustement, taille,
+    lineHeight: interligne/taille, letterSpacing: (parseFloat(style.letterSpacing)||0)/taille
+  };
 }
 
 /* contours fermés du masque alpha (seuil 50 %, interpolé), simplifiés */
@@ -195,17 +305,12 @@ export function cvTextExtrude(layout, { depth = 1, T }) {
  * vignette cliquable) et des branches graphiques (points et ramifications tirés du nom, sans contenu associé, non interactives).
  * Toutes les positions sont dans le repère fourni par `proj` : le chemin 3D en mode expo, le plan de la page en mode à plat.
  * Les étoiles bougent donc avec la caméra, sans calque HTML superposé. */
-const hache = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0; };
+export const hache = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0; };
 const alea = (g) => () => { g |= 0; g = g + 0x6D2B79F5 | 0; let t = Math.imul(g ^ g >>> 15, 1 | g); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const frac = (x) => x - Math.floor(x);
 const adouci = (x) => { x = Math.max(0, Math.min(1, x)); return 1 - (1 - x) ** 3; };
 const OR = 2.399963;
 
-/* Séquence d'apparition de la référence (module intro) : courbe de trajet, souffle d'échelle 5,6 -> 1, rotation qui s'amortit */
-const trajet = (d) => 1 - (1 - d) ** 5;
-const souffle = (t) => { const o = Math.max(0, Math.min(1, (t - 0.25) / 1.75)), r = 1 - (1 - o) ** 3, l = o < 0.5 ? 4 * o ** 3 : 1 - (-2 * o + 2) ** 3 / 2; return 5.6 ** (1 - (r + (l - r) * 0.2)); };
-const tourne = (t, deg, duree) => deg * Math.PI / 180 * (1 - Math.max(0, Math.min(1, t / duree))) ** 5;
-const circule = (h, t) => { const o = (((t * (0.1 + (h % 7) * 0.015) * 1.5 + ((h >>> 8) % 1000) / 1000) % 1) + 1) % 1; return h % 2 ? o : 1 - o; };
 export class Ciel {
   constructor() { this.etoiles = new Map(); this.images = new Map(); this.cibles = []; this.survol = null; this.pris = null; }
   vide() { this.etoiles.clear(); this.cibles = []; this.survol = null; }
@@ -254,7 +359,7 @@ export class Ciel {
     }
   }
   compte(groupe) { let total = 0, editoriaux = 0; for (const e of this.etoiles.values()) if (e.groupe === groupe) { total += e.noeuds.length + 1; editoriaux += e.noeuds.filter((n) => n.ed).length; } return { total, editoriaux }; }
-  etat(groupe) { return [...this.etoiles.values()].filter((e) => e.groupe === groupe).map((e) => ({ id: e.id, name: e.label, branches: e.noeuds.filter((n) => n.ed).length, points: e.noeuds.filter((n) => !n.ed).length, visible: !!e.ecran, survol: +(e.hv || 0).toFixed(2), teinte: e.teinte || null, foyer: e.ecran && [Math.round(e.ecran.x), Math.round(e.ecran.y)], libelle: e.libelleEcran || null })); }
+  etat(groupe) { return [...this.etoiles.values()].filter((e) => e.groupe === groupe).map((e) => ({ id: e.id, name: e.label, branches: e.noeuds.filter((n) => n.ed).length, points: e.noeuds.filter((n) => !n.ed).length, visible: !!e.ecran, foyer: e.ecran && [Math.round(e.ecran.x), Math.round(e.ecran.y)], libelle: e.libelleEcran || null })); }
   ecran(groupe) { return this.cibles.filter((c) => c.etoile.groupe === groupe).map((c, index) => ({ index, point: [c.x, c.y], node: c.noeud.ed })); }
   libelles() { return [...this.etoiles.values()].filter((e) => e.ecran && e.label).map((e) => e.label); }
   /* vignette éditoriale sous le pointeur (positions de la dernière image dessinée) */
@@ -262,13 +367,6 @@ export class Ciel {
      lache() dit si le geste était un simple clic (moins de 5 px parcourus) et sur quel contenu. */
   saisit(x, y) { let m = null, dm = 22; for (const c of this.cibles) { const d = Math.hypot(c.x - x, c.y - y); if (d < dm) { dm = d; m = c; } } if (!m) return false; this.pris = { noeud: m.noeud, etoile: m.etoile, x0: x, y0: y, trajet: 0 }; return true; }
   tire(x, y) { if (this.pris) this.pris.trajet = Math.max(this.pris.trajet, Math.hypot(x - this.pris.x0, y - this.pris.y0)); }
-  /* saisie d'un foyer à plat (lois de la référence) : il suit le pointeur, vitesse lissée 0,6 / 0,4 ; lâché, il part à 1,25 × cette vitesse,
-     sauf si le pointeur s'était arrêté (amortie au-delà de 80 ms d'arrêt, constante 60 ms), plafonnée à 1 400 px/s × échelle */
-  saisitFoyer(x, y) { const e = this.fsBrut; if (!e || !e.ecran || Math.hypot(e.ecran.x - x, e.ecran.y - y) > 12) return false; this.prisF = { e, ox: e.ecran.x - x, oy: e.ecran.y - y, x0: x, y0: y, trajet: 0, t: performance.now() }; e.vx = e.vy = 0; return true; }
-  tireFoyer(x, y) { const q = this.prisF; if (!q) return; q.trajet = Math.max(q.trajet, Math.hypot(x - q.x0, y - q.y0)); q.mx = x + q.ox; q.my = y + q.oy; }
-  lacheFoyer(annule = false) { const q = this.prisF; if (!q) return null; this.prisF = null; const e = q.e, k = annule ? 0 : 1.25 * Math.exp(-Math.max(0, performance.now() - (q.tm || q.t) - 80) / 60);
-    e.vx = (e.vx || 0) * k; e.vy = (e.vy || 0) * k; const v = Math.hypot(e.vx, e.vy), lim = 1400 * (this.unite || 1); if (v > lim) { e.vx *= lim / v; e.vy *= lim / v; } e.recup = 1;
-    return { clic: q.trajet < 5, chapitre: e.chapitre, etoile: e }; }
   lache() { const q = this.pris; this.pris = null; return q ? { clic: q.trajet < 5, ...q.noeud.ed, chapitre: q.etoile.chapitre } : null; }
   touche(x, y) { let m = null, dm = 18; for (const c of this.cibles) { const d = Math.hypot(c.x - x, c.y - y); if (d < dm) { dm = d; m = c; } } return m ? { ...m.noeud.ed, chapitre: m.etoile.chapitre } : null; }
 
@@ -289,94 +387,36 @@ export class Ciel {
   distanceCourbe(n, px, py) {
     let m = 1e9; for (let i = 0; i <= 10; i++) { const q = i / 10, o = 1 - q, x = o * o * n.x0 + 2 * o * q * n.cx + q * q * n.x1, y = o * o * n.y0 + 2 * o * q * n.cy + q * q * n.y1, d = Math.hypot(x - px, y - py); if (d < m) m = d; } return m;
   }
-  /* Poussée du pointeur sur un foyer à plat : accélération = (direction opposée × vitesse + élan × 1,45) × L² × 2 × bouclier ; rappel par ressort. */
-  repousse(e, Fb, m, pv, vit, dt, pace) {
-    e.dx = e.dx || 0; e.dy = e.dy || 0; e.vx = e.vx || 0; e.vy = e.vy || 0;
-    const q = this.prisF; if (q && q.e === e) { if (q.mx !== undefined && dt > 0) { const nx = q.mx - Fb.x, ny = q.my - Fb.y, ddx = nx - e.dx, ddy = ny - e.dy;
-        if (ddx || ddy) { e.vx = e.vx * 0.6 + ddx / dt * 0.4; e.vy = e.vy * 0.6 + ddy / dt * 0.4; q.tm = performance.now(); } e.dx = nx; e.dy = ny; } return; }
-    e.recup = (e.recup || 0) * Math.exp(-1.5 * dt); const amort = 6 + 14 * e.recup;
-    const n = Math.max(1, Math.ceil(dt / (1 / 60))), h = Math.min(dt, 0.25) / n;
-    for (let i = 0; i < n; i++) {
-      let ax = -e.dx * 16, ay = -e.dy * 16;
-      if (m && vit > 24) {
-        const px = Fb.x + e.dx, py = Fb.y + e.dy, T = px - m.x, P = py - m.y, d = Math.hypot(T, P), A = 265, C = 24;
-        if (d > C && d < A) {
-          const y = Math.min(vit, 1800), L = 1 - (d - C) / (A - C), H = (T * pv.x + P * pv.y) / (d * vit), J = 1 - Math.max(0, H), f = L * L * 2 * J * pace * 1.5;
-          ax += (T / d * y + pv.x / vit * y * 1.45) * f; ay += (P / d * y + pv.y / vit * y * 1.45) * f;
-        }
-      }
-      e.vx = (e.vx + ax * h) * Math.exp(-h * amort); e.vy = (e.vy + ay * h) * Math.exp(-h * amort);
-      e.dx += e.vx * h; e.dy += e.vy * h;
-    }
-    const lim = e.recup > 0.01 ? 1e4 : 160, r = Math.hypot(e.dx, e.dy); if (r > lim) { e.dx *= lim / r; e.dy *= lim / r; }
-    if (Math.abs(e.dx) + Math.abs(e.dy) + Math.abs(e.vx) + Math.abs(e.vy) < 0.05) e.dx = e.dy = e.vx = e.vy = 0;
-  }
-  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1, plat = false, intro = null, poids = null, deploie = null } = {}) {   /* intro : secondes écoulées depuis le début de l'apparition à plat (null : pas d'apparition) */
+  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1 } = {}) {
     if (alpha <= 0.003) { this.cibles = []; this.survol = null; this.survolBranche = null; return; }
-    const A0 = Math.min(1, alpha), retour = Math.exp(-dt * 9);
+    const A = Math.min(1, alpha), retour = Math.exp(-dt * 9);
     const libre = t !== null, tt = t || 0, cibles = [], cache = (x, y, z) => covers.some((c) => c.z < z - 30 && dansQuad(c.pts, x, y));
     const quads = covers.map((pts) => ({ pts, z: pts.reduce((s, q) => s + q.z, 0) / 4 }));
     covers = quads;
     const focus = this.survol ? this.survol.noeud : this.survolBranche ? this.survolBranche.noeud : null, focusE = this.survol ? this.survol.etoile : this.survolBranche ? this.survolBranche.etoile : null;
     const MULT = [1, 0.4, 1.5, 0.12];                                            // classes de rendu : normale, estompée (voisine d'une branche survolée), mise en évidence, voilée par un cadre
-    ctx.save(); ctx.lineCap = 'round'; ctx.globalAlpha = A0;
+    ctx.save(); ctx.lineCap = 'round'; ctx.globalAlpha = A;
     let survol = null, dSurvol = 18, brancheMeilleure = null, dBranche = 7;
-    /* Survol d'un foyer, à plat (observé sur la référence) : le foyer passe au vert vif, son nom grossit, ses rayons se resserrent,
-       les autres foyers s'estompent et son trait vers le centre s'allume. Transitions lissées (constante de temps 0,12 s, notre choix). */
-    let fs = this.prisF ? this.prisF.e : null;
-    if (plat && !compact && !this.pris && !this.prisF && souris.x > -1e3) { let dm = 16;
-      for (const e of this.etoiles.values()) { if (!e.parent || !e.ecran) continue; const d = Math.hypot(e.ecran.x - souris.x, e.ecran.y - souris.y), l = e.libelleEcran;
-        if (d < dm) { dm = d; fs = e; } else if (!fs && l && souris.x >= l.x - 2 && souris.x <= l.x + (l.w || 0) + 2 && souris.y >= l.y - (l.h || 12) && souris.y <= l.y + 4) fs = e; } }
-    const qh = libre ? 1 - Math.exp(-dt / 0.12) : 1;
-    this.hvTous = (this.hvTous || 0) + ((fs ? 1 : 0) - (this.hvTous || 0)) * qh;
-    /* Effets du pointeur à plat (relevés sur la référence, code propre) : la vitesse du pointeur pousse les foyers proches (noyau L² entre 24 et 265 px,
-       bouclier devant le mouvement, portée de l'élan 1,45), un ressort les ramène ; tout ralentit (allure 0,2) quand un contenu est survolé. */
-    const sv = souris.x > -1e3 && plat && !compact && libre && !this.pris && !this.prisF, pv = this.pv || (this.pv = { x: 0, y: 0, px: souris.x, py: souris.y, ok: false });
-    if (sv && pv.ok && dt > 0) { const ex = (souris.x - pv.px) / dt, ey = (souris.y - pv.py) / dt; pv.x = ex || ey ? ex : pv.x * Math.exp(-dt / 0.04); pv.y = ex || ey ? ey : pv.y * Math.exp(-dt / 0.04); } else if (!sv) { pv.x = pv.y = 0; }
-    pv.px = souris.x; pv.py = souris.y; pv.ok = sv;
-    /* Lois du graphe de la référence (simulation du module renderer, réécrites) : survoler un contenu calme le graphe (calme -> 1 à 10/s,
-       allure = 1 - 0,8 × calme) ; survoler un foyer resserre ses rayons de 25 %, un par un selon leur angle (décalage jusqu'à 0,15 s, réponse 15/s,
-       relâche 3/s) ; les rayons orbitent à 0,02 rad/s, un foyer sur deux dans l'autre sens ; un rayon à moins de 15 px du pointeur s'y colle ;
-       deux traits circulent sur chaque branche (vitesse 1,5, traîne 1 s) ; le pointeur ne pousse rien pendant le survol d'un foyer. */
-    const cibleCalme = plat && !fs && this.survol && this.survol.noeud ? 1 : 0;
-    this.calme = libre ? (this.calme || 0) + (cibleCalme - (this.calme || 0)) * (1 - Math.exp(-10 * dt)) : cibleCalme;
-    /* apparition : chaque foyer part du centre à son tour (rang × 0,07 s, ordre en pas premier avec leur nombre), trajet 1,1 s, rotation de -180° amortie sur 3 s ;
-       ses rayons partent 0,45 s après lui (+ 0,025 s chacun), trajet 0,99 s, rotation de -67° ; taille = apparu × (1 + 0,7 sin(π d)) × souffle */
-    const enIntro = plat && intro !== null && intro < 4, souf = enIntro ? souffle(intro) : 1, rotF = enIntro ? tourne(intro, -180, 3) : 0, rotR = enIntro ? tourne(intro, -67, 3) : 0;
-    if (enIntro && !this.ordreIntro) { const fo = [...this.etoiles.values()].filter((e) => e.parent && !e.groupe?.startsWith?.('titre')), n = fo.length; let pas = Math.max(1, Math.floor(n / 2)); const pg = (a, b) => b ? pg(b, a % b) : a; while (pas > 1 && pg(pas, n) !== 1) pas--;
-      const tri = [...fo].sort((a, b) => a.id.localeCompare(b.id)); this.ordreIntro = new Map(tri.map((e) => [e, (fo.indexOf(e) * pas) % n])); }
-    this.introFinie = !enIntro;
-    const allure = 1 - 0.8 * this.calme, vit = Math.hypot(pv.x, pv.y), unite = this.unite = Math.max(0.4, Math.min(3, Math.min(W, H) / 741));
     for (const e of this.etoiles.values()) {
       e.ecran = null; e.libelleEcran = null;
-      const kT = (e.groupe === 'titre' ? titres : 1) * (poids?.get(e.id) ?? 1), A = A0 * kT; ctx.globalAlpha = A; if (kT < 0.02) continue;   // poids : estompe d'une étoile (graphe des chapitres), appliqué à toute l'étoile   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
+      const kT = e.groupe === 'titre' ? titres : 1; ctx.globalAlpha = A * kT; if (kT < 0.02) continue;   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
       if (!e.centre) { e.age = -1; continue; }
-      const [c0, r0, h0] = e.centre, Fb = proj(c0, r0, h0), u = Fb && proj(c0 + 100, r0, h0);
-      let tailleI = 1, naissance = 0;
-      if (enIntro && Fb) { const P = e.parent && this.etoiles.get(e.parent);
-        if (P && P.ecran) { naissance = 0.07 * (this.ordreIntro.get(e) || 0); const d = Math.max(0, Math.min(1, (intro - naissance) / 1.1)), m = trajet(d), dx = Fb.x - P.ecran.x, dy = Fb.y - P.ecran.y, c = Math.cos(rotF), sn = Math.sin(rotF);
-          Fb.x = P.ecran.x + (dx * c - dy * sn) * m; Fb.y = P.ecran.y + (dx * sn + dy * c) * m; tailleI = Math.min(1, d * 6) * (1 + Math.sin(Math.PI * d) * 0.7) * souf; }
-        else if (!e.parent) { const l = intro; tailleI = (1 / 5.6 + (1 - 1 / 5.6) * (1 - (1 - Math.min(1, l / 0.25)) ** 5)) * (l > 0.6 ? 1 : 1 + Math.sin(Math.PI * l / 0.6) * 0.42) * souf; } }
-      e.tailleI = tailleI;
-      if (Fb && plat && e.parent) { this.repousse(e, Fb, sv && !fs ? souris : null, pv, vit, dt, allure); } else { e.dx = e.dy = e.vx = e.vy = 0; }
-      const F = Fb && (e.dx || e.dy ? { x: Fb.x + e.dx, y: Fb.y + e.dy, z: Fb.z } : Fb), OX = e.dx || 0, OY = e.dy || 0;
+      const [c0, r0, h0] = e.centre, F = proj(c0, r0, h0), u = F && proj(c0 + 100, r0, h0);
       if (!F || !u) continue;
       const k = Math.abs(u.x - F.x) / 100;                                       // pixels d'écran par unité, au foyer
       if (F.x < -e.rayon * k - 80 || F.x > W + e.rayon * k + 80 || F.y < -e.rayon * k - 80 || F.y > H + e.rayon * k + 80) { continue; }
       if (e.age < 0) e.age = 0; e.age += libre ? dt : 10;
       e.ecran = F;
-      e.hv = (e.hv || 0) + ((e === fs ? 1 : 0) - (e.hv || 0)) * qh; if (e.hv < 0.004) e.hv = 0;
-      e.tSurvol = e === fs ? (e.tSurvol || 0) + dt : 0; if (plat && libre && !e.racine) e.ob = (e.ob || 0) + 0.02 * allure * (e.rang % 2 ? -1 : 1) * dt;
-      const lum = e.hv, estompe = plat ? 1 - 0.6 * this.hvTous * (1 - lum) : 1, vif = plat && e.hv > 0.5;
-      const ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon, actifC = !!this.actif && e.chapitre === this.actif, autreC = !!this.actif && !!e.chapitre && e.chapitre !== this.actif;
-      /* à plat (relevé sur la capture de la référence) : traits bleus fins, un foyer sur trois tirant sur le vert, foyer central réduit à un anneau,
-         aucune trace au sol, contenus sans image en points, nom contre le foyer suivi du nombre de contenus en gris */
-      const vert = plat && !!e.parent && e.rang % 3 === 1, TE = vert ? '70,225,175' : '118,146,255';
-      e.teinte = plat ? (e.racine ? 'anneau' : vert ? 'vert' : 'bleu') : 'blanc';
-      const kE = (actifC ? 1.25 : autreC ? 0.85 : 1) * estompe * (1 + 0.5 * e.hv);                              // chapitre actif : branches plus présentes ; les autres s'effacent un peu
+      const ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon;
+      const f = this.fondu;
+      const poids = !e.chapitre ? 0 : f
+        ? (e.chapitre === f.de ? 1 - f.poids : 0) + (e.chapitre === f.vers ? f.poids : 0)
+        : Number(e.chapitre === this.actif);
+      const baseLumiere = f && !f.de ? 1 - .15 * f.poids : .85;
+      const kE = e.chapitre && (f || this.actif) ? baseLumiere + .4 * poids : 1;
       const F0 = proj(c0, r0, 0), ombre = !!F0 && F.y - F0.y > 1.5;                // ombres portées au sol : seulement quand le foyer est au-dessus du sol (expo)
       /* trace au sol : cercle et tige (étoiles posées) */
-      if (e.sol && !plat) {
+      if (e.sol) {
         ctx.strokeStyle = 'rgba(190,210,255,.42)'; ctx.lineWidth = 1; ctx.beginPath(); let ouvert = false;
         for (let i = 0; i <= 40; i++) { const a = i / 40 * 6.283, q = proj(c0 + Math.cos(a) * R * 0.62, r0 + Math.sin(a) * R * 0.62, 0); if (!q) { ouvert = false; continue; } ouvert ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y); ouvert = true; }
         ctx.stroke();
@@ -385,40 +425,31 @@ export class Ciel {
       /* liaison avec le foyer parent : courbe en arche, plus claire côté foyer */
       const parent = e.parent && this.etoiles.get(e.parent);
       if (parent?.ecran) {
-        const g = plat ? 1 : adouci(e.age / 0.9), ax = parent.ecran.x, ay = parent.ecran.y, bx = ax + (F.x - ax) * g, by = ay + (F.y - ay) * g, dx = bx - ax, dy = by - ay, ccx = ax + dx / 2 - dy * 0.1, ccy = ay + dy / 2 + dx * 0.1, gl = ctx.createLinearGradient(ax, ay, bx, by);
+        const g = adouci(e.age / 0.9), ax = parent.ecran.x, ay = parent.ecran.y, bx = ax + (F.x - ax) * g, by = ay + (F.y - ay) * g, dx = bx - ax, dy = by - ay, ccx = ax + dx / 2 - dy * 0.1, ccy = ay + dy / 2 + dx * 0.1, gl = ctx.createLinearGradient(ax, ay, bx, by);
         gl.addColorStop(0, 'rgba(215,228,255,.62)'); gl.addColorStop(1, 'rgba(190,210,255,.28)');
-        ctx.strokeStyle = plat ? (lum > 0.02 ? `rgba(${Math.round(110 - 30 * lum)},${Math.round(135 + 110 * lum)},${Math.round(255 - 100 * lum)},${(0.3 + 0.6 * lum).toFixed(2)})` : `rgba(110,135,255,${(0.3 * estompe).toFixed(2)})`) : gl; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay); plat ? ctx.lineTo(bx, by) : ctx.quadraticCurveTo(ccx, ccy, bx, by); ctx.stroke();
+        ctx.strokeStyle = gl; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.quadraticCurveTo(ccx, ccy, bx, by); ctx.stroke();
       }
       /* 1. géométrie de chaque branche (une seule fois par image, sans allocation : tout est écrit dans le nœud) */
       const N = e.noeuds, nb = N.length, cnt = this.cnt || (this.cnt = new Int16Array(16)); cnt.fill(0);
       for (let j = 0; j < nb; j++) {
         const n = N[j]; n.vis = false;
-        if (plat && (n.par || e.racine)) continue;                               // à plat : ni ramification ni gerbe centrale (observé sur la référence)
         let g = adouci((e.age - 0.15 - j * (e.racine ? 0.012 : 0.04) - (n.par ? 0.3 : 0)) / 0.8);
-        if (plat && !n.par && deploie?.has(e.id)) g *= deploie.get(e.id);   // déploiement des rayons (repli et dépli entre chapitres)
-        if (plat && !n.par) { if (enIntro) { const d = Math.max(0, Math.min(1, (intro - naissance - 0.45 - j * 0.025) / 0.99)); g = trajet(d); n.tI = Math.min(1, d * 6) * (1 + Math.sin(Math.PI * d) * 0.7) * souf; } else { g = intro === null && !libre ? 1 : g; n.tI = 1; } }
         if (n.par) { if (!n.par.vis) continue; g = Math.min(g, n.par.gg); }
         if (g <= 0) continue;
         let x, y, cx, cy, x0 = F.x, y0 = F.y, z = F.z || 0, wc = 0, wr = 0, wh = 0, cwC = 0, cwR = 0, cwH = 0;
         if (!n.par) {
-          const an = n.a + (plat ? (e.ob || 0) + rotR : 0);
-          if (plat) { const dl = ((Math.atan2(Math.sin(an) * 0.78, Math.cos(an)) + Math.PI / 2) / 6.283185 % 1 + 1) % 1 * 0.15, on = e === fs && e.tSurvol >= dl;
-            n.hg = libre ? (n.hg || 0) + ((on ? 1 : 0) - (n.hg || 0)) * (1 - Math.exp(-(on ? 15 : 3) * dt)) : on ? 1 : 0; if (!on && n.hg < 1e-4) n.hg = 0; }
-          const Rn = plat ? R * (1 - 0.25 * (n.hg || 0)) : R;
-          wc = c0 + Math.cos(an) * Rn * n.r; wr = r0 + Math.sin(an) * Rn * n.r * 0.78; wh = Math.max(0, h0 + n.dh * R * 0.45);
-          if (libre && !plat) { wc += Math.sin(tt * 0.4 + n.phase) * R * 0.02; wr += Math.cos(tt * 0.33 + n.phase * 1.7) * R * 0.018; }
+          wc = c0 + Math.cos(n.a) * R * n.r; wr = r0 + Math.sin(n.a) * R * n.r * 0.78; wh = Math.max(0, h0 + n.dh * R * 0.45);
+          if (libre) { wc += Math.sin(tt * 0.4 + n.phase) * R * 0.02; wr += Math.cos(tt * 0.33 + n.phase * 1.7) * R * 0.018; }
           const P = proj(wc, wr, wh); if (!P) continue;
-          x = P.x + OX; y = P.y + OY; z = P.z;
-          if (libre && !plat) { const dx = x - souris.x, dy = y - souris.y, d = Math.hypot(dx, dy); if (d < 150 && d > 1) { const q = (1 - d / 150) * 18 / d * (n.ed ? Math.min(1, d / 60) ** 2 : 1); x += dx * q; y += dy * q; } }   // une vignette ne fuit pas le pointeur qui vient la prendre
-          if (plat && sv && !this.pris) { const rm = 15 * unite, d = Math.hypot(souris.x - x, souris.y - y); if (d < rm) { const f = (1 - (d / rm) ** 2) ** 2 * 0.9; x += (souris.x - x) * f; y += (souris.y - y) * f; } }   // aimant
+          x = P.x; y = P.y; z = P.z;
+          if (libre) { const dx = x - souris.x, dy = y - souris.y, d = Math.hypot(dx, dy); if (d < 150 && d > 1) { const q = (1 - d / 150) * 18 / d * (n.ed ? Math.min(1, d / 60) ** 2 : 1); x += dx * q; y += dy * q; } }   // une vignette ne fuit pas le pointeur qui vient la prendre
           x = F.x + (x - F.x) * g; y = F.y + (y - F.y) * g;
           if (this.pris && this.pris.noeud === n) { n.ox = souris.x - x; n.oy = souris.y - y; } else if (n.ox || n.oy) { n.ox *= retour; n.oy *= retour; if (Math.abs(n.ox) + Math.abs(n.oy) < 0.3) n.ox = n.oy = 0; }
           if (n.ox || n.oy) { x += n.ox; y += n.oy; }
           const dc = wc - c0, dr = wr - r0, len = Math.hypot(dc, dr) || 1;      // courbure dans le plan du sol, arche en hauteur : la branche est une vraie courbe de l'espace
-          const kc = plat ? 0 : 1;                                              // à plat les rayons sont droits (observé) ; courbure et arche en 3D
-          cwC = c0 + dc * 0.5 - dr / len * n.cv * kc * len; cwR = r0 + dr * 0.5 + dc / len * n.cv * kc * len; cwH = (h0 + wh) * 0.5 + n.ar * kc * len * 0.35;
+          cwC = c0 + dc * 0.5 - dr / len * n.cv * len; cwR = r0 + dr * 0.5 + dc / len * n.cv * len; cwH = (h0 + wh) * 0.5 + n.ar * len * 0.35;
           const Cq = proj(cwC, cwR, cwH);
-          cx = Cq ? F.x + (Cq.x + OX - F.x) * g : (F.x + x) / 2; cy = Cq ? F.y + (Cq.y + OY - F.y) * g : (F.y + y) / 2;
+          cx = Cq ? F.x + (Cq.x - F.x) * g : (F.x + x) / 2; cy = Cq ? F.y + (Cq.y - F.y) * g : (F.y + y) / 2;
           if (n.ox || n.oy) { cx += n.ox * 0.5; cy += n.oy * 0.5; }
           if (ombre && n.ed) {                                                   // pied de la branche éditoriale au sol
             const P0 = proj(wc, wr, 0), C0 = proj(cwC, cwR, 0);
@@ -435,11 +466,6 @@ export class Ciel {
         const dim = focus && !hl && e === focusE;
         n.cl = voile ? 3 : hl ? 2 : dim ? 1 : 0;
         n.x0 = x0; n.y0 = y0; n.x1 = x; n.y1 = y; n.cx = cx; n.cy = cy; n.gg = g; n.z = z; n.vis = true; cnt[n.niveau * 4 + n.cl]++;
-        if (plat && libre) {                                                     // lueur (module glow de la référence) : blanchit près du pointeur, s'éteint en décalé
-          const rg = 265 * unite, dd = sv ? Math.hypot(x - souris.x, y - souris.y) : rg, o = dd < rg ? 1 - dd / rg : 0, cib = o * o * (3 - 2 * o), cur = n.lu || 0;
-          if (n.gs === undefined) n.gs = (hache(e.id + ':' + j + ':glow') % 1000) / 1000 * 0.35;
-          if (cib >= cur) { if (cib > 0) n.tlu = tt; n.lu = cur + (cib - cur) * (1 - Math.exp(-24 * dt)); } else if (tt - (n.tlu || 0) >= n.gs) n.lu = cur + (cib - cur) * (1 - Math.exp(-3 * dt / 0.6));
-          if (Math.abs(n.lu - cib) < 0.002) n.lu = cib; }
       }
       /* 2. ombres portées au sol des branches éditoriales et des cartes (expo) */
       if (ombre) {
@@ -452,24 +478,14 @@ export class Ciel {
       }
       /* 3. rayons fins et ramifications, par niveau et par classe de rendu : un seul tracé par lot, en mélange additif (le centre des foyers s'éclaire par recouvrement) */
       ctx.globalCompositeOperation = 'lighter';
-      const degrade = (m) => { const g = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, Math.max(40, R * k)); g.addColorStop(0, `rgba(${vif ? '90,255,160' : vert ? '40,225,170' : '70,175,255'},${Math.min(1, 0.95 * m).toFixed(2)})`); g.addColorStop(0.45, `rgba(${vif ? '70,240,150' : vert ? '40,170,200' : '70,110,255'},${Math.min(1, 0.7 * m).toFixed(2)})`); g.addColorStop(1, `rgba(${vif ? '60,220,140' : '70,90,255'},${Math.min(1, (vif ? 0.8 : 0.5) * m).toFixed(2)})`); return g; };
-      const BASE = e.racine ? (plat ? [0, 0.16, 0.1, 0.07] : [0, 0.2, 0.13, 0.09]) : plat ? [0, 0.55, 0.4, 0.3] : [0, 0.4, 0.29, 0.21], LW = [0, 0.8, 0.7, 0.6];   /* rayons fins et discrets : le centre des foyers ne sature pas */
+      const BASE = e.racine ? [0, 0.2, 0.13, 0.09] : [0, 0.4, 0.29, 0.21], LW = [0, 0.8, 0.7, 0.6];   /* rayons fins et discrets : le centre des foyers ne sature pas */
       for (let lv = 3; lv >= 1; lv--) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
-        ctx.strokeStyle = plat ? degrade(MULT[cl] * kE) : `rgba(225,238,255,${Math.min(1, BASE[lv] * MULT[cl] * kE).toFixed(3)})`; ctx.lineWidth = (plat ? 1 : LW[lv]) * (cl === 2 ? 1.5 : 1); ctx.beginPath();
+        ctx.strokeStyle = `rgba(225,238,255,${Math.min(1, BASE[lv] * MULT[cl] * kE).toFixed(3)})`; ctx.lineWidth = LW[lv] * (cl === 2 ? 1.5 : 1); ctx.beginPath();
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); }
         ctx.stroke();
       }
-      if (plat && libre) { ctx.fillStyle = '#fff'; for (let j = 0; j < nb; j++) { const n = N[j]; if (!n.vis || n.par || !(n.lu > 0.02)) continue;   // points en lueur : mêlés de blanc
-          ctx.globalAlpha = A * n.lu; ctx.beginPath(); ctx.arc(n.x1, n.y1, (n.ed ? 2.6 : 1.9) * (n.tI ?? 1), 0, 6.283); ctx.fill(); } ctx.globalAlpha = A; }
-      if (plat && libre) {                                                     // traits qui circulent : deux par branche, sens et vitesse propres à chaque branche
-        ctx.strokeStyle = `rgba(${TE},${(0.85 * kE).toFixed(2)})`; ctx.lineWidth = 1; ctx.beginPath();
-        for (let j = 0; j < nb; j++) { const n = N[j]; if (!n.vis || n.par || n.gg < 1) continue;
-          for (let q = 0; q < 2; q++) { const h = n.hf ? n.hf[q] : ((n.hf = [hache(e.id + ':' + j + ':0'), hache(e.id + ':' + j + ':1')])[q]), a1 = circule(h, tt), a0 = circule(h, tt - 1);
-            if (Math.abs(a1 - a0) > 0.5) continue; ctx.moveTo(n.x0 + (n.x1 - n.x0) * a0, n.y0 + (n.y1 - n.y0) * a0); ctx.lineTo(n.x0 + (n.x1 - n.x0) * a1, n.y0 + (n.y1 - n.y0) * a1); } }
-        ctx.stroke();
-      }
-      if (!plat && cnt[4] + cnt[6]) {                                                     // rayons de niveau 1 : second passage plus clair sur leur premier tiers (dégradé foyer vers extrémité)
+      if (cnt[4] + cnt[6]) {                                                     // rayons de niveau 1 : second passage plus clair sur leur premier tiers (dégradé foyer vers extrémité)
         ctx.strokeStyle = `rgba(235,245,255,${Math.min(1, (e.racine ? 0.12 : 0.26) * kE).toFixed(3)})`; ctx.lineWidth = 1; ctx.beginPath();
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== 1 || (n.cl !== 0 && n.cl !== 2)) continue; ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.x0 + (n.cx - n.x0) * 0.4, n.y0 + (n.cy - n.y0) * 0.4, n.x0 + (n.cx - n.x0) * 0.48 + (n.x1 - n.x0) * 0.16, n.y0 + (n.cy - n.y0) * 0.48 + (n.y1 - n.y0) * 0.16); }
         ctx.stroke();
@@ -478,13 +494,13 @@ export class Ciel {
       for (let j = 0; j < nb; j++) {
         const n = N[j]; if (!n.ed || !n.vis) continue;
         const actif = focus === n, gr = ctx.createLinearGradient(n.x0, n.y0, n.x1, n.y1), cy = j < 2, m = MULT[n.cl] * (n.cl === 0 ? kE : 1);
-        gr.addColorStop(0, actif ? 'rgba(255,255,255,1)' : plat ? `rgba(${TE},${Math.min(1, 0.95 * m).toFixed(2)})` : cy ? `rgba(120,235,255,${Math.min(1, 1 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.95 * m).toFixed(2)})`);
-        gr.addColorStop(1, actif ? 'rgba(255,255,255,1)' : plat ? `rgba(${TE},${Math.min(1, 0.7 * m).toFixed(2)})` : cy ? `rgba(95,230,255,${Math.min(1, 0.7 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.55 * m).toFixed(2)})`);
-        ctx.strokeStyle = plat && !actif ? degrade(m) : gr; ctx.lineWidth = actif ? 2.4 : plat ? 1 : actifC ? 1.4 : 1.15; ctx.beginPath(); ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); ctx.stroke();
-        if (!compact && !fs && libre && !this.pris && souris.x > -1e3) { const d = this.distanceCourbe(n, souris.x, souris.y); if (d < dBranche && n.cl !== 3) { dBranche = d; brancheMeilleure = { noeud: n, etoile: e }; } }
+        gr.addColorStop(0, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(120,235,255,${Math.min(1, 1 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.95 * m).toFixed(2)})`);
+        gr.addColorStop(1, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(95,230,255,${Math.min(1, 0.7 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.55 * m).toFixed(2)})`);
+        ctx.strokeStyle = gr; ctx.lineWidth = actif ? 2.4 : 1.15 + poids * .25; ctx.beginPath(); ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); ctx.stroke();
+        if (!compact && libre && !this.pris && souris.x > -1e3) { const d = this.distanceCourbe(n, souris.x, souris.y); if (d < dBranche && n.cl !== 3) { dBranche = d; brancheMeilleure = { noeud: n, etoile: e }; } }
       }
       /* 5. impulsions : le long des courbes réelles, transmises aux ramifications */
-      if (libre && !plat) for (let j = 0; j < nb; j++) {                       // aucune impulsion visible à plat sur les captures de la référence
+      if (libre) for (let j = 0; j < nb; j++) {
         const n = N[j]; if (!n.vis || n.par || n.gg < 1 || !(n.ed || n.pul)) continue;
         const q = (tt * 0.3 * n.vit + n.phase / 6.283) % 1;
         this.impulsion(ctx, n, q / 0.75);
@@ -493,8 +509,8 @@ export class Ciel {
       /* 6. extrémités des ramifications (points) */
       for (let lv = 1; lv <= 3; lv++) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
-        ctx.globalAlpha = A * Math.min(1, MULT[cl] * kE); ctx.fillStyle = plat ? (vif ? 'rgb(90,255,160)' : 'rgb(88,112,255)') : e.racine ? 'rgba(200,215,255,.55)' : lv === 1 ? 'rgba(223,233,255,.9)' : lv === 2 ? 'rgba(223,233,255,.75)' : 'rgba(223,233,255,.6)'; ctx.beginPath();
-        for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; const r = plat ? 1.9 * (n.tI ?? 1) : (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech) * (lv === 1 ? 1 : lv === 2 ? 0.8 : 0.6); ctx.moveTo(n.x1 + r, n.y1); ctx.arc(n.x1, n.y1, r, 0, 6.283); }
+        ctx.globalAlpha = A * Math.min(1, MULT[cl] * kE); ctx.fillStyle = e.racine ? 'rgba(200,215,255,.55)' : lv === 1 ? 'rgba(223,233,255,.9)' : lv === 2 ? 'rgba(223,233,255,.75)' : 'rgba(223,233,255,.6)'; ctx.beginPath();
+        for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; const r = (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech) * (lv === 1 ? 1 : lv === 2 ? 0.8 : 0.6); ctx.moveTo(n.x1 + r, n.y1); ctx.arc(n.x1, n.y1, r, 0, 6.283); }
         ctx.fill();
       }
       ctx.globalAlpha = A;
@@ -502,35 +518,24 @@ export class Ciel {
       for (let j = 0; j < nb; j++) {
         const n = N[j]; if (!n.ed || !n.vis) continue;
         const x = n.x1, y = n.y1, voile = n.cl === 3 ? 0.12 : 1;
-        ctx.globalAlpha = voile * A * estompe;
-        const kv = 0.72 + (n.phase / 6.283) * 0.8, im = this.image(n.ed.image), kp = 0.9 + 0.25 * (n.phase / 6.283), w = plat ? 22 * kp * (n.tI ?? 1) * (compact ? 0.8 : 1) : (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1), h = plat ? 17 * kp * (n.tI ?? 1) * (compact ? 0.8 : 1) : (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1);
-        if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = vif ? 'rgb(90,255,160)' : 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
-        else if (plat) { const actif = focus === n; ctx.fillStyle = actif ? '#fff' : vif ? 'rgb(90,255,160)' : 'rgb(88,112,255)'; ctx.beginPath(); ctx.arc(x, y, (actif ? 4.5 : 2.6) * (n.tI ?? 1), 0, 6.283); ctx.fill(); }   // à plat, un contenu sans image est un point ; il reste saisissable
+        ctx.globalAlpha = voile * A;
+        const kv = 0.72 + (n.phase / 6.283) * 0.8, im = this.image(n.ed.image), w = (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1), h = (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1);
+        if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
         else { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - w / 3, y - h * 0.29, w * 2 / 3, h * 0.58); }
         if (voile === 1) { cibles.push({ x, y, noeud: n, etoile: e }); const d = Math.hypot(x - souris.x, y - souris.y); if (d < dSurvol) { dSurvol = d; survol = { noeud: n, x, y, etoile: e }; } }
         ctx.globalAlpha = A;
       }
       /* foyer et libellé */
-      if (!plat) { const kH = 1, halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (actifC ? 1.25 : 1), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE * kH).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE * kH).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
-      const cote = (e.racine ? 9 : e.parent ? 7 : 9) * Math.min(1.25, Math.max(0.8, ech)) * (plat ? e.tailleI ?? 1 : 1);
-      if (plat && e.racine) { ctx.strokeStyle = 'rgba(125,152,255,.95)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(F.x, F.y, 4.2, 0, 6.283); ctx.stroke(); }   // foyer central : simple anneau
-      else { ctx.fillStyle = plat ? (vif ? 'rgb(90,255,160)' : `rgb(${TE})`) : '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote); }
+      { const halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (1 + .25 * poids), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
+      const cote = (e.racine ? 9 : e.parent ? 7 : 9) * Math.min(1.25, Math.max(0.8, ech));
+      ctx.fillStyle = '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote);
       if (e.label && !e.racine) {
-        const a = plat ? adouci((e.age - 0.9) / 1.0) : adouci((e.age - 0.2) / 0.6);   // à plat le nom monte en fondu après les rayons (observé)
+        const a = adouci((e.age - 0.2) / 0.6);
         ctx.globalAlpha = a * A; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
-        if (plat && e.parent && !compact) {                                      // à plat : nom contre le foyer, suivi du nombre de contenus en gris
-          const nbEd = e.noeuds.filter((q) => q.ed).length;
-          const corps = 12 + 10 * e.hv; ctx.globalAlpha = a * A * (0.55 + 0.45 * estompe);
-          ctx.font = `400 ${corps.toFixed(1)}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(1,4,25,.75)';
-          const l = ctx.measureText(e.label).width, tx = Math.min(F.x + cote / 2 + 7, W - l - 22), ty = F.y - cote / 2 - 4 + 4 * e.hv; ctx.strokeText(e.label, tx, ty); ctx.fillText(e.label, tx, ty);
-          ctx.font = '400 10px "JetBrains Mono",ui-monospace,monospace'; ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillText(String(nbEd), tx + l + 6, ty - 5);
-          e.libelleEcran = { x: Math.round(tx), y: Math.round(ty), texte: e.label, w: l, h: corps, corps };
-        } else if (e.sol) {                                                      // étoile posée : numéro et nom sous le cercle
-          const bas = proj(c0, r0 + R * 0.7, 0) || F, texte = compact ? e.label : (e.num ? e.num + ' ' : '') + e.label;   // grille (petit écran) : le nom seul, sous le foyer
-          ctx.font = `500 ${Math.round(Math.max(9, Math.min(13, 11 * ech)))}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'center';
-          const lx = Math.max(Math.min(bas.x, W - ctx.measureText(texte).width / 2 - 4), ctx.measureText(texte).width / 2 + 4);   // le nom reste dans le cadre
-          ctx.strokeText(texte, lx, bas.y + 12); ctx.fillText(texte, lx, bas.y + 12);
-          e.libelleEcran = { x: Math.round(lx), y: Math.round(bas.y + 12), texte };
+        if (e.sol) {                                                             // étoile posée : numéro et nom sous le cercle
+          const bas = proj(c0, r0 + R * 0.7, 0) || F, texte = compact ? (e.num || '') : (e.num ? e.num + ' ' : '') + e.label;
+          ctx.font = `500 ${Math.round(Math.max(9, Math.min(13, 11 * ech)))}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'center'; ctx.strokeText(texte, bas.x, bas.y + 12); ctx.fillText(texte, bas.x, bas.y + 12);
+          e.libelleEcran = { x: Math.round(bas.x), y: Math.round(bas.y + 12), texte };
         } else {                                                                 // étoile de titre : petit libellé contre le foyer
           ctx.font = `500 ${Math.round(Math.max(11, Math.min(15, 13 * ech)))}px Inter,ui-sans-serif,system-ui,sans-serif`; ctx.textAlign = 'left'; ctx.strokeText(e.label, F.x + cote / 2 + 7, F.y + 4.5); ctx.fillText(e.label, F.x + cote / 2 + 7, F.y + 4.5);
           e.libelleEcran = { x: Math.round(F.x + cote / 2 + 7), y: Math.round(F.y + 4.5), texte: e.label };
@@ -538,27 +543,18 @@ export class Ciel {
         ctx.globalAlpha = A;
       }
     }
-    this.foyerSurvol = survol ? null : fs; this.fsBrut = fs;
     this.cibles = cibles; this.survol = survol; this.survolBranche = survol ? null : brancheMeilleure;
-    /* Nom du contenu survolé. Relevés de la référence : le libellé suit le pointeur avec `left, top 0.12s ease-out` et son opacité change en
-       0,15 s suivant cubic-bezier(0.65, 0, 0.35, 1) (lissage cubique symétrique). Sans pointeur (tactile, clavier) il reste contre le nœud. */
-    const L = this.lib || (this.lib = { x: 0, y: 0, a: 0, texte: '' });
-    if (survol) {
-      const suit = souris.x > -1e3, cx = suit ? souris.x : survol.x, cy = suit ? souris.y : survol.y;
-      if (L.a <= 0 || !libre) { L.x = cx; L.y = cy; } else { const q = 1 - Math.exp(-dt / 0.04); L.x += (cx - L.x) * q; L.y += (cy - L.y) * q; }   // 95 % de l'écart rattrapé en 0,12 s
-      L.texte = (survol.noeud.ed.title || '').slice(0, 60);
+    if (survol) {                                                                // nom du contenu survolé
+      const texte = (survol.noeud.ed.title || '').slice(0, 60);
+      ctx.font = '500 11px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = survol.x > W - 260 ? 'right' : 'left'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,10,90,.7)'; ctx.fillStyle = '#fff';
+      const dx = survol.x > W - 260 ? -18 : 18; ctx.strokeText(texte, survol.x + dx, survol.y + 4); ctx.fillText(texte, survol.x + dx, survol.y + 4);
     }
-    L.a = libre ? Math.max(0, Math.min(1, L.a + (survol ? dt : -dt) / 0.15)) : survol ? 1 : 0;
-    if (L.a > 0 && L.texte) {
-      const o = L.a < 0.5 ? 4 * L.a ** 3 : 1 - (2 - 2 * L.a) ** 3 / 2, droite = L.x > W - 260, dx = droite ? -18 : 18;
-      ctx.globalAlpha = A0 * o; ctx.font = '500 11px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = droite ? 'right' : 'left'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,10,90,.7)'; ctx.fillStyle = '#fff';
-      ctx.strokeText(L.texte, L.x + dx, L.y + 4); ctx.fillText(L.texte, L.x + dx, L.y + 4);
-      this.libelleSurvol = { x: L.x + dx, y: L.y + 4, opacite: o, texte: L.texte };
-    } else this.libelleSurvol = null;
     ctx.restore();
   }
 }
 function dansQuad(q, x, y) { let c = false; for (let i = 0, j = 3; i < 4; j = i++) { const a = q[i], b = q[j]; if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) c = !c; } return c; }
+
+export { dansQuad };
 
 /* ---------- Arêtes et ombres des cadres ---------- */
 /* `souris` (optionnel) : le cadre sous le pointeur est rehaussé (contour épais, repères d'angle) ; un cadre relevé porte un reflet
@@ -566,42 +562,42 @@ function dansQuad(q, x, y) { let c = false; for (let i = 0, j = 3; i < 4; j = i+
 export function dessineContours(ctx, view, boxes, souris = null) {
   let survole = null;
   ctx.save(); ctx.lineJoin = 'round';
-  const dessus = (b) => [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => b.slab ? p(view, ...cvSlab(view, b.slab, b.r1, b.base, x, b.r1 - r)) : p(view, x, r, b.top));
+  const face = (b, epais) => [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, row]) => b.slab
+    ? p(view, ...cvSlab(view, { tilt: b.slab.tilt, depth: epais ? b.slab.depth : 0 }, b.r1, b.base, x, b.r1 - row))
+    : p(view, x, row, epais ? b.top : b.base));
   const ordre = [...boxes].sort((a, c) => a.r1 - c.r1);                        // du fond vers l'observateur
   for (const [rang, b] of ordre.entries()) {
     /* les flancs d'un bloc passent derrière le dessus des blocs plus proches (leur contenu est du DOM, sous ce canevas) */
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, view.W, view.H);
-    for (const n of ordre.slice(rang + 1)) { const q = dessus(n); if (q.every(Boolean)) { ctx.moveTo(q[0].x, q[0].y); for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y); ctx.closePath(); } }
+    for (const n of ordre.slice(rang + 1)) { const q = n.screenTop ?? face(n, true); if (q.every(Boolean)) { ctx.moveTo(q[0].x, q[0].y); for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y); ctx.closePath(); } }
     ctx.clip('evenodd');
-    const coin = (x, row, epais) => b.slab ? p(view, ...cvSlab(view, { tilt: b.slab.tilt, depth: epais ? b.slab.depth : 0 }, b.r1, b.base, x, b.r1 - row)) : p(view, x, row, epais ? b.top : 0);
-    const haut = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => coin(x, r, true)), bas = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => coin(x, r, false));
-    if (!haut.every(Boolean) || !bas.every(Boolean)) continue;
+    const haut = b.screenTop ?? face(b, true), bas = face(b, false);
+    if (!haut.every(Boolean) || !bas.every(Boolean)) { ctx.restore(); continue; }
     const trace = (pts) => { ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath(); };
     if (b.slab && b.tilted > 0.02) {                                             // ombre portée au sol d'un cadre relevé
       const ombre = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => { const w = cvSlab(view, b.slab, b.r1, b.base, x, b.r1 - r); return p(view, w[0] + w[2] * 0.5, w[1] + w[2] * 0.35, 0); });
       if (ombre.every(Boolean)) { ctx.fillStyle = 'rgba(0,0,0,.22)'; trace(ombre); ctx.fill(); }
     }
-    const plein = b.hero && !b.slab;                                           // blocs de l'accueil : flancs opaques, à la couleur du sol assombrie
-    ctx.fillStyle = plein ? '#02105f' : 'rgba(255,255,255,.07)'; trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
-    if (plein) { const g = ctx.createLinearGradient(0, haut[3].y, 0, bas[3].y); g.addColorStop(0, '#1236d6'); g.addColorStop(1, '#071d8a'); ctx.fillStyle = g; } else ctx.fillStyle = 'rgba(255,255,255,.14)'; trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();          // tranche avant
+    const plein = (b.hero && !b.slab) || b.project;
+    const dedansQuad = souris && dansQuad(haut, souris.x, souris.y);
+    if (dedansQuad) survole = b;
+    const flanc = b.project ? `color-mix(in srgb,${b.colour||'#051daa'} 46%,#030a23)` : '#02105f';
+    ctx.fillStyle = plein ? flanc : 'rgba(255,255,255,.07)';
+    trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
+    if (plein) {
+      const g = ctx.createLinearGradient(0, haut[3].y, 0, bas[3].y);
+      g.addColorStop(0,b.project?`color-mix(in srgb,${b.colour||'#051daa'} 75%,#102b84)`:'#0e2da9');
+      g.addColorStop(1,b.project?flanc:'#06156c');
+      ctx.fillStyle = g;
+    } else ctx.fillStyle = 'rgba(255,255,255,.14)';
+    trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();
     ctx.strokeStyle = plein ? 'rgba(210,225,255,.7)' : 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.85; ctx.beginPath();
     for (let i = 0; i < 4; i++) { ctx.moveTo(haut[i].x, haut[i].y); ctx.lineTo(bas[i].x, bas[i].y); }
     ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[2].x, bas[2].y); ctx.lineTo(bas[1].x, bas[1].y); ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[0].x, bas[0].y); ctx.stroke();
-    const dedansQuad = souris && dansQuad(haut, souris.x, souris.y);
-    if (dedansQuad) survole = b;
-    if (b.slab && b.tilted > 0.25 && !b.hero) {                                  // reflet de verre d'un cadre relevé
-      const u = souris ? Math.max(0, Math.min(1, (souris.x - haut[0].x) / Math.max(1, haut[1].x - haut[0].x))) : 0.5, g = ctx.createLinearGradient(haut[0].x, haut[0].y, haut[2].x, haut[2].y), c = 0.2 + 0.6 * u, a = 0.13 * Math.min(1, (b.tilted - 0.25) * 2);
-      g.addColorStop(Math.max(0, c - 0.22), 'rgba(255,255,255,0)'); g.addColorStop(c, `rgba(255,255,255,${a.toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.05), `rgba(255,255,255,${(a * 0.25).toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.3), 'rgba(255,255,255,0)');
-      ctx.fillStyle = g; trace(haut); ctx.fill();
-    }
-    ctx.strokeStyle = dedansQuad ? '#fff' : 'rgba(255,255,255,.85)'; ctx.lineWidth = dedansQuad ? 1.8 : 1; trace(haut); ctx.stroke();
-    if (dedansQuad) {                                                            // repères d'angle du cadre survolé
-      ctx.lineWidth = 1.8; ctx.beginPath();
-      for (let i = 0; i < 4; i++) { const q = haut[i], n = haut[(i + 1) % 4], m = haut[(i + 3) % 4], l1 = Math.hypot(n.x - q.x, n.y - q.y) || 1, l2 = Math.hypot(m.x - q.x, m.y - q.y) || 1, k = 12;
-        ctx.moveTo(q.x - (n.x - q.x) / l1 * k, q.y - (n.y - q.y) / l1 * k); ctx.lineTo(q.x, q.y); ctx.lineTo(q.x - (m.x - q.x) / l2 * k, q.y - (m.y - q.y) / l2 * k); }
-      ctx.stroke();
-    }
-    if (b.title && b.tilted > 0.5) {                                             // cadre relevé : son nom et ses cotes au-dessus du bord haut
+    ctx.strokeStyle = 'rgba(220,230,255,.38)';
+    ctx.beginPath(); ctx.moveTo(bas[0].x, bas[0].y); ctx.lineTo(bas[1].x, bas[1].y); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1; trace(haut); ctx.stroke();
+    if (b.title && !b.project && b.tilted > 0.5) {                               // les projets portent déjà leur titre sur la face
       ctx.globalAlpha = Math.min(1, (b.tilted - 0.5) * 2); ctx.font = '500 10px "JetBrains Mono",ui-monospace,monospace'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
       ctx.fillText(b.title.slice(0, 48), haut[0].x, haut[0].y - 8); ctx.textAlign = 'right'; ctx.fillText(Math.round(b.x1 - b.x0) + ' × ' + Math.round(b.r1 - b.r0), haut[1].x, haut[1].y - 8); ctx.globalAlpha = 1;
     }
@@ -635,10 +631,10 @@ export function dessineRegles(ctx, view, chapitres) {
 /* ---------- Décor du fond en mode expo : courbe exponentielle numérotée, arcs concentriques, cube filaire ----------
  * Tout est posé dans le repère du chemin (colonne, rangée, hauteur) et projeté par `p` : ces éléments suivent la caméra comme le sol.
  * Les positions et proportions sont calées sur une comparaison à dimensions identiques avec la référence ; aucun élément n'est une image.
- * `t` : temps en secondes (0 en mouvement réduit : tout reste immobile). `numeros` : nombre de chapitres numérotés sur la courbe. */
+ * `t` : temps en secondes (0 en mouvement réduit : tout reste immobile). */
 const ARC_RAYONS = [0.42, 0.62, 0.84, 1.08, 1.34, 1.62];   // en largeurs de page
 const ARCS_CLAIRS = [[3, 0.05, 0.4, 0.045, 0, 0.5], [4, 0.6, 0.95, 0.034, 0.37, 0.42], [2, 0.08, 0.3, 0.06, 0.64, 0.35]];   // [anneau, angle min, angle max (en π), vitesse (tours/s), phase, longueur (rad)]
-export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
+export function dessineDecor(ctx, view, { t = 0 } = {}) {
   const a = view.e * view.e; if (a < 0.01) return;
   const W = view.W, H = view.H, fois = Math.min(1.6, Math.max(0.6, W / 1512));
   ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -653,32 +649,6 @@ export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
     const dep = Math.PI * (a0 + (a1 - a0) * (((t * vitesse + phase) % 1 + 1) % 1)), lon = longueur;
     for (let s = 0; s < 6; s++) { ctx.lineWidth = (3.2 - s * 0.45) * fois; ctx.strokeStyle = `rgba(255,255,255,${(0.1 + s * 0.06) * a})`; trace(ARC_RAYONS[anneau], dep + s * lon / 6, dep + lon, 0.02); }
   }
-  /* courbe exponentielle posée sur le sol, et son cadre, à la rangée de base (page 1500) */
-  if (base > 0 && base < view.T) {
-    const g = (u) => (Math.exp(2.2 * u) - 1) / (Math.exp(2.2) - 1), haut = 0.2 * H;
-    const A = p(view, 0, base, 0), B = p(view, W, base, 0);
-    if (A && B) { ctx.lineWidth = 1 * fois; ctx.strokeStyle = `rgba(255,255,255,${0.55 * a})`; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); }
-    ctx.lineWidth = 1 * fois; ctx.strokeStyle = `rgba(255,255,255,${0.7 * a})`; ctx.beginPath();
-    for (let i = 0; i <= 80; i++) { const u = i / 80, q = p(view, W * u, base, haut * g(u)); if (!q) continue; if (i) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); } ctx.stroke();
-    ctx.font = `500 ${Math.round(8 * fois)}px "JetBrains Mono",ui-monospace,monospace`; ctx.textBaseline = 'top';
-    for (let i = 0; i < numeros; i++) {
-      const u = 0.5 + 0.34 * (numeros > 1 ? i / (numeros - 1) : 0), q = p(view, W * u, base, haut * g(u)); if (!q) continue;
-      ctx.strokeStyle = `rgba(255,255,255,${0.85 * a})`; ctx.fillStyle = `rgba(20,40,170,${0.9 * a})`; ctx.beginPath(); ctx.ellipse(q.x, q.y, 4.2 * fois, 2.6 * fois, 0, 0, 7); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = `rgba(255,255,255,${0.75 * a})`; ctx.textAlign = 'left'; ctx.fillText(String(i + 1).padStart(2, '0'), q.x + 4 * fois, q.y + 3 * fois);
-    }
-  }
-  /* formule au sol, à gauche de la bande : e^(-x) cos(ωx + φ), la courbe correspondante et la valeur de φ qui avance avec le temps.
-     Posée sur le plan du sol (colonne -290, page 1367 à 1480) : texte et tracé suivent la perspective de la caméra. */
-  {
-    const ancre = (c, y) => p(view, c, y - view.offset, 0), O = ancre(-290, 1367), X = ancre(-270, 1367), Y = ancre(-290, 1387);
-    if (O && X && Y && !(view.offset === undefined)) {
-      const phi = (t * 0.45) % 6.2832, ax = (X.x - O.x) / 20, ay = (X.y - O.y) / 20, bx = (Y.x - O.x) / 20, by = (Y.y - O.y) / 20;
-      ctx.save(); ctx.transform(ax, ay, bx, by, O.x, O.y); ctx.globalAlpha = 0.85 * a; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1 / Math.max(0.3, Math.hypot(ax, ay));
-      ctx.font = 'italic 500 15px "JetBrains Mono",ui-monospace,monospace'; ctx.textBaseline = 'top'; ctx.fillText('e^(-x) cos(ωx + φ)', 0, 0);
-      ctx.beginPath(); for (let i = 0; i <= 64; i++) { const x = i / 64 * 5, yy = 62 - Math.exp(-x * 0.9) * Math.cos(5 * x + phi) * 24; const px = i / 64 * 180; i ? ctx.lineTo(px, yy) : ctx.moveTo(px, yy); } ctx.stroke();
-      ctx.font = 'italic 500 13px "JetBrains Mono",ui-monospace,monospace'; ctx.fillText('φ ' + phi.toFixed(2), 74, 96); ctx.restore();
-    }
-  }
   /* cube filaire (cube dans le cube, relié aux sommets), dans le noir à gauche de la bande, en rotation lente */
   if (view.cube) {
     const [c0, r0c, h0, S] = view.cube, rx = t * 0.21 + 0.55, ry = t * 0.17 + 0.4;
@@ -690,6 +660,66 @@ export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
     for (let i = 0; i < 8; i++) if (E[i] && I[i]) { ctx.moveTo(E[i].x, E[i].y); ctx.lineTo(I[i].x, I[i].y); } ctx.stroke();
   }
   ctx.restore();
+}
+
+export function dessineCourbeAccueil(ctx, view, { x0, x1, row, chapters, souris, time }) {
+  if (x1-x0<160 || view.rise<.003) return [];
+  const profondeur = 340, hauteur = Math.exp(5)/1.35;
+  const at = (x,y) => p(view,mix(x0,x1,x/5),row-Math.min(y,Math.exp(5))/hauteur*profondeur,0);
+  const a = at(0,0), b = at(5,Math.exp(5));
+  if (!a || !b || a.y<0 || b.y>view.H) return [];
+  const markers = chapters.map((chapter,i) => {
+    const x=2.5*(1+(i+.5)/chapters.length), q=at(x,Math.exp(x));
+    return q && {...q,chapter:chapter.id,label:chapter.name,num:String(i+1).padStart(2,'0')};
+  }).filter(Boolean);
+  const focus = markers.find(q=>Math.hypot(q.x-souris.x,q.y-souris.y)<13);
+  const trace = (points,alpha) => {
+    ctx.globalAlpha=alpha*view.rise;
+    ctx.beginPath();
+    points.forEach((q,i)=>q&&(i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)));
+    ctx.stroke();
+  };
+  ctx.save();
+  ctx.strokeStyle=ctx.fillStyle='#fff';ctx.lineWidth=1;
+  for(let x=1;x<=5;x++)trace([at(x,0),at(x,hauteur)],.10);
+  for(let y=50;y<hauteur;y+=50)trace([at(0,y),at(5,y)],.10);
+  trace([at(5,0),a,at(0,hauteur)],.5);
+  const label=(text,q,alpha,align='left')=>{
+    if(!q)return;
+    ctx.font='400 10px "Expo Inter",Inter,sans-serif';ctx.textAlign=align;
+    ctx.globalAlpha=alpha*view.rise;ctx.fillText(text,q.x,q.y);
+  };
+  for(const [base,nom] of [[2,'2ˣ'],[3,'3ˣ'],[Math.E,'eˣ']]){
+    const fin=Math.min(5,Math.log(Math.exp(5))/Math.log(base));
+    trace(Array.from({length:121},(_,i)=>{const x=fin*i/120;return at(x,base**x);}),base===Math.E?(focus?.9:.42):.24);
+    label(nom,at(fin,base**fin),.62,'right');
+  }
+  for(const marker of markers){
+    ctx.globalAlpha=marker===focus?view.rise:.62*view.rise;
+    ctx.beginPath();ctx.ellipse(marker.x,marker.y,marker===focus?6:4,3,0,0,Math.PI*2);ctx.stroke();
+    label(marker.num,{x:marker.x+7,y:marker.y+8},.75);
+  }
+  if(focus)label(focus.label,{x:focus.x,y:focus.y-14},1,'center');
+  if(view.W>=700){
+    const formuleRow=row-190, col=-18, origin=p(view,col,formuleRow,0), end=p(view,col-150,formuleRow,0);
+    const phi=((view.offset/240+2)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+    if(origin&&end&&origin.y<view.H&&origin.y>0){
+      trace([origin,end],.20);
+      trace(Array.from({length:33},(_,i)=>{
+        const x=i/16-1,dy=Math.exp(-(x+1))*Math.cos(9*x+phi);
+        return p(view,col-i/32*150,formuleRow-22*dy,0);
+      }),.62);
+      label('y = e^(−x) cos(ωx + φ)',{x:origin.x,y:origin.y-13},.7,'right');
+      label('φ '+phi.toFixed(2),{x:origin.x,y:origin.y+13},.46,'right');
+    }
+  }
+  const middle=(x0+x1)/2;
+  for(let i=0;i<3;i++){
+    const r=row+56+12*i, phase=time===null?.5:.5+.5*Math.sin(2*Math.PI*(.6*time-i/3));
+    trace([p(view,middle-12,r),p(view,middle,r+8),p(view,middle+12,r)],.1+.2*phase);
+  }
+  ctx.restore();
+  return markers;
 }
 
 /* Éclairage du sol : à plat la couleur de la page est inchangée ; en expo le sol est éclairé et devient plus clair.
@@ -704,34 +734,79 @@ export function cvLit(hex, rise) {
   return `rgb(${[16, 8, 0].map((s) => vers_srgb(vers_lin((n >> s) & 255) * g)).join(',')})`;
 }
 
-/* ---------- Liste des chapitres : prolongement courbe du dessus du bloc supérieur ----------
- * Dans la référence, la liste n'est pas un panneau posé à part : c'est le dessus du premier bloc qui se prolonge vers l'arrière, d'abord à plat
- * (raccordé à l'arête du bloc, à sa hauteur), puis se relève suivant une loi exponentielle de l'angle d'élévation jusqu'à la verticale, comme
- * le sol de la scène. Les dernières lignes, sur la partie presque plate, sont donc écrasées par la perspective.
- * Tracé point par point dans le repère du chemin (bords, remplissage, texte orienté ligne par ligne) : il suit la caméra ; le calque HTML
- * correspondant est estompé en expo.
- * spec : { x, w, r1, hp, h0, phi0, phi1, items:[{nom, num}], alpha }  -  r1 : rangée de l'arête arrière du bloc, h0 : hauteur du dessus du bloc,
- * hp : longueur de la surface développée (unités de page), phi0 et phi1 : angles d'élévation au raccord et au sommet (rad). */
-const COURBE_K = 2.2, COURBE_LEAN = 1.05;
-export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, h0 = 0, phi0 = 0.05, phi1 = 1.45, items = [], alpha = 1, taille = 11 }) {
-  if (alpha <= 0.004 || !(hp > 0)) return;
-  const N = 48, rows = new Float32Array(N + 1), hs = new Float32Array(N + 1), ds = hp / N, e = view.e;
-  const g = (t) => (Math.exp(COURBE_K * t) - 1) / (Math.exp(COURBE_K) - 1);
-  hs[0] = h0; for (let k = 0; k < N; k++) { const phi = phi0 + (phi1 - phi0) * e * g((k + 0.5) / N); rows[k + 1] = rows[k] - ds * Math.cos(phi); hs[k + 1] = hs[k] + ds * Math.sin(phi); }
-  const at = (u, s) => { const f = Math.max(0, Math.min(N, s / ds)), k = Math.min(N - 1, Math.floor(f)), q = f - k; return p(view, x + u, r1 + rows[k] + (rows[k + 1] - rows[k]) * q, hs[k] + (hs[k + 1] - hs[k]) * q); };
-  const bord = [];
-  for (let k = 0; k <= N; k++) { const q = at(0, k * ds); if (!q) return; bord.push(q); }
-  const droite = []; for (let k = N; k >= 0; k--) { const q = at(w, k * ds); if (!q) return; droite.push(q); }
-  { let haut = Infinity, bas = -Infinity; for (const q of bord) { if (q.y < haut) haut = q.y; if (q.y > bas) bas = q.y; } for (const q of droite) { if (q.y < haut) haut = q.y; if (q.y > bas) bas = q.y; } if (bas < 0 || haut > view.H) return; }   /* hors champ : rien à tracer */
-  ctx.save(); ctx.globalAlpha = alpha; ctx.lineJoin = 'round';
-  ctx.beginPath(); [...bord, ...droite].forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath();
-  ctx.fillStyle = 'rgba(3,22,150,.86)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.stroke();
-  const n = items.length, haut = hp - 12, pas = haut / Math.max(1, n);
-  ctx.font = `500 ${taille}px "JetBrains Mono",ui-monospace,monospace`; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = '#fff';
-  const place = (u, s, texte, droit) => {
-    const P = at(u, s), X = at(u + 20, s), Y = at(u, s + 20); if (!P || !X || !Y) return;
-    ctx.save(); ctx.transform((X.x - P.x) / 20, (X.y - P.y) / 20, -(Y.x - P.x) / 20, -(Y.y - P.y) / 20, P.x, P.y); ctx.textAlign = droit ? 'right' : 'left'; ctx.fillText(texte, 0, 0); ctx.restore();
+/* La liste et ses flancs se plient dans les dimensions du cadre. */
+export function dessinePanneauCourbe(ctx, view, { box, panneau, alpha = 1, souris }) {
+  const { x0:x, x1, r0, r1, base, top }=box;
+  const w=x1-x, hp=r1-r0;
+  if (alpha <= 0.004 || !(hp > 0)) return [];
+  const N = 48, ds = hp/N, angle = 85*RAD*view.rise;
+  const rayon = hp/Math.max(.0001,angle);
+  const at = (u,s) => {
+    const theta = s/rayon;
+    const height = 2*rayon*Math.sin(theta/2)**2;
+    return p(view,x+u,r1-rayon*Math.sin(theta),top+height/Math.max(.0001,view.rise));
   };
-  items.forEach((it, j) => { const s = hp - 8 - (j + 0.75) * pas; if (s < 2) return; place(10, s, it.nom, false); place(w - 10, s, it.num, true); });
+  const bord = [];
+  for (let k = 0; k <= N; k++) { const q = at(0, k * ds); if (!q) return []; bord.push(q); }
+  const droite = []; for (let k = N; k >= 0; k--) { const q = at(w, k * ds); if (!q) return []; droite.push(q); }
+  const dessus=[...bord,...droite];
+  if(dessus.every(q=>q.y<0)||dessus.every(q=>q.y>view.H))return [];
+  const forme=points=>{
+    if(!points.every(Boolean))return false;
+    ctx.beginPath();
+    points.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));
+    ctx.closePath();
+    return true;
+  };
+  ctx.save();ctx.globalAlpha=alpha;ctx.lineJoin='round';
+  const bas=[p(view,x,r1,base),p(view,x1,r1,base)];
+  ctx.fillStyle='rgba(2,12,85,.30)';
+  if(forme([...droite,bas[1],p(view,x1,r0,base)]))ctx.fill();
+  ctx.fillStyle='#051daa';ctx.strokeStyle='rgba(255,255,255,.52)';ctx.lineWidth=.85;
+  if(forme([bord[0],droite[N],bas[1],bas[0]])){ctx.fill();ctx.stroke();}
+  forme(dessus);
+  ctx.fill();ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1;ctx.stroke();
+  const sx=w/panneau.width, sy=hp/panneau.height;
+  const project=(cx,cy)=>at(cx*sx,hp-cy*sy);
+  const curve=panneau.curve;
+  if(curve){
+    ctx.beginPath();
+    for(let i=0;i<=40;i++){
+      const t=i/40, u=1-t;
+      const cx=u**3+3*u*u*t+3*u*t*t*.6103;
+      const cy=.0455*u**3+.503*3*u*u*t+.9545*(3*u*t*t+t**3);
+      const q=project(curve.x+cx*curve.w,curve.y+cy*curve.h);
+      if(q)i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);
+    }
+    ctx.strokeStyle='rgba(255,255,255,.16)';ctx.lineWidth=.5;ctx.stroke();
+  }
+  ctx.font='300 11px "Sohne Mono","JetBrains Mono",monospace';
+  ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#fff';
+  const place=(box,text,opacity)=>{
+    if(!box)return;
+    const mx=box.x,my=box.y+box.h/2,d=4;
+    const P=project(mx,my),X=project(mx+d,my),Y=project(mx,my+d);
+    if(!P||!X||!Y)return;
+    ctx.save();
+    ctx.globalAlpha=alpha*opacity;
+    ctx.transform((X.x-P.x)/d,(X.y-P.y)/d,(Y.x-P.x)/d,(Y.y-P.y)/d,P.x,P.y);
+    ctx.fillText(text,0,0);
+    ctx.restore();
+  };
+  const zones=[];
+  for(const item of panneau.items){
+    const b=item.row;
+    const points=b&&[project(b.x,b.y),project(b.x+b.w,b.y),project(b.x+b.w,b.y+b.h),project(b.x,b.y+b.h)];
+    const projected=points?.every(Boolean);
+    if(projected)zones.push({link:item.link,points});
+    const focused=item.link.matches(':focus-visible')||(projected&&souris&&dansQuad(points,souris.x,souris.y));
+    place(item.labelBox,item.label,1);
+    place(item.numberBox,item.number,focused?1:.6);
+    if(focused&&item.point){
+      const dot=project(item.point.x+item.point.w/2,item.point.y+item.point.h/2);
+      if(dot){ctx.globalAlpha=alpha;ctx.fillRect(dot.x-1,dot.y-1,2,2);}
+    }
+  }
   ctx.restore();
+  return zones;
 }

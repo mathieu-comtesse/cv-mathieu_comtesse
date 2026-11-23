@@ -1,0 +1,1 @@
+import{c as t}from"./clamp-co6UzHBn.js";const a=(s,c,n)=>t((s-c)/(n-c),0,1),r=s=>{const c=t(s,0,1);return c*c*(3-2*c)},e=(s,c,n)=>s+(c-s)*n,u=s=>1-(1-t(s,0,1))**3,i=s=>{const c=t(s,0,1);return c<.5?4*c**3:1-(-2*c+2)**3/2};export{u as a,i as c,e as l,a as r,r as s};

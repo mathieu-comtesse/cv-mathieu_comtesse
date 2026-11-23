@@ -1,3 +1,10 @@
+import {transitionsPapier,etatCouleur,radialCouleur,couleurAuPoint} from './section-colours.js?v=2';
+import {initFlatColourRenderer} from './flat-colour-renderer.js?v=1';
+import {surfaceGraph,brancheSpectrale} from './fall26-graph-adapter.js?v=1';
+import {poussiere,notesCadre} from './card-effects.js?v=4';
+import { fonduChapitre } from './moteur.js?v=m36';
+import { avanceBranche, brancheCarte, origineChapitre, arcMenu, avanceFil, lienMenuSurvole } from './card-wires.js?v=7';
+
 /* Étoiles des titres (mode à plat). Chaque grand titre (chapitre : « Projets professionnels » ; thème : « Faire fonctionner »…)
  * garde sa taille et reçoit une étoile : un foyer carré blanc posé près du titre, d'où partent des branches.
  *   - branches éditoriales : une par vrai contenu du chapitre ou du thème, terminée par une vignette cliquable (elle mène à la fiche) ;
@@ -28,11 +35,20 @@ html:not(.cv-parity-active) .cv-star-host h2{text-wrap:balance}
 .cv-star-scene{position:fixed;inset:0;width:100vw;height:100vh;z-index:2;pointer-events:none}
 html.cv-parity-active .cv-star-scene,html.cv-parity-active .cv-flat-nav{display:none}
 html:not(.cv-parity-active) .section-hero-pin h2{color:transparent!important;-webkit-text-stroke:1px rgb(255 255 255 / .62);background:linear-gradient(270deg,#fff calc(var(--cv-fill,1)*108% - 8%),rgb(255 255 255 / 0) calc(var(--cv-fill,1)*108%));-webkit-background-clip:text;background-clip:text;width:fit-content;max-width:100%}
-.cv-flat-nav{position:fixed;left:14px;top:50%;transform:translateY(-50%);z-index:3;display:grid;gap:7px;font:500 10px/1.2 "JetBrains Mono",ui-monospace,monospace;opacity:0;pointer-events:none;transition:opacity .35s}
-.cv-flat-nav.vu{opacity:1;pointer-events:auto}
-.cv-flat-nav a{color:rgb(255 255 255 / .55);text-decoration:none;display:flex;align-items:center;gap:8px;justify-content:space-between;min-width:104px}
-.cv-flat-nav a::after{content:"";width:4px;height:4px;background:currentColor}
+.cv-flat-nav{position:fixed;left:12px;top:calc(50% + 17px);transform:translateY(-50%);z-index:3;display:grid;max-width:min(164px,14vw);font:11px/1.2 "Sohne Mono",ui-monospace,monospace;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .35s}
+.cv-flat-nav.vu{opacity:1;visibility:visible;pointer-events:auto}
+.cv-flat-nav a{color:rgb(255 255 255 / .7);text-decoration:none;display:flex;align-items:center;gap:12px;justify-content:space-between;min-height:24px}
+.cv-flat-nav a::after{content:"";width:4px;height:4px;box-sizing:border-box;border:1px solid currentColor;border-radius:50%;flex:none}
 .cv-flat-nav a.actif,.cv-flat-nav a:hover,.cv-flat-nav a:focus-visible{color:#fff}
+.cv-flat-nav a:is(.actif,:hover,:focus-visible)::after{background:currentColor}
+.cv-flat-nav a:is(:hover,:focus-visible){text-decoration:underline}
+html[data-cv-flat-colour]:not(.cv-parity-active) [data-f26-page]{background:var(--cv-flat-colour)!important}
+html[data-cv-flat-colour]:not(.cv-parity-active) [data-f26-page-section]{background:transparent!important}
+.cv-colour-shader{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.cv-colour-shader[hidden],html.cv-parity-active .cv-colour-shader{display:none!important}
+html[data-cv-page-shader]:not(.cv-parity-active) [data-f26-page]{background:transparent!important}
+html[data-cv-fade-fallback]:not(.cv-parity-active) [data-f26-page]{background:var(--cv-fade) fixed!important}
+html[data-cv-flat-colour]:not(.cv-parity-active) .cv-site-nav{background:color-mix(in oklab,var(--cv-flat-colour) 88%,#121420)!important}
 @media (max-width:939px){.cv-flat-nav{display:none}}
 .cv-star-layer rect.foyer{fill:#fff;opacity:0;transition:opacity .3s}
 .cv-star-layer .vu rect.foyer{opacity:1}
@@ -47,11 +63,6 @@ html:not(.cv-parity-active) .section-hero-pin h2{color:transparent!important;-we
 `;
 document.head.append(style);
 
-/* Remplissage du titre (contour puis plein), fonction pure de la position du titre : u = (hauteur de fenêtre - haut du titre) / hauteur de fenêtre.
- * Relevés sur la référence (1 400 × 900, rendu logiciel) : titre invisible à u = 0,11 en arrivant par le haut, entièrement blanc dès u = 0,20.
- * La courbe entre les deux n'est pas observée (les images prennent de 10 à 60 s) : lissage cubique, sans état, donc identique dans les deux sens
- * de défilement, sans saut ni remise à zéro. */
-const REMPLI_DEBUT = 0.08, REMPLI_FIN = 0.2;
 const hache = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0; };
 const alea = (g) => () => { g |= 0; g = g + 0x6D2B79F5 | 0; let t = Math.imul(g ^ g >>> 15, 1 | g); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const el = (nom, attrs = {}) => { const e = document.createElementNS(NS, nom); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
@@ -61,9 +72,9 @@ function installe() {
   const cibles = [], chapitres = [];
   for (const sec of document.querySelectorAll('section[data-f26-page-section]')) {
     const pin = sec.querySelector(':scope > .section-hero-pin'), h = pin?.querySelector('h2'); if (!h) continue;
-    let fiches = [...sec.querySelectorAll('article[data-cv-type], article.product-card')].filter((a) => libelle(a));
+    let fiches = [...sec.querySelectorAll('article[data-cv-type], article.product-card')].filter((a) => libelle(a)||a.matches('.cv-unframed'));
     if (!fiches.length) fiches = [...sec.querySelectorAll('h3')].filter((x) => x.textContent.trim()).map((x) => x.closest('article, li, div') || x);
-    chapitres.push({ section: sec, hote: pin, titre: h, fiches: fiches.slice(0, 16), nom: h.textContent.trim() });
+    chapitres.push({ section: sec, hote: pin, titre: h, fiches, nom: h.textContent.trim() });
   }
   for (const t of document.querySelectorAll('.cv-theme-heading[data-cv-theme]')) {
     const h = t.querySelector('h2'), nom = t.dataset.cvTheme; if (!h) continue;
@@ -160,10 +171,12 @@ function svgAccessible(etoiles) { for (const e of etoiles) if (e.fiches.length) 
  * part avec la page. Tout est piloté par la position de défilement : la séquence se rejoue à l'identique dans les deux sens. */
 function scene(chapitres) {
   const cv = document.createElement('canvas'), ctx = cv.getContext('2d');
-  cv.className = 'cv-star-scene'; cv.setAttribute('aria-hidden', 'true');
-  document.body.append(cv);
+  cv.className = 'cv-star-scene';cv.setAttribute('aria-hidden','true');
+  const fil=surfaceGraph('position:fixed;inset:0;width:100%;height:100%;z-index:2;pointer-events:none');
+  fil.canvas.className='cv-star-scene';
+  document.body.append(fil.canvas,cv);
   const lisse = (x, a, b) => { x = Math.max(0, Math.min(1, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
-  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false;
+  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false, ancienneCouleur = '', liensLus = 0;
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
   addEventListener('resize', taille); taille();
   for (const c of chapitres) {
@@ -173,29 +186,96 @@ function scene(chapitres) {
     c.titre.style.setProperty('--cv-fill', reduit.matches ? '1' : '0');
   }
   /* liste fixe des chapitres, à gauche : repère de lecture pendant les transitions */
+  const menuArc={}, cardTracks=new Map();
   const nav = document.createElement('nav'); nav.className = 'cv-flat-nav'; nav.setAttribute('aria-label', 'Chapitres');
-  for (const c of chapitres) { const a = document.createElement('a'); a.href = '#' + c.section.id; a.textContent = c.nom; c.lien = a; nav.append(a); }
+  const liens = new Map();
+  for (const destination of document.querySelectorAll('#hero .hero-nav-link[href]')) {
+    const a = document.createElement('a'), id = destination.hash.slice(1);
+    a.href = destination.hash;
+    a.textContent = destination.firstElementChild.textContent.trim();
+    liens.set(id, a);
+    nav.append(a);
+  }
+  for (const c of chapitres) c.lien = liens.get(c.section.id);
+  const rubriques = [...liens.keys()].map(id => document.getElementById(id)).filter(el => el?.matches('.rf-sk-grp'));
   document.body.append(nav);
+  const source=document.querySelector('[data-f26-page]');
+  let paper=[];
+  const shader=initFlatColourRenderer();shader.prepare();
+  function mesure(){paper=transitionsPapier(source,H,el=>{const r=el.getBoundingClientRect();return {top:scrollY+r.top,bottom:scrollY+r.bottom};});}
+  if(source)new ResizeObserver(mesure).observe(source);
+  addEventListener('resize',mesure);
+  mesure();
   function image(t) {
     requestAnimationFrame(image);
     if (document.hidden || t - dernier < 16) return; dernier = t;
     const expo = document.documentElement.classList.contains('cv-parity-active');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); cibles = [];
-    if (expo) return;
+      if (expo) return;
     const libre = !reduit.matches, tt = t / 1000; let actif = null, vuNav = false;
+    const root = document.documentElement;
+    const sections = chapitres.map(c => c.section.getBoundingClientRect());
+    const distance = H * .4;
+    let couleur = '#051daa', sortant = null, entrant = null, poids = 0;
+    for (const [i,c] of chapitres.entries()) {
+      const avant = i ? Math.max(160,H*.6)*.5-H*.025 : 0;
+      const début = sections[i].top - avant - 1;
+      if (début > H*.5) break;
+      const cible=c.section.dataset.htmlInCanvasColour || couleur;
+      poids=libre ? fonduChapitre(H*.5,début,distance) : Number(H*.5>=début+distance/2);
+      if (poids < 1) {
+        entrant=c;
+        couleur=`color-mix(in oklab, ${couleur} ${(100-poids*100).toFixed(2)}%, ${cible})`;
+        break;
+      }
+      sortant=c;
+      couleur=cible;
+    }
+    const etat=etatCouleur(paper,scrollY,!libre);
+    couleur=etat.stable;
+    root.dataset.cvInk=etat.next?.colour||etat.stable;
+    let painted=false;
+    if(etat.next){
+      // La transition part du foyer visible de l’étoile du chapitre entrant.
+      const originY=H*.56;
+      const wave=radialCouleur(etat,W*.6,originY,W,H);
+      painted=shader.draw(etat,wave,W,H,dpr);
+      couleur=couleurAuPoint(etat,wave,W*.5,25);
+      if(!painted){
+        const samples=Array.from({length:13},(_,i)=>{
+          const distance=i*wave.extent/12;
+          return couleurAuPoint(etat,wave,wave.x+distance,wave.y)+' '+distance+'px';
+        });
+        root.style.setProperty('--cv-fade','radial-gradient(circle at '+wave.x+'px '+wave.y+'px, '+samples.join(',')+')');
+      }
+    }else shader.draw(etat,null,W,H,dpr);
+    root.toggleAttribute('data-cv-page-shader',painted);
+    root.toggleAttribute('data-cv-fade-fallback',Boolean(etat.next&&!painted));
+    if(couleur!==ancienneCouleur){
+      ancienneCouleur=couleur;
+      root.style.setProperty('--cv-flat-colour',couleur);
+    }
+    root.toggleAttribute('data-cv-flat-colour',scrollY>H*.7);
     for (const c of chapitres) {
       const S = c.section.getBoundingClientRect(); if (S.top < H * 0.5 && S.bottom > H * 0.5) actif = c; if (S.top < H * 1.4) vuNav = true;
       const T = c.titre.getBoundingClientRect(), u = (H - T.top) / H;
-      if (u < -1.7 || u > 1.5) { if (u > 1.5) c.titre.style.setProperty('--cv-fill', '1'); else if (libre) c.titre.style.setProperty('--cv-fill', '0'); continue; }
-      const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
-      const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8),   /* jamais par-dessus l'accueil : l'étoile n'apparaît qu'une fois l'accueil quitté */
-        g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, REMPLI_DEBUT, REMPLI_FIN) : 1;
+      const plein = libre ? lisse(u, 0.02, 0.34) : 1;
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
-      if (alpha <= 0.004 || window.__cvGrapheChapitres) continue;   // le graphe des chapitres (graphe-chapitres.js) remplace l'étoile propre à chaque titre
+      // Le foyer et ses branches entrent avec le titre, jamais sur le chapitre précédent.
+      const g = libre ? lisse(u, 0.06, 0.37) : Number(u >= 0.06);
+      const relais = entrant && c===sortant ? 1-poids : c===entrant ? poids : 1;
+      const alpha = g * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8) * (.26+.74*relais);
+      if (alpha <= 0.004) continue;
+      const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
       const hx = W < 760 ? W * 0.5 : W * 0.6, hy = H * 0.56 - Math.max(0, u - 0.62) * H, R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g);
       ctx.save(); ctx.globalAlpha = alpha; ctx.lineCap = 'round';
       /* les branches passent derrière les fiches : la zone des fiches visibles est retirée du tracé */
       if (u > 0.15) { ctx.beginPath(); ctx.rect(0, 0, W, H); for (const f of c.fiches) { const q = f.getBoundingClientRect(); if (q.bottom > 0 && q.top < H) ctx.rect(q.left, q.top, q.width, q.height); } ctx.clip('evenodd'); }
+      const panel=document.querySelector('#work .gains-chart');
+      if(panel){
+        const b=panel.getBoundingClientRect();
+        ctx.beginPath();ctx.rect(0,0,W,H);ctx.rect(b.left,b.top,b.width,b.height);ctx.clip('evenodd');
+      }
       c.branches.forEach((b, k) => {
         const gk = lisse(g * 1.6 - k * 0.02, 0, 1);
         let x = hx + Math.cos(b.a) * R * b.r, y = hy + Math.sin(b.a) * R * b.r * 0.82;
@@ -203,7 +283,16 @@ function scene(chapitres) {
         x = hx + (x - hx) * gk; y = hy + (y - hy) * gk;
         const survole = b.fiche && Math.hypot(x - souris.x, y - souris.y) < 16;
         ctx.strokeStyle = b.fiche ? (survole ? '#fff' : k < 2 ? 'rgba(95,230,255,.9)' : 'rgba(255,255,255,.72)') : 'rgba(207,224,255,.26)'; ctx.lineWidth = survole ? 2 : 1;
-        ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(x, y); ctx.stroke();
+        const dx=x-hx,dy=y-hy,length=dx*dx+dy*dy;
+        const u=length?Math.min(1,Math.max(0,((souris.x-hx)*dx+(souris.y-hy)*dy)/length)):0;
+        const px=hx+u*dx,py=hy+u*dy,d=Math.hypot(souris.x-px,souris.y-py);
+        ctx.beginPath();ctx.moveTo(hx,hy);
+        if(libre&&u>.12&&u<.92&&d<18){
+          ctx.strokeStyle='rgba(239,248,255,.84)';ctx.lineWidth=1.3;
+          const push=(1-d/18)*22/Math.max(1,d);
+          ctx.quadraticCurveTo(px+(px-souris.x)*push,py+(py-souris.y)*push,x,y);
+        }else ctx.lineTo(x,y);
+        ctx.stroke();
         if (b.fiche) {
           if (libre) { const q = (tt * 0.28 + b.phase / 6.283) % 1, f = Math.min(1, q / 0.75); ctx.fillStyle = `rgba(255,255,255,${(q < 0.75 ? 0.95 : (1 - q) * 3.8).toFixed(2)})`; ctx.beginPath(); ctx.arc(hx + (x - hx) * f, hy + (y - hy) * f, 1.7, 0, 6.283); ctx.fill(); }
           ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1; ctx.strokeRect(x - 9, y - 7, 18, 14); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - 6, y - 4, 12, 8);
@@ -229,7 +318,79 @@ function scene(chapitres) {
       ctx.fillStyle = '#fff'; ctx.fillRect(hx - 3.5, hy - 3.5, 7, 7);
       ctx.restore();
     }
-    nav.classList.toggle('vu', vuNav); for (const c of chapitres) c.lien.classList.toggle('actif', c === actif);
+    nav.classList.toggle('vu', vuNav);
+    let idActif = actif?.section.id;
+    if (idActif === 'marketing') {
+      const rubrique = rubriques.findLast(el => el.getBoundingClientRect().top <= H * .5);
+      if (rubrique) idActif = rubrique.id;
+    }
+    if (nav.dataset.activeChapter !== (idActif || '')) {
+      nav.dataset.activeChapter = idActif || '';
+      for (const [id, lien] of liens) {
+        lien.classList.toggle('actif', id === idActif);
+        if (id === idActif) lien.setAttribute('aria-current', 'location');
+        else lien.removeAttribute('aria-current');
+      }
+    }
+    liensLus=0;
+    const edges=[],clip=[0,0,W,H];
+    const emit=fil.active?(a,b,ink,alpha,width)=>brancheSpectrale(edges,a,b,ink,alpha,clip,width):undefined;
+    poussiere(ctx,W,H,libre?tt:null,scrollY);
+    const notes=[];
+    if(vuNav&&W>=940){
+      const preview=lienMenuSurvole(nav);
+      arcMenu(ctx,nav,menuArc,libre?tt:null,preview);
+      const focusId=preview?.hash.slice(1);
+      const focusSection=document.getElementById(focusId || '')?.closest('[data-f26-page-section]');
+      const visited=new Set();
+      const wireTime=libre?tt:null;
+      function drawTrack(track,visible){
+        track.state=avanceFil(track.state,wireTime,visible,track.delay);
+        const length=track.state.head;
+        const progress=track.progress*length*length*(3-2*length);
+        if(!progress)return;
+        ctx.save();ctx.globalAlpha=Math.min(1,track.state.head*1.6);
+        if(brancheCarte(ctx,origineChapitre(track.lien),track.end,{t:wireTime,id:track.id,progress,active:track.bright,pointer:souris,emit:track.bright?undefined:emit})){
+          liensLus++;
+          if(track.text&&progress>.97){ctx.strokeStyle='#e6f4ffd0';ctx.lineWidth=.75;ctx.strokeRect(track.end.x-1.75,track.end.y-1.75,3.5,3.5);}
+        }
+        ctx.restore();
+      }
+      for(const c of chapitres){
+        if(c!==actif&&c.section!==focusSection)continue;
+        const lien=c.section===focusSection ? preview : liens.get(idActif)||c.lien;
+        if(!lien)continue;
+        const rubrique=document.getElementById(lien.hash.slice(1));
+        const cards=rubrique?.matches('.rf-sk-grp')?[rubrique]:c.fiches;
+        for(const [index,card] of cards.entries()){
+          const marker=card.querySelector(':scope > [data-card-marker]');
+          const text=marker?null:card.querySelector('h2,h3,p');
+          const dot=(marker||text)?.getBoundingClientRect();
+          if(!dot?.width||dot.top<76||dot.top>H-48)continue;
+          const b={x:marker?dot.left+dot.width/2:dot.left-10,y:dot.top+(marker?dot.height/2:Math.min(9,dot.height/2))};
+          const fiche=card.querySelector('[data-fiche]');
+          if(fiche){const edge=card.getBoundingClientRect();notes.push({element:fiche,x:edge.right,y:b.y,bottom:edge.bottom});}
+          const bright=!focusSection||c.section===focusSection;
+          const id=lien.hash+':'+(card.id||c.section.id+':'+index);
+          const track=cardTracks.get(id)||{id,lien,state:null};
+          Object.assign(track,{end:b,bright,text,marker:marker||text,progress:avanceBranche(b.y,H,!libre),delay:Math.min(.16,Math.abs(b.y-origineChapitre(lien).y)*.00055)});
+          cardTracks.set(id,track);visited.add(id);
+          drawTrack(track,true);
+        }
+      }
+      for(const [id,track] of cardTracks){
+        if(visited.has(id))continue;
+        const r=track.marker.getBoundingClientRect();
+        if(r.bottom>76&&r.top<H-48){
+          track.end={x:track.end.x,y:r.top+(track.text?Math.min(9,r.height/2):r.height/2)};
+          drawTrack(track,false);
+        }else track.state=null;
+        if(!track.state?.head)cardTracks.delete(id);
+      }
+    }else cardTracks.clear();
+    fil.render(W,H,dpr,edges);
+    notesCadre(ctx,notes,W,H,souris);
+
     /* le curseur n'est modifié que par celui qui l'a posé : le graphe de l'accueil gère le sien (main ouverte, main fermée) */
     const dessus = cibles.some((q) => Math.hypot(q.x - souris.x, q.y - souris.y) < 16); if (dessus !== curseurPose) { curseurPose = dessus; document.documentElement.style.cursor = dessus ? 'pointer' : ''; }
   }
@@ -240,6 +401,6 @@ function scene(chapitres) {
     const q = cibles.find((q) => Math.hypot(q.x - ev.clientX, q.y - ev.clientY) < 16); if (!q) return;
     ev.preventDefault(); q.fiche.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' });
   }, { capture: true });
-  window.__cvStarScene = { etat: () => chapitres.map((c) => { const T = c.titre.getBoundingClientRect(); return { titre: c.nom, u: +((H - T.top) / H).toFixed(2), remplissage: +c.titre.style.getPropertyValue('--cv-fill'), fiches: c.fiches.length, branches: c.branches.length }; }), vignettes: () => cibles.length };
+  window.__cvStarScene = { etat: () => chapitres.map((c) => { const T = c.titre.getBoundingClientRect(); return { titre: c.nom, u: +((H - T.top) / H).toFixed(2), remplissage: +c.titre.style.getPropertyValue('--cv-fill'), fiches: c.fiches.length, branches: c.branches.length }; }), vignettes: () => cibles.length, liens:()=>liensLus };
 }
 if (document.readyState === 'loading') addEventListener('DOMContentLoaded', installe); else installe();

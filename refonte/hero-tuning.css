@@ -1,0 +1,29 @@
+/* Les deux illustrations occupent des fenêtres de même hauteur. */
+#hero .cv-inspector-card figcaption,.cv-parity-widget .cv-inspector-card figcaption{
+  padding:10px 9px 7px;
+}
+.cv-inspector-card .cv-inspector{
+  min-height:0;
+  aspect-ratio:auto;
+  margin:0;
+  padding:0;
+}
+.cv-inspector .cv-inspector-tag,.cv-inspector .cv-inspector-line{top:57%}
+.cv-inspector .cv-inspector-fallback>*{top:56%;height:57%;max-height:110px}
+.cv-inspector .cv-inspector-board{height:49%}
+.cv-inspector .cv-inspector-tag{border-radius:999px;background:#0c1f86}
+#hero .hero-tagline{margin-top:.35rem}
+.cv-parity-toggle{opacity:var(--cv-expo-reveal,0);pointer-events:none}
+.cv-parity-toggle:not([inert]){pointer-events:auto}
+@media(min-width:58.75rem){
+  #hero .hero-sidebar{grid-template-rows:minmax(0,30.3fr) minmax(0,67.9fr);gap:clamp(8px,1.55vh,15px)}
+  #hero .hero-widgets{grid-template-rows:repeat(2,minmax(0,1fr));gap:clamp(8px,1.55vh,15px)}
+  #hero .hero-widgets figcaption{padding:clamp(7px,1.15vh,11px) 9px;line-height:1.28}
+  #hero .hero-widgets [data-cv-hero-gains]{display:none}
+  #hero .hero-tagline{
+    left:clamp(19px,2.85vh,28px);bottom:11.5%;margin:0;
+    font-size:clamp(10px,1.72vh,17px);line-height:1.15;
+    rotate:none;transform:rotate(-90deg);transform-origin:left bottom;white-space:nowrap;
+  }
+}
+@media(max-width:58.74rem){.cv-inspector-card .cv-inspector{min-height:9rem}}

@@ -36,12 +36,12 @@ const expo = await p.evaluate(async () => { const P = window.__cvParity, attend 
   const accueil = P.heroNodes().length, cadres = P.boxes().length, titres = P.titles().length; scrollTo(0, document.querySelector('#agentic h2').getBoundingClientRect().top + scrollY + 206); await attend(2500);   /* 206 px sous le titre du premier chapitre (« Faire fonctionner ») */
   const etoiles = P.etoiles(), visible = P.boxes().find((b) => b.shown && !b.hero && b.title); P.raise(visible?.title || ''); await attend(4000);
   const leve = P.boxes().find((b) => b.title === visible?.title), moteur = window.__cvState?.parity?.moteur;
-  return { accueil, cadres, titres, etoiles: etoiles.length, etoilesVues: etoiles.filter((e) => e.visible && e.libelle).length, etoilesNoms: etoiles.filter((e) => e.visible).map((e) => e.name + (e.libelle ? '' : ' (sans libellé)')).join(' | '), scrollY: Math.round(scrollY), inclinaison: leve?.pitchDeg, moteur, objets: ['.annual-pig-wrap canvas', '#rf-win', '.pc-inf canvas'].map((s) => !!document.querySelector(s)) }; });
+  return { accueil, cadres, titres, etoiles: etoiles.length, etoilesVues: etoiles.filter((e) => e.visible && e.libelle).length, etoilesNoms: etoiles.filter((e) => e.visible).map((e) => e.name + (e.libelle ? '' : ' (sans libellé)')).join(' | '), scrollY: Math.round(scrollY), inclinaison: leve?.pitchDeg, moteur, objets: ['#cv-gains .gx-main > *', '#rf-win', '.pc-inf canvas'].map((s) => !!document.querySelector(s)) }; });
 verifie(expo.cadres > 20 && expo.titres >= 5, `mode expo : ${expo.cadres} cadres, ${expo.titres} titres en volume`);
 verifie(expo.accueil >= 60, `mode expo : graphe de l'accueil dans la scène (${expo.accueil} vignettes éditoriales projetées)`);
 verifie(expo.etoiles >= 8 && expo.etoilesVues >= 1, `mode expo : ${expo.etoiles} étoiles de titre, ${expo.etoilesVues} visible(s) avec son libellé (à ${expo.scrollY} px : ${expo.etoilesNoms || 'aucune'})`);
 verifie(Math.abs(expo.inclinaison - 55) < 1.5, `mode expo : cadre relevé incliné à ${expo.inclinaison}° (nominal 55°)`);
-verifie(expo.objets.every(Boolean), 'objets 3D présents (tirelire, hublot, signe infini) : ' + expo.objets.join(', '));
+verifie(expo.objets.every(Boolean), 'objets présents (tableau de bord des gains, qui remplace la tirelire dans main ; hublot ; signe infini) : ' + expo.objets.join(', '));
 await p.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await p.waitForFunction(() => !window.__cvStandardPath.active, null, { timeout: 60000 }).catch(() => {}); await p.waitForTimeout(800);
 verifie(await p.evaluate(() => !document.documentElement.classList.contains('cv-parity-active') && !!document.querySelector('#shop h2')?.getBoundingClientRect().width), 'retour au mode à plat');
 verifie(erreurs.length === 0, `aucune erreur de page (${erreurs.length}) ${erreurs.slice(0, 2).join(' | ')}`);
