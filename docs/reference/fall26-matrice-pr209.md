@@ -846,3 +846,7 @@ Relevé du ton (`shopify.com/fr/editions/fall2026`, 11 sections) : grand cadre =
 | Tailles | titre de fiche ≈ 28 px, texte 16 px, colonne ≈ 220 px | titre et texte 18 px, texte atténué, colonne 400 px | relevés de la référence |
 
 Non réécrit, faute de matière : les 46 compétences et les 11 jeux n'ont qu'un nom dans le site. Les transformer en phrases d'action, comme les petites entrées de la référence, demanderait d'inventer ce qu'ils recouvrent ; une ligne par compétence et par jeu fournie par Mathieu permettrait de le faire. Les détails dépliables des projets gardent leur texte d'origine.
+
+## Machines et « Voir la magie » repris de main
+
+La branche de la PR n'avait pas reçu les commits de `main` sur les machines (#240 à #243). Repris de `main` : le dossier `refonte/m3d/` (rendu trait `lines.js` : aplat bleu à tons de faces, contours blancs, halo au sol, accent sur la pièce qui bouge) et son accroche dans le montage des machines de `index.html`. Retirés : les 11 boutons « Voir la magie » des fiches et les 11 des schémas « Comment ça marche ». Légendes des cadres de l'accueil rétablies dans leur texte d'origine (seuls les noms de chapitres ont changé). Le reste de `main` (nouveau moteur du graphe, nouvelles fiches et nouveaux cadres de l'accueil) n'est pas fusionné : les deux versions ont divergé.

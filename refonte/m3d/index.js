@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { makeStage, setDA } from './core.js';
 import { trackGlow, ACCENT } from './glow.js';
+import { toLines } from './lines.js';
 
 import { loadMachine, framingOf } from './registry.js';
 
@@ -19,9 +20,10 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
   scene.updateMatrixWorld(true);
   const w = () => { renderer.setSize(innerWidth, innerHeight, false); };
   w();
+  const lines = toLines(g);
   const glow = trackGlow(g, ACCENT[name]);
   const mid = new THREE.Box3().setFromObject(g).getCenter(new THREE.Vector3());   // centre de la machine (cadrage des panneaux)
-  let frameN = 0, shadowN = 0;
+  let frameN = 0;
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   return {
     resize: w,
@@ -41,16 +43,10 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
       g.traverse((o) => { if (!o.isMesh) return; const ms = Array.isArray(o.material) ? o.material : [o.material]; if (ms.length > 1) { multi++; groups += o.geometry.groups.length; } else groups++;
         for (const x of ms) { if (x.transparent) transp++; if (x.side === 2) dbl++; } let v = true, a = o; while (v && a) { v = a.visible; a = a.parent; } if (!v) invisible++;
         meshes++; geo.add(o.geometry.uuid); mat.add(ms[0].uuid); if (o.isInstancedMesh) inst++; if (o.castShadow) shadow++; });
-      return { rendus: frameN, majOmbre: shadowN, groupesDeDessin: groups, multiMateriaux: multi, transparents: transp, doubleFace: dbl, invisibles: invisible, meshes, instanced: inst, castShadow: shadow, uniqueGeometries: geo.size, uniqueMaterials: mat.size,
+      return { rendus: frameN, groupesDeDessin: groups, multiMateriaux: multi, transparents: transp, doubleFace: dbl, invisibles: invisible, meshes, instanced: inst, castShadow: shadow, uniqueGeometries: geo.size, uniqueMaterials: mat.size,
         calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, programs: renderer.info.programs?.length ?? 0 }; },
-    /* Carte d'ombre (2048², filtrée) recalculée une image sur deux (toujours pendant la magie) : l'ombre suit avec 16 ms de retard, invisible.
-       Une détection « à la demande » par signature des matrices a été essayée (V6) puis retirée : aucun gain mesuré (machine animée en continu) et risque d'oublier
-       un changement (instances, géométries dynamiques, visibilité). Ce schéma est déterministe : aucun changement ne peut être manqué plus d'une image. */
     render(time) {
-      m.update(time);
-      const lock = document.body.classList.contains('fl-lock'), turn = (frameN++ & 1) === 0;
-      renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = lock || turn;
-      if (renderer.shadowMap.needsUpdate) shadowN++;
+      m.update(time); lines(); frameN++;
       renderer.render(scene, cam); glow();
     },
     dispose() { renderer.dispose(); }

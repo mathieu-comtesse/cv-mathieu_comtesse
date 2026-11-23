@@ -14,6 +14,8 @@ export function trackGlow(root, accent = '#ff9d3c') {
   });
   const shellOf = (it) => {
     if (it.shell) return it.shell;
+    const edges = it.o.userData.edges;   // rendu trait : la surbrillance repasse les arêtes à la couleur d'accent
+    if (edges) { const s = new THREE.LineSegments(edges.geometry, new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: 0, depthWrite: false })); s.userData.glowShell = true; s.visible = false; s.raycast = () => {}; s.matrixAutoUpdate = edges.matrixAutoUpdate; s.matrix.copy(edges.matrix); it.o.add(s); it.shell = s; return s; }
     const src = it.o.material, cut = src && src.map && src.alphaTest > 0;   // une image détourée : le halo suit sa découpe, pas le plan entier
     const m = new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, ...(cut ? { map: src.map, alphaTest: src.alphaTest, side: src.side } : {}) });
     const s = new THREE.Mesh(it.o.geometry, m);
@@ -27,7 +29,7 @@ export function trackGlow(root, accent = '#ff9d3c') {
       for (let i = 0; i < 16 && !moved; i++) if (Math.abs(e[i] - it.prev[i]) > 1e-5) moved = true;
       if (moved) { for (let i = 0; i < 16; i++) it.prev[i] = e[i]; it.vis = it.o.visible; it.until = now + HOLD; }
       const level = Math.max(0, Math.min(1, (it.until - now) / HOLD));
-      if (level > 0) { const s = shellOf(it); s.visible = true; s.material.opacity = .42 * level; }
+      if (level > 0) { const s = shellOf(it); s.visible = true; s.material.opacity = (s.isLineSegments ? 1 : .42) * level; if (s.isLineSegments && s.geometry !== it.o.userData.edges.geometry) s.geometry = it.o.userData.edges.geometry; }
       else if (it.shell && it.shell.visible) it.shell.visible = false;
     }
   };
