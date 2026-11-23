@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 
 export const INK = '#f2f6ff';
+const PAPER = new THREE.Color('#f4efe1'), TEXT = '#15171c';   // cartouches : fond crème, texte noir
 const ANGLE = 35;                                    // arête tracée si les deux faces font plus de 35° (silhouette d'une boîte, cercles d'un cylindre)
 const edgeCache = new WeakMap();
 
@@ -41,8 +42,8 @@ export function toLines(root, { color = INK, opacity = .85, occlude = false, hid
     if (!l) { l = new THREE.LineBasicMaterial({ color, transparent: true, opacity, depthWrite: false }); lineMats.set(m, l); }
     return l;
   };
-  const plate = fill ? new THREE.Color(fill).multiplyScalar(.5) : null;   // avec aplat : étiquettes et écrans deviennent des plaques foncées à texte blanc (cartouche)
-  const imageOf = (m) => images.get(m) || images.set(m, inkImage(m, color, plate)).get(m);
+  const plate = fill ? PAPER : null;   // avec aplat : étiquettes, écrans et compteurs deviennent des cartouches crème à texte noir
+  const imageOf = (m) => images.get(m) || images.set(m, inkImage(m, plate ? TEXT : color, plate)).get(m);
   /* habille la pièce selon son matériau du moment : image -> encre, sinon matériau masqué et traits visibles */
   const dress = (it) => {
     const o = it.o, src = Array.isArray(o.material) ? o.material[0] : o.material;
@@ -100,11 +101,16 @@ function inkImage(src, color, plate) {
   const m = new THREE.MeshBasicMaterial({ map: src.map, transparent: true, side: src.side, depthWrite: !!plate, toneMapped: false });
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uInk = { value: new THREE.Color(color) }; sh.uniforms.uPlate = { value: plate || new THREE.Color() };
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uInk, uPlate;').replace('#include <map_fragment>', `
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uInk, uPlate;').replace('#include <map_fragment>', plate ? `
+      /* cartouche : l'image est imprimée en noir sur crème ; fond clair -> crème, traits sombres -> noir ; un écran sombre à texte clair est inversé ;
+         seules les couleurs vives (voyant, aiguille) gardent leur teinte */
       vec4 tx = texture2D(map, vMapUv), bg = texture2D(map, vec2(.004, .996));
-      float sat = max(tx.r, max(tx.g, tx.b)) - min(tx.r, min(tx.g, tx.b)), ink = smoothstep(${plate ? '.04, .2' : '.08, .3'}, distance(tx.rgb, bg.rgb));
-      vec3 c = mix(uInk, tx.rgb, smoothstep(.25, .45, sat));
-      ${plate ? 'diffuseColor.rgb = mix(uPlate, c, ink); diffuseColor.a *= tx.a;' : 'diffuseColor.rgb = c; diffuseColor.a *= ink;'}`);
+      float l = dot(tx.rgb, vec3(.299, .587, .114)), lb = bg.a > .5 ? dot(bg.rgb, vec3(.299, .587, .114)) : 1.,
+            p = lb > .4 ? l / lb : (1. - l) / max(.05, 1. - lb), sat = max(tx.r, max(tx.g, tx.b)) - min(tx.r, min(tx.g, tx.b));
+      diffuseColor.rgb = mix(mix(uInk, uPlate, smoothstep(.3, .8, p)), tx.rgb, smoothstep(.35, .5, sat)); diffuseColor.a *= tx.a;` : `
+      vec4 tx = texture2D(map, vMapUv), bg = texture2D(map, vec2(.004, .996));
+      float sat = max(tx.r, max(tx.g, tx.b)) - min(tx.r, min(tx.g, tx.b)), ink = smoothstep(.08, .3, distance(tx.rgb, bg.rgb));
+      diffuseColor.rgb = mix(uInk, tx.rgb, smoothstep(.25, .45, sat)); diffuseColor.a *= ink;`);
   };
   return m;
 }
