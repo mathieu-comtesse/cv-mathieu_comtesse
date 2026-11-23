@@ -868,8 +868,8 @@ async function startMachines(){
     // mêmes modèles que l'accueil et les fiches (refonte/m3d/index.js), avec leur DA colorée
     const name=host.dataset.cvMachine;
     const [{loadMachine},{setDA}]=await Promise.all([import(base+'refonte/m3d/registry.js'),import(base+'refonte/m3d/core.js')]),{build}=await loadMachine(name);setDA(name);const machine=build();const scene=new THREE.Scene();scene.add(machine.group);
-    // rendu trait (refonte/m3d/lines.js) : la machine n'est plus que ses arêtes, sans lumière ; les traits suivent l'animation
-    {const {toLines}=await import(base+'refonte/m3d/lines.js'),sync=toLines(machine.group),up=machine.update;machine.update=(t)=>{up?.call(machine,t);sync();};}
+    // rendu trait (refonte/m3d/lines.js) : aplat bleu uni et contours blancs, sans lumière ; étiquettes en cartouches ; les traits suivent l'animation
+    {const {toLines}=await import(base+'refonte/m3d/lines.js'),sync=toLines(machine.group,{fill:'#2445c8',opacity:1}),up=machine.update;machine.update=(t)=>{up?.call(machine,t);sync();};}
     machine.group.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(machine.group),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3()),span=Math.max(size.x,size.y,size.z);
     const camera=new THREE.PerspectiveCamera(31,1,.1,Math.max(10000,span*20));camera.up.set(0,1,0);camera.position.copy(center).add(new THREE.Vector3(span*.7,span*.8,span*1.1));camera.lookAt(center);
     const canvas=q('canvas',host),ctx=canvas.getContext('2d',{alpha:true});const controls=q('.cv-machine-controls',host);

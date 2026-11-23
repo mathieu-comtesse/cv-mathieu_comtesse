@@ -28,15 +28,21 @@ function bakeInstances(im, base, out) {
   attr.needsUpdate = true; out.computeBoundingSphere();
 }
 
-/** convertit l'arbre `root` en traits ; renvoie sync(), à appeler avant chaque rendu (voyants, matériaux échangés, instances, géométries déformées) */
-export function toLines(root, { color = INK, opacity = .85 } = {}) {
+/** convertit l'arbre `root` en traits ; renvoie sync(), à appeler avant chaque rendu (voyants, matériaux échangés, instances, géométries déformées).
+ *  occlude : les faces opaques masquent les arêtes situées derrière elles (lecture d'un plan, pas d'un fil de fer) ;
+ *  hidden : opacité des arêtes cachées, tracées en pointillé fin (convention du dessin technique), 0 pour ne pas les tracer ;
+ *  fill : couleur d'aplat des faces opaques (null : faces invisibles, seul le fond de page apparaît). */
+export function toLines(root, { color = INK, opacity = .85, occlude = false, hidden = 0, fill = null } = {}) {
   const lineMats = new Map(), images = new Map(), live = [];
+  const skinMat = occlude || fill ? new THREE.MeshBasicMaterial({ color: fill || 0, colorWrite: !!fill, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1, toneMapped: false }) : null;
+  const dashMat = hidden ? new THREE.LineDashedMaterial({ color, transparent: true, opacity: hidden, dashSize: 5, gapSize: 4, depthWrite: false, depthFunc: THREE.GreaterDepth }) : null;
   const lineMatOf = (m) => {
     let l = lineMats.get(m);
     if (!l) { l = new THREE.LineBasicMaterial({ color, transparent: true, opacity, depthWrite: false }); lineMats.set(m, l); }
     return l;
   };
-  const imageOf = (m) => images.get(m) || images.set(m, inkImage(m, color)).get(m);
+  const plate = fill ? new THREE.Color(fill).multiplyScalar(.5) : null;   // avec aplat : étiquettes et écrans deviennent des plaques foncées à texte blanc (cartouche)
+  const imageOf = (m) => images.get(m) || images.set(m, inkImage(m, color, plate)).get(m);
   /* habille la pièce selon son matériau du moment : image -> encre, sinon matériau masqué et traits visibles */
   const dress = (it) => {
     const o = it.o, src = Array.isArray(o.material) ? o.material[0] : o.material;
@@ -46,7 +52,14 @@ export function toLines(root, { color = INK, opacity = .85 } = {}) {
       it.lines = new THREE.LineSegments(o.isInstancedMesh ? it.geo : edgesOf(o.geometry)); it.lines.raycast = () => {}; it.lines.userData.glowShell = true;   // les traits ne comptent ni pour la sélection ni pour la surbrillance
       if (o.isInstancedMesh) { it.lines.matrixAutoUpdate = false; it.lines.matrix.identity(); }
       o.add(it.lines); o.userData.edges = it.lines;
+      if (skinMat) {                                 // peau : même géométrie, aplat ou simple masque de profondeur, jamais sélectionnable
+        it.skin = o.isInstancedMesh ? new THREE.InstancedMesh(o.geometry, skinMat, o.count) : new THREE.Mesh(o.geometry, skinMat);
+        if (o.isInstancedMesh) { it.skin.instanceMatrix = o.instanceMatrix; it.skin.matrixAutoUpdate = false; }
+        it.skin.raycast = () => {}; it.skin.userData.glowShell = true; o.add(it.skin);
+      }
+      if (dashMat && !o.isInstancedMesh) { it.dash = new THREE.LineSegments(it.lines.geometry, dashMat); it.dash.computeLineDistances(); it.dash.raycast = () => {}; it.dash.userData.glowShell = true; o.add(it.dash); }
     }
+    if (it.skin) it.skin.visible = !src.transparent;   // le verre et les pièces en fondu ne masquent rien
     it.lines.material = lineMatOf(src); it.lines.visible = true;
     (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { m.visible = false; });   // matériau d'origine gardé (les animations le lisent ou le modifient), jamais dessiné
     it.mat = o.material;
@@ -67,6 +80,8 @@ export function toLines(root, { color = INK, opacity = .85 } = {}) {
       else if (it.lines && (o.geometry !== it.g || o.geometry.attributes.position.version !== it.v)) {   // géométrie déformée ou remplacée : arêtes recalculées
         if (o.geometry === it.g) edgeCache.delete(it.g);
         it.g = o.geometry; it.v = it.g.attributes.position.version; it.lines.geometry = edgesOf(it.g);
+        if (it.skin) it.skin.geometry = it.g;
+        if (it.dash) { it.dash.geometry = it.lines.geometry; it.dash.computeLineDistances(); }
       }
     }
     for (const [m, l] of lineMats) {                 // voyant allumé : le trait prend sa couleur ; pièce en fondu : le trait s'efface avec elle
@@ -78,17 +93,18 @@ export function toLines(root, { color = INK, opacity = .85 } = {}) {
   };
 }
 
-/* image dessinée (étiquette, écran, compteur, feuille) passée au trait : le fond (couleur du coin de l'image) devient transparent,
-   le texte et les tracés prennent l'encre ; une couleur franche (voyant d'état rouge ou vert) garde sa teinte */
-function inkImage(src, color) {
-  const m = new THREE.MeshBasicMaterial({ map: src.map, transparent: true, side: src.side, depthWrite: false, toneMapped: false });
+/* image dessinée (étiquette, écran, compteur, feuille) passée au trait : le texte et les tracés (tout ce qui diffère du fond, pris au coin
+   de l'image) prennent l'encre ; une couleur franche (voyant d'état rouge ou vert) garde sa teinte. Sans plaque, le fond devient transparent ;
+   avec plaque, il prend la couleur de plaque (cartouche lisible sur l'aplat). */
+function inkImage(src, color, plate) {
+  const m = new THREE.MeshBasicMaterial({ map: src.map, transparent: true, side: src.side, depthWrite: !!plate, toneMapped: false });
   m.onBeforeCompile = (sh) => {
-    sh.uniforms.uInk = { value: new THREE.Color(color) };
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uInk;').replace('#include <map_fragment>', `
+    sh.uniforms.uInk = { value: new THREE.Color(color) }; sh.uniforms.uPlate = { value: plate || new THREE.Color() };
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uInk, uPlate;').replace('#include <map_fragment>', `
       vec4 tx = texture2D(map, vMapUv), bg = texture2D(map, vec2(.004, .996));
-      float sat = max(tx.r, max(tx.g, tx.b)) - min(tx.r, min(tx.g, tx.b));
-      diffuseColor.rgb = mix(uInk, tx.rgb, smoothstep(.25, .45, sat));
-      diffuseColor.a *= smoothstep(.08, .3, distance(tx.rgb, bg.rgb));`);
+      float sat = max(tx.r, max(tx.g, tx.b)) - min(tx.r, min(tx.g, tx.b)), ink = smoothstep(${plate ? '.04, .2' : '.08, .3'}, distance(tx.rgb, bg.rgb));
+      vec3 c = mix(uInk, tx.rgb, smoothstep(.25, .45, sat));
+      ${plate ? 'diffuseColor.rgb = mix(uPlate, c, ink); diffuseColor.a *= tx.a;' : 'diffuseColor.rgb = c; diffuseColor.a *= ink;'}`);
   };
   return m;
 }
