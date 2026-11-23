@@ -15,3 +15,17 @@
 .cv-inspector[data-open] .cv-inspector-case{transform:translate(-136%,-36%) rotate(-19deg)}
 .cv-inspector[data-open] .cv-inspector-panel{transform:translate(28%,-63%) rotate(14deg)}
 @media(prefers-reduced-motion:reduce){.cv-inspector-fallback>*{transition:none}}
+
+.cv-inspector .cv-inspector-circuit{z-index:0}
+.cv-inspector canvas:not(.cv-inspector-circuit),.cv-inspector-fallback{z-index:1}
+.cv-inspector-fallback{transform:translateX(calc(var(--cv-device-x,0) * 23%))}
+.cv-inspector-tag,.cv-inspector-line{transition:opacity .18s ease}
+.cv-inspector[data-open] :is(.cv-inspector-tag,.cv-inspector-line){opacity:0}
+.cv-inspector-flow{position:absolute;z-index:2;top:55%;display:grid;align-items:center;gap:0;width:43%;transform:translateY(-50%);pointer-events:none;color:#edf6ff;font:500 clamp(9px,.79vw,14px)/1.15 var(--expo-mono,monospace)}
+.cv-inspector-flow[data-side="terrain"]{left:4%;text-align:left}
+.cv-inspector-flow[data-side="suivi"]{right:4%;text-align:right}
+.cv-inspector-flow span{height:clamp(22px,4.15vh,34px);opacity:0;transform:translateY(5px);transition:opacity .17s ease,transform .17s ease}
+.cv-inspector[data-view="terrain"] [data-side="terrain"] span,.cv-inspector[data-view="suivi"] [data-side="suivi"] span{opacity:1;transform:none;transition-delay:calc(65ms + var(--cv-route-delay,0ms))}
+.cv-inspector[data-open] .cv-inspector-case{transform:translate(-75%,-43%) rotate(-13deg)}
+.cv-inspector[data-open] .cv-inspector-panel{transform:translate(-24%,-57%) rotate(2deg)}
+@media(prefers-reduced-motion:reduce){.cv-inspector-flow span,.cv-inspector-tag,.cv-inspector-line{transition:none}}

@@ -1,4 +1,5 @@
-import {brancheCarte} from './card-wires.js?v=4';
+import {brancheCarte} from './card-wires.js?v=5';
+export {origineChapitre,arcMenu} from './card-wires.js?v=5';
 
 const top=72,bottom=76,clearance=32;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));

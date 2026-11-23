@@ -23,7 +23,7 @@
   #hero .hero-tagline{
     left:clamp(19px,2.85vh,28px);bottom:11.5%;margin:0;
     font-size:clamp(10px,1.72vh,17px);line-height:1.15;
-    transform:rotate(-90deg);transform-origin:left bottom;white-space:nowrap;
+    rotate:none;transform:rotate(-90deg);transform-origin:left bottom;white-space:nowrap;
   }
 }
 @media(max-width:58.74rem){.cv-inspector-card .cv-inspector{min-height:9rem}}

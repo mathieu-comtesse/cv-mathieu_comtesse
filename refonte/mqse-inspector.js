@@ -2,41 +2,144 @@ const instrument = document.querySelector('[data-mqse-inspector]');
 
 if (instrument) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let hovered = false, pinned = false, px = 0, py = 0;
+  const circuit = document.createElement('canvas');
+  circuit.className = 'cv-inspector-circuit';
+  circuit.setAttribute('aria-hidden', 'true');
+  instrument.prepend(circuit);
+  const ink = circuit.getContext('2d');
+  const labels = [...instrument.querySelectorAll('.cv-inspector-flow')];
+  let hover = 0, selection = 0, px = 0, py = 0;
+  let shown = 0, direction = 0, iris = 0, frame = 0, previous = 0, inView = true;
   let redraw = () => {};
-  function update() {
-    instrument.toggleAttribute('data-open', hovered || pinned);
-    instrument.setAttribute('aria-pressed', String(pinned));
-    redraw();
-  }
-  instrument.addEventListener('pointerenter', event => {
-    if (event.pointerType === 'mouse' || event.pointerType === 'pen') {
-      hovered = true;
-      update();
+  labels.forEach(flow => [...flow.children].forEach((label,index) => {
+    label.style.setProperty('--cv-route-delay', index*40+'ms');
+  }));
+
+  function paint(now) {
+    frame = 0;
+    const target = hover || selection;
+    const dt = Math.min(50, previous ? now - previous : 16);
+    previous = now;
+    const approach = (value, end, delay) => reduced.matches || Math.abs(end-value)<.003
+      ? end : value + (end-value)*(1-Math.exp(-dt/delay));
+    const previousDirection = direction, previousIris = iris;
+    direction = approach(direction, target, 102);
+    iris = approach(iris, Number(target !== 0), target ? 125 : 86);
+    if (target) shown = target;
+    if (previousDirection !== direction || previousIris !== iris) {
+      instrument.style.setProperty('--cv-device-x', String(-direction));
+      redraw();
     }
-  });
+    if (ink) drawCircuit(now);
+    if ((!reduced.matches && iris) || direction !== target) schedule();
+    else previous = 0;
+  }
+
+  function drawCircuit(now) {
+    const width = instrument.clientWidth, height = instrument.clientHeight;
+    if (!width || !height) return;
+    const ratio = Math.min(devicePixelRatio || 1, 2);
+    if (circuit.width !== Math.round(width*ratio) || circuit.height !== Math.round(height*ratio)) {
+      circuit.width = Math.round(width*ratio);
+      circuit.height = Math.round(height*ratio);
+    }
+    ink.setTransform(ratio,0,0,ratio,0,0);
+    ink.clearRect(0,0,width,height);
+    if (!iris) return;
+    const cx = width*(.5-direction*.23), cy = height*.55;
+    const radius = Math.min(width*.155,height*.33);
+    const junction = cx + shown*radius;
+    ink.globalAlpha = iris;
+    ink.strokeStyle = '#b8dcff66';
+    ink.lineWidth = .8;
+    ink.beginPath();
+    ink.ellipse(cx,cy,radius,radius*.88,0,0,Math.PI*2);
+    ink.stroke();
+    for (let index=0;index<labels[shown===-1?0:1].childElementCount;index++) {
+      const x = shown === 1 ? width*.96 : width*.04;
+      const y = cy + (index-1)*Math.min(34,height*.21);
+      const end = shown === 1 ? width*.65 : width*.35;
+      const length = iris*iris*(3-2*iris);
+      const point = t => ({
+        x: junction+(end-junction)*t,
+        y: cy+(y-cy)*t*t*(3-2*t)
+      });
+      ink.beginPath();
+      for (let j=0;j<=20;j++) {
+        const p = point(Math.min(1,(j/20)*length*1.12));
+        if(j) ink.lineTo(p.x,p.y);
+        else ink.moveTo(p.x,p.y);
+      }
+      if(length>.9) ink.lineTo(end+(x-end)*(length-.9)*10,y);
+      ink.stroke();
+      if (!reduced.matches) {
+        const phase = (now/1350 + index*.26)%1;
+        const p = point(shown === 1 ? phase : 1-phase);
+        ink.globalAlpha = iris*Math.sin(phase*Math.PI);
+        ink.fillStyle = '#ecfaff';
+        ink.beginPath();
+        ink.arc(p.x,p.y,1.8,0,Math.PI*2);
+        ink.fill();
+        ink.globalAlpha = iris;
+      }
+    }
+    ink.fillStyle = '#ecfaff';
+    ink.beginPath();
+    ink.arc(junction,cy,2.7,0,Math.PI*2);
+    ink.fill();
+    ink.globalAlpha = 1;
+  }
+
+  function schedule() {
+    if (!frame && inView) frame = requestAnimationFrame(paint);
+  }
+
+  function update() {
+    const view = hover || selection;
+    instrument.toggleAttribute('data-open', view !== 0);
+    instrument.dataset.view = view === -1 ? 'terrain' : view === 1 ? 'suivi' : 'overview';
+    instrument.setAttribute('aria-pressed', String(selection !== 0));
+    redraw();
+    schedule();
+  }
+
   instrument.addEventListener('pointermove', event => {
-    if (!hovered || reduced.matches) return;
+    if (event.pointerType !== 'mouse' && event.pointerType !== 'pen') return;
     const bounds = instrument.getBoundingClientRect();
     px = (event.clientX - bounds.left) / bounds.width - .5;
     py = (event.clientY - bounds.top) / bounds.height - .5;
-    redraw();
-  });
-  instrument.addEventListener('pointerleave', () => {
-    hovered = false;
-    px = py = 0;
+    // Une bande centrale évite de changer de côté au moindre mouvement du pointeur.
+    if (!selection && (Math.abs(px) > .10 || !hover)) hover = px < 0 ? -1 : 1;
     update();
   });
-  instrument.addEventListener('click', () => {
-    pinned = !pinned;
+  instrument.addEventListener('pointerleave', () => {
+    hover = px = py = 0;
+    update();
+  });
+  instrument.addEventListener('click', event => {
+    const bounds = instrument.getBoundingClientRect();
+    const side = event.detail ? (event.clientX < bounds.left+bounds.width/2 ? -1 : 1) : 0;
+    selection = side ? (selection === side ? 0 : side) : selection === 0 ? -1 : selection === -1 ? 1 : 0;
+    hover = 0;
     update();
   });
   instrument.addEventListener('keydown', event => {
-    if (event.key !== 'Escape') return;
-    hovered = pinned = false;
-    px = py = 0;
+    if (!['ArrowLeft','ArrowRight','Escape'].includes(event.key)) return;
+    event.preventDefault();
+    selection = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0;
+    hover = px = py = 0;
     update();
   });
+  new IntersectionObserver(([entry]) => {
+    inView = entry.isIntersecting;
+    if (inView) schedule();
+    else if (frame) {
+      cancelAnimationFrame(frame);
+      frame = previous = 0;
+    }
+  }).observe(instrument);
+  new ResizeObserver(schedule).observe(instrument);
+  reduced.addEventListener('change', schedule);
 
   import('three').then(T => {
     const renderer = new T.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
@@ -105,17 +208,18 @@ if (instrument) {
     instrument.append(renderer.domElement);
     instrument.dataset.ready = '';
 
-    let frame = 0, blend = 0, rx = .12, ry = -.38, last = 0, visible = true;
+    let renderFrame = 0, blend = 0, rx = .12, ry = -.38, last = 0, visible = true;
     function draw(now) {
-      frame = 0;
+      renderFrame = 0;
       if (!visible || !instrument.clientWidth || !instrument.clientHeight) return;
       const factor = reduced.matches ? 1 : 1 - Math.exp(-Math.min(50, last ? now-last : 16)/145);
-      const target = Number(hovered || pinned), destX = .12 + py*.48, destY = -.38 + px*.68;
+      const target = .40*iris, destX = .12 + py*.36, destY = -.34 + px*.4;
       last = now;
       blend += (target-blend)*factor;
       rx += (destX-rx)*factor; ry += (destY-ry)*factor;
       device.rotation.set(rx,ry,-.13+.18*blend);
-      device.position.y=-.16;
+      device.position.set(-direction*camera.right*.46,-.16,0);
+      device.scale.setScalar(1-.15*iris);
       rear.position.set(-1.03*blend,-.14*blend,-.18*blend);
       board.position.set(.05*blend,-.27*blend,.12*blend);
       face.position.set(1.03*blend,.04*blend,.24*blend);
@@ -125,7 +229,7 @@ if (instrument) {
       if (Math.max(Math.abs(target-blend),Math.abs(destX-rx),Math.abs(destY-ry))>.001) redraw();
       else last = 0;
     }
-    redraw = () => { if (visible && !frame) frame = requestAnimationFrame(draw); };
+    redraw = () => { if (visible && !renderFrame) renderFrame = requestAnimationFrame(draw); };
     function resize() {
       const width=instrument.clientWidth,height=instrument.clientHeight;
       if (!width || !height) return;

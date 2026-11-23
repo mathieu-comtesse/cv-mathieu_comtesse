@@ -99,3 +99,57 @@ export function avanceBranche(y,H,reduit) {
   const n=Math.min(1,Math.max(0,(H*.92-y)/(H*.43)));
   return n*n*(3-2*n);
 }
+
+export function origineChapitre(lien) {
+  const r=lien.getBoundingClientRect();
+  return {x:r.right-2,y:r.top+r.height/2};
+}
+
+// Un arc dans la gouttière relie le chapitre lu à celui que le lecteur survole.
+export function arcMenu(ctx,nav,state,time,preview,alpha=1) {
+  const active=nav.querySelector('[aria-current="location"]');
+  if(active!==state.active){
+    state.previous=state.active;
+    state.active=active;
+    state.changed=time??0;
+  }
+  const other=preview||((time!==null&&time-state.changed<.65)?state.previous:null);
+  const visible=Boolean(active&&other&&other!==active);
+  const dt=time===null?0:Math.min(.05,Math.max(0,time-(state.time??time)));
+  state.amount=time===null?Number(visible):Math.max(0,Math.min(1,(state.amount||0)+dt*(visible?5:-7)));
+  state.time=time;
+  if(visible)state.ends=[active,other];
+  if(!state.amount||!state.ends)return;
+  const [source,target]=state.ends.map(origineChapitre);
+  const radius=Math.max(20,Math.min(88,Math.abs(source.y-target.y)*.46));
+  const point=t=>({x:source.x+(target.x-source.x)*t+4*radius*t*(1-t),y:source.y+(target.y-source.y)*t});
+  const edge=state.amount*state.amount*(3-2*state.amount);
+  ctx.save();
+  ctx.globalAlpha=alpha;
+  ctx.lineWidth=.85;
+  ctx.strokeStyle='#d8edff91';
+  ctx.beginPath();
+  for(let i=0;i<=28;i++){
+    const p=point(i*edge/28);
+    if(i)ctx.lineTo(p.x,p.y);
+    else ctx.moveTo(p.x,p.y);
+  }
+  ctx.stroke();
+  ctx.strokeStyle='#d8edff36';
+  for(const lien of nav.querySelectorAll('a')){
+    const row=origineChapitre(lien);
+    const t=(row.y-source.y)/(target.y-source.y);
+    if(t<=.02||t>=edge-.02)continue;
+    ctx.beginPath();
+    ctx.moveTo(row.x+7,row.y);
+    ctx.lineTo(point(t).x,row.y);
+    ctx.stroke();
+  }
+  ctx.fillStyle='#fff';
+  for(const p of [source,point(edge)]){
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,2.25,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+}

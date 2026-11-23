@@ -3,7 +3,7 @@ import {initFlatColourRenderer} from './flat-colour-renderer.js?v=1';
 import {surfaceGraph,brancheSpectrale} from './fall26-graph-adapter.js?v=1';
 import {poussiere,notesCadre} from './card-effects.js?v=4';
 import { fonduChapitre } from './moteur.js?v=m36';
-import { avanceBranche, brancheCarte } from './card-wires.js?v=4';
+import { avanceBranche, brancheCarte, origineChapitre, arcMenu } from './card-wires.js?v=5';
 
 /* Étoiles des titres (mode à plat). Chaque grand titre (chapitre : « Projets professionnels » ; thème : « Faire fonctionner »…)
  * garde sa taille et reçoit une étoile : un foyer carré blanc posé près du titre, d'où partent des branches.
@@ -72,9 +72,9 @@ function installe() {
   const cibles = [], chapitres = [];
   for (const sec of document.querySelectorAll('section[data-f26-page-section]')) {
     const pin = sec.querySelector(':scope > .section-hero-pin'), h = pin?.querySelector('h2'); if (!h) continue;
-    let fiches = [...sec.querySelectorAll('article[data-cv-type], article.product-card')].filter((a) => libelle(a));
+    let fiches = [...sec.querySelectorAll('article[data-cv-type], article.product-card')].filter((a) => libelle(a)||a.matches('.cv-unframed'));
     if (!fiches.length) fiches = [...sec.querySelectorAll('h3')].filter((x) => x.textContent.trim()).map((x) => x.closest('article, li, div') || x);
-    chapitres.push({ section: sec, hote: pin, titre: h, fiches: fiches.slice(0, 16), nom: h.textContent.trim() });
+    chapitres.push({ section: sec, hote: pin, titre: h, fiches, nom: h.textContent.trim() });
   }
   for (const t of document.querySelectorAll('.cv-theme-heading[data-cv-theme]')) {
     const h = t.querySelector('h2'), nom = t.dataset.cvTheme; if (!h) continue;
@@ -186,6 +186,7 @@ function scene(chapitres) {
     c.titre.style.setProperty('--cv-fill', reduit.matches ? '1' : '0');
   }
   /* liste fixe des chapitres, à gauche : repère de lecture pendant les transitions */
+  const menuArc={};
   const nav = document.createElement('nav'); nav.className = 'cv-flat-nav'; nav.setAttribute('aria-label', 'Chapitres');
   const liens = new Map();
   for (const destination of document.querySelectorAll('#hero .hero-nav-link[href]')) {
@@ -336,18 +337,33 @@ function scene(chapitres) {
     const emit=fil.active?(a,b,ink,alpha,width)=>brancheSpectrale(edges,a,b,ink,alpha,clip,width):undefined;
     poussiere(ctx,W,H,libre?tt:null,scrollY);
     const notes=[];
-    if(vuNav&&W>=940)for(const c of chapitres){
-      if (!c.lien) continue;
-      const r=c.lien.getBoundingClientRect(),a={x:r.right-2,y:r.top+r.height/2};
-      const depart=c.section===actif?.section;
-      for(const card of c.fiches){
-        const marker=card.querySelector(':scope > [data-card-marker]');
-        const dot=marker?.getBoundingClientRect();
-        if(!dot?.width||dot.top<54||dot.top>H)continue;
-        const b={x:dot.left+dot.width/2,y:dot.top+dot.height/2};
-        const fiche=card.querySelector('[data-fiche]');
-        if(fiche){const edge=card.getBoundingClientRect();notes.push({element:fiche,x:edge.right,y:b.y,bottom:edge.bottom});}
-        if(brancheCarte(ctx,a,b,{t:libre?tt:null,id:card.id,progress:avanceBranche(b.y,H,!libre),active:depart,pointer:souris,emit}))liensLus++;
+    if(vuNav&&W>=940){
+      const preview=nav.querySelector('a:is(:hover,:focus-visible)');
+      arcMenu(ctx,nav,menuArc,libre?tt:null,preview);
+      const focusId=preview?.hash.slice(1);
+      const focusSection=document.getElementById(focusId || '')?.closest('[data-f26-page-section]');
+      for(const c of chapitres){
+        if(c!==actif&&c.section!==focusSection)continue;
+        const lien=c.section===focusSection ? preview : liens.get(idActif)||c.lien;
+        if(!lien)continue;
+        const a=origineChapitre(lien);
+        const rubrique=document.getElementById(lien.hash.slice(1));
+        const cards=rubrique?.matches('.rf-sk-grp')?[rubrique]:c.fiches;
+        for(const [index,card] of cards.entries()){
+          const marker=card.querySelector(':scope > [data-card-marker]');
+          const text=marker?null:card.querySelector('h2,h3,p');
+          const dot=(marker||text)?.getBoundingClientRect();
+          if(!dot?.width||dot.top<76||dot.top>H-48)continue;
+          const b={x:marker?dot.left+dot.width/2:dot.left-10,y:dot.top+(marker?dot.height/2:Math.min(9,dot.height/2))};
+          const fiche=card.querySelector('[data-fiche]');
+          if(fiche){const edge=card.getBoundingClientRect();notes.push({element:fiche,x:edge.right,y:b.y,bottom:edge.bottom});}
+          const bright=!focusSection||c.section===focusSection;
+          const progress=avanceBranche(b.y,H,!libre);
+          if(brancheCarte(ctx,a,b,{t:libre?tt:null,id:card.id||c.section.id+':'+index,progress,active:bright,pointer:souris,emit:bright?undefined:emit})){
+            liensLus++;
+            if(text&&progress>.97){ctx.strokeStyle='#e6f4ffd0';ctx.lineWidth=.75;ctx.strokeRect(b.x-1.75,b.y-1.75,3.5,3.5);}
+          }
+        }
       }
     }
     fil.render(W,H,dpr,edges);
