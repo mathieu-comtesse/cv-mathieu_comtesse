@@ -736,3 +736,20 @@ Source : module `renderer` de la référence (fonctions de simulation et jeu de 
 | Anneaux des voisins | appartiennent à la vue de section, pas à l'accueil | **retirés** de l'accueil |
 
 Non repris : sillage de glyphes WebGPU (rendu GPU), saisie et lancer d'un foyer (`grabPull` 38, `throwScale` 1,25), forces de répulsion entre foyers (notre disposition des foyers est fixe). Test : `node tools/test-pointeur-graphe.mjs`.
+
+## Apparition du graphe de l'accueil : séquence « intro » de la référence (moteur `m32`)
+
+Source : classe d'intro du module `controller` de la référence et ses réglages par défaut. Les captures `t03` à `t30` prises sur la référence étaient à 3, 6, 10, 15, 22 et 30 **secondes** (graphe déjà complet) : elles ne renseignent pas l'intro, c'est le code qui fait foi.
+
+| Loi | Valeur | Reprise |
+|---|---|---|
+| Ordre de sortie des foyers | rang × pas premier avec leur nombre (11 foyers : pas 5), décalage 0,07 s | oui |
+| Trajet d'un foyer depuis le centre | 1,1 s, courbe 1 − (1 − d)⁵ | oui |
+| Rotation pendant la sortie | foyers −180°, rayons −67°, amorties en (1 − t/3)⁵ | oui |
+| Rayons | partent 0,45 s après leur foyer, + 0,025 s chacun, trajet 0,99 s | oui |
+| Taille d'un élément | min(1, 6d) × (1 + 0,7 sin(πd)) × souffle | oui |
+| Souffle (échelle globale des tailles) | 5,6 → 1, maintien 0,25 s, retour 1,75 s, puissance 3, mélange 0,2 | oui |
+| Foyer central | part de 1/5,6, atteint 1 en 0,25 s, gonfle 0,6 s (× 1,42 au plus) | oui |
+| Dérive lente des foyers | `driftOn` désactivé sur la référence | **retirée** (c'était un choix propre) |
+
+Remplace l'apparition estimée sur deux captures (écartement 0,45 → 1 en 1,6 s, taille × 3 → 1 en 2,6 s). Mouvement réduit : aucune apparition. Outil : `VW=1400 VH=900 REJOUE=0.15,0.4,0.7,1,1.5,2.4 OUT=x.png node tools/capture-accueil.mjs` (horloge de l'intro figée, une image par instant).
