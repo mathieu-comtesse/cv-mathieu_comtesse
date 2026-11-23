@@ -311,15 +311,15 @@ export class Ciel {
     const lim = e.recup > 0.01 ? 1e4 : 160, r = Math.hypot(e.dx, e.dy); if (r > lim) { e.dx *= lim / r; e.dy *= lim / r; }
     if (Math.abs(e.dx) + Math.abs(e.dy) + Math.abs(e.vx) + Math.abs(e.vy) < 0.05) e.dx = e.dy = e.vx = e.vy = 0;
   }
-  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1, plat = false, intro = null } = {}) {   /* intro : secondes écoulées depuis le début de l'apparition à plat (null : pas d'apparition) */
+  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1, plat = false, intro = null, poids = null, deploie = null } = {}) {   /* intro : secondes écoulées depuis le début de l'apparition à plat (null : pas d'apparition) */
     if (alpha <= 0.003) { this.cibles = []; this.survol = null; this.survolBranche = null; return; }
-    const A = Math.min(1, alpha), retour = Math.exp(-dt * 9);
+    const A0 = Math.min(1, alpha), retour = Math.exp(-dt * 9);
     const libre = t !== null, tt = t || 0, cibles = [], cache = (x, y, z) => covers.some((c) => c.z < z - 30 && dansQuad(c.pts, x, y));
     const quads = covers.map((pts) => ({ pts, z: pts.reduce((s, q) => s + q.z, 0) / 4 }));
     covers = quads;
     const focus = this.survol ? this.survol.noeud : this.survolBranche ? this.survolBranche.noeud : null, focusE = this.survol ? this.survol.etoile : this.survolBranche ? this.survolBranche.etoile : null;
     const MULT = [1, 0.4, 1.5, 0.12];                                            // classes de rendu : normale, estompée (voisine d'une branche survolée), mise en évidence, voilée par un cadre
-    ctx.save(); ctx.lineCap = 'round'; ctx.globalAlpha = A;
+    ctx.save(); ctx.lineCap = 'round'; ctx.globalAlpha = A0;
     let survol = null, dSurvol = 18, brancheMeilleure = null, dBranche = 7;
     /* Survol d'un foyer, à plat (observé sur la référence) : le foyer passe au vert vif, son nom grossit, ses rayons se resserrent,
        les autres foyers s'estompent et son trait vers le centre s'allume. Transitions lissées (constante de temps 0,12 s, notre choix). */
@@ -349,7 +349,7 @@ export class Ciel {
     const allure = 1 - 0.8 * this.calme, vit = Math.hypot(pv.x, pv.y), unite = this.unite = Math.max(0.4, Math.min(3, Math.min(W, H) / 741));
     for (const e of this.etoiles.values()) {
       e.ecran = null; e.libelleEcran = null;
-      const kT = e.groupe === 'titre' ? titres : 1; ctx.globalAlpha = A * kT; if (kT < 0.02) continue;   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
+      const kT = (e.groupe === 'titre' ? titres : 1) * (poids?.get(e.id) ?? 1), A = A0 * kT; ctx.globalAlpha = A; if (kT < 0.02) continue;   // poids : estompe d'une étoile (graphe des chapitres), appliqué à toute l'étoile   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
       if (!e.centre) { e.age = -1; continue; }
       const [c0, r0, h0] = e.centre, Fb = proj(c0, r0, h0), u = Fb && proj(c0 + 100, r0, h0);
       let tailleI = 1, naissance = 0;
@@ -395,6 +395,7 @@ export class Ciel {
         const n = N[j]; n.vis = false;
         if (plat && (n.par || e.racine)) continue;                               // à plat : ni ramification ni gerbe centrale (observé sur la référence)
         let g = adouci((e.age - 0.15 - j * (e.racine ? 0.012 : 0.04) - (n.par ? 0.3 : 0)) / 0.8);
+        if (plat && !n.par && deploie?.has(e.id)) g *= deploie.get(e.id);   // déploiement des rayons (repli et dépli entre chapitres)
         if (plat && !n.par) { if (enIntro) { const d = Math.max(0, Math.min(1, (intro - naissance - 0.45 - j * 0.025) / 0.99)); g = trajet(d); n.tI = Math.min(1, d * 6) * (1 + Math.sin(Math.PI * d) * 0.7) * souf; } else { g = intro === null && !libre ? 1 : g; n.tI = 1; } }
         if (n.par) { if (!n.par.vis) continue; g = Math.min(g, n.par.gg); }
         if (g <= 0) continue;
@@ -550,7 +551,7 @@ export class Ciel {
     L.a = libre ? Math.max(0, Math.min(1, L.a + (survol ? dt : -dt) / 0.15)) : survol ? 1 : 0;
     if (L.a > 0 && L.texte) {
       const o = L.a < 0.5 ? 4 * L.a ** 3 : 1 - (2 - 2 * L.a) ** 3 / 2, droite = L.x > W - 260, dx = droite ? -18 : 18;
-      ctx.globalAlpha = A * o; ctx.font = '500 11px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = droite ? 'right' : 'left'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,10,90,.7)'; ctx.fillStyle = '#fff';
+      ctx.globalAlpha = A0 * o; ctx.font = '500 11px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = droite ? 'right' : 'left'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,10,90,.7)'; ctx.fillStyle = '#fff';
       ctx.strokeText(L.texte, L.x + dx, L.y + 4); ctx.fillText(L.texte, L.x + dx, L.y + 4);
       this.libelleSurvol = { x: L.x + dx, y: L.y + 4, opacite: o, texte: L.texte };
     } else this.libelleSurvol = null;

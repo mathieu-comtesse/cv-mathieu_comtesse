@@ -774,3 +774,23 @@ Sources : shaders `fluid`, `fluid-ambient` et `glyph-glitch` de la référence, 
 | Lueur | points à moins de 265 px du pointeur mêlés de blanc (lissage 3 − 2x), montée 24/s, extinction 0,6 s après un délai propre à chaque point (0 à 0,35 s) | identique (points des rayons et contenus sans image) |
 
 Mesures (rendu logiciel) : grille 249 × 139, teinte maximale 0,33 pendant un geste, retombée sous le seuil du premier glyphe (0,025) au repos. Le rendu sur carte graphique matérielle reste à comparer visuellement à la référence. Tests : `tools/test-sillage.mjs`, `tools/test-pointeur-graphe.mjs` (lueur).
+
+## Transitions entre chapitres : graphe commun et caméra (graphe-chapitres `gc2`, moteur `m36`)
+
+Sources : modules `journey`, `heroMediaFlight` (calcul de l'image de section à partir du défilement) et `build-section-frame` de la référence. Réécrit dans `refonte/graphe-chapitres.js`.
+
+**Séparation en 11 chapitres** : un chapitre = une section de la page (`agentic` … `developer`) = une étoile du graphe ; même identifiant partout, pas d'autre découpage.
+
+| Loi de la référence | Valeur | Reprise |
+|---|---|---|
+| Après l'accueil, le même graphe reste en fond (couche fixe) | — | oui : canevas fixe, même moteur, même disposition que l'accueil |
+| Cadrage d'un chapitre | étoile à 22 % de la largeur, mi-hauteur ; cadre 18 / W − 24 / 82 / 0,78 H ; agrandissement ≤ 2,8, × 0,92 | oui |
+| Trajet entre chapitres | de (bas du quitté − 0,55 H) à (haut du suivant − 0,4 H) | oui |
+| Repli des rayons du chapitre quitté | sur 0 à 30 % du trajet | oui |
+| Glissement de caméra | courbe cubique symétrique sur tout le trajet | oui |
+| Contexte (autres étoiles) | révélé de 2 à 8 %, effacé de 50 à 100 % ; plancher 0,12 | oui |
+| Dépli des rayons du chapitre suivant | 50 à 100 % (lissé) | oui |
+| Couleur de page | 11 à 63 % du trajet | inchangé : chaîne de couleurs CSS existante (mesurée au tour précédent) |
+| Entrée depuis l'accueil | zoom de la vue d'ensemble vers la première section | approché : la caméra va du centre (échelle 1) à la première étoile pendant l'effacement de l'accueil |
+
+Retiré : l'étoile blanche propre à chaque titre (`theme-stars.js`), qui n'existe pas sur la référence ; le remplissage des titres et la liste des chapitres sont conservés. Hors grand écran (moins de 940 px) et en mode expo, la couche est masquée. Test : `node tools/test-graphe-chapitres.mjs [dossier]` (cadrage, repli, contexte, dépli, relais au chapitre suivant).

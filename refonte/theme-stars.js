@@ -191,7 +191,7 @@ function scene(chapitres) {
       const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8),   /* jamais par-dessus l'accueil : l'étoile n'apparaît qu'une fois l'accueil quitté */
         g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, REMPLI_DEBUT, REMPLI_FIN) : 1;
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
-      if (alpha <= 0.004) continue;
+      if (alpha <= 0.004 || window.__cvGrapheChapitres) continue;   // le graphe des chapitres (graphe-chapitres.js) remplace l'étoile propre à chaque titre
       const hx = W < 760 ? W * 0.5 : W * 0.6, hy = H * 0.56 - Math.max(0, u - 0.62) * H, R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g);
       ctx.save(); ctx.globalAlpha = alpha; ctx.lineCap = 'round';
       /* les branches passent derrière les fiches : la zone des fiches visibles est retirée du tracé */
