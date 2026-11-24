@@ -504,7 +504,7 @@ html:not(.cv-parity-active) .cv-legacy .pc-hublot{margin-block:56px 96px}
 <link rel="stylesheet" href="refonte/expo-typographie.css?v=1">
 <style>#work[data-no-piggy] .annual-pig-wrap{display:none!important}.cv-parity-part[data-cv-project-face] .cv-machine{background:transparent!important}</style>
 <link rel="stylesheet" href="refonte/mqse-inspector.css?v=4">
-<link rel="stylesheet" href="refonte/hero-tuning.css?v=2">
+<link rel="stylesheet" href="refonte/hero-tuning.css?v=3">
 <link rel="stylesheet" href="refonte/project-editorial.css?v=2">
 <!-- seo:start -->
 <meta property="og:locale" content="fr_FR">
@@ -1841,4 +1841,4 @@ startParityPath().catch(e=>fail('chemin 3D',e));
 // « Voir la magie » : chaque bouton flottant ouvre la vue de son « Comment ça marche » (lien fixé avant le passage en 3D)
 for(const b of document.querySelectorAll('.cv-magic3d,.cv-explore3d'))b.onclick=e=>{e.stopPropagation();const h=b.closest('[data-cv-machine]'),slug=h?.dataset.proj;if(b.classList.contains('cv-explore3d'))return window.__cvDemo?.(b);document.querySelector('.rf-flow[data-proj="'+slug+'"] .rf-flow-magic, .rf-marche[data-proj="'+slug+'"] .rf-flow-magic')?.click();};
 </script><script src="/refonte/comtesse-motion.js?v=fall26-2" defer></script>
-</body></html><!-- rmx:flush document -->
+<style>.checkpoint-stage.cv-filtre-actif>.checkpoint-stage__poster{display:none}</style><script type="module">if(matchMedia("(min-width: 58.75rem) and (min-height: 43.3125rem)").matches)import("./refonte/checkpoint.js?v=f2").then((m)=>document.querySelectorAll(".checkpoint-stage").forEach((h)=>{h.style.setProperty("--cv-filtre-fond",(h.closest("[data-hero-colour]")?.dataset.heroColour||"#051daa").toLowerCase());m.monteFiltre(h);h.classList.add("cv-filtre-actif");}));</script></body></html><!-- rmx:flush document -->
