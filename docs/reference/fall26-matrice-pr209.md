@@ -915,3 +915,7 @@ La présentation au ton de la référence, perdue à la fusion avec main, est r�
 - Ids des rubriques renommés `sk-…` : plus de doublon avec les ids de sections.
 - Data & automatisation : + Automatisation des processus, Business Intelligence, Modélisation DAX, Tableaux de bord et indicateurs, Chaînes ETL, SharePoint (icônes reprises des pastilles voisines). 52 pastilles au total.
 - Outil : `tools/competences-hublot.py`. Test : `test-chapitres` vérifie 7 rubriques, au moins 52 pastilles, BI présente.
+
+## Accroche de l'accueil
+
+- « Ingénieur maintenance et qualité · Automatisation des processus & BI ». Vérifiée : 1440×900 (vertical, 631 px), 1366×768 (538 px, tient dans le cadre), 390×844 (2 lignes alignées à droite).
