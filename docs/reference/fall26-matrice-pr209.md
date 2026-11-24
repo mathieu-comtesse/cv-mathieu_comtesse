@@ -908,3 +908,10 @@ Ajouté par `tools/notions-automatisation-bi.py`, chaque notion découlant d'un 
 - **présentation (Parcours)** : « Deux leviers : l'automatisation des processus (Power Automate, machines virtuelles, SharePoint) et la Business Intelligence (Power BI, modèles DAX, tableaux de bord et indicateurs). »
 
 La présentation au ton de la référence, perdue à la fusion avec main, est réappliquée. Tests : `test-chapitres` mis à jour (19 entrées dans « Data & IA », 84 nœuds), `test-modes` et `test-no-shopify --strict` verts.
+
+## Compétences sous le hublot (Parcours)
+
+- Bloc « Compétences » de main rétabli sous le hublot, à l'identique (7 rubriques, pastilles, légende « En cours d’acquisition », rail de la gare à gauche).
+- Ids des rubriques renommés `sk-…` : plus de doublon avec les ids de sections.
+- Data & automatisation : + Automatisation des processus, Business Intelligence, Modélisation DAX, Tableaux de bord et indicateurs, Chaînes ETL, SharePoint (icônes reprises des pastilles voisines). 52 pastilles au total.
+- Outil : `tools/competences-hublot.py`. Test : `test-chapitres` vérifie 7 rubriques, au moins 52 pastilles, BI présente.
