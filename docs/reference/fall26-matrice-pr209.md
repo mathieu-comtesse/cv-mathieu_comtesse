@@ -899,3 +899,12 @@ La page fusionnée est plus courte (29 431 px). Le plan du jeu est construit sur
 Relevé sur la référence et sur le site à 700, 500 et 360 px avant chaque chapitre (pixel du fond au coin bas droit) : départ identique sur 9 passages sur 10, mi-chemin à 5 à 25 unités près, arrivée identique à quelques unités. Seul écart : le passage vers le chapitre 6 part du gris du tableau des gains (sol sombre de main) au lieu du bleu.
 
 Curseur sur le graphe de l'accueil : `pointer` sur un nœud ou un foyer (relevé de la référence), `grabbing` pendant une saisie ; le curseur posé par le mode Expo n'est plus effacé par l'accueil. `test-modes` vert en entier (il attendait `grab` au survol, contraire au relevé de la référence).
+
+## Automatisation des processus et Business Intelligence (profil et projets)
+
+Ajouté par `tools/notions-automatisation-bi.py`, chaque notion découlant d'un fait déjà écrit dans la fiche (outil, chaîne de traitement, mesures DAX) :
+- **fiches projets** : une rangée de pastilles sous la phrase d'accroche, en police mono 12 px à fond sombre, comme les boutons des cadres de la référence (ex. Gares prioritaires : Business Intelligence · Power BI · DAX : 19 tables, 159 mesures · Indicateurs de criticité ; Reporteur Q18 : Automatisation des processus · Chaîne ETL · SharePoint → Excel → Power BI · Business Intelligence) ;
+- **chapitre « Data & IA »** : cinq entrées au format des autres (3 colonnes, 14 px) : Automatisation des processus, Business Intelligence, Modélisation DAX, Tableaux de bord et indicateurs, Chaînes ETL ; ajoutées aux enregistrements des chapitres (graphe, recherche, mini-jeu) ;
+- **présentation (Parcours)** : « Deux leviers : l'automatisation des processus (Power Automate, machines virtuelles, SharePoint) et la Business Intelligence (Power BI, modèles DAX, tableaux de bord et indicateurs). »
+
+La présentation au ton de la référence, perdue à la fusion avec main, est réappliquée. Tests : `test-chapitres` mis à jour (19 entrées dans « Data & IA », 84 nœuds), `test-modes` et `test-no-shopify --strict` verts.
