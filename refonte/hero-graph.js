@@ -101,13 +101,14 @@ export function demarre(chapitres) {
   new ResizeObserver(taille).observe(zone); addEventListener('resize', taille); document.fonts?.ready.then(taille); taille();
   new IntersectionObserver(([e]) => { vu = e.isIntersecting; }).observe(zone);
   const local = (ev) => { const r = cv.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; };
-  cv.style.cursor = 'auto';
+  cv.style.cursor = 'auto'; let posePoigne = false;
   const va = (n) => { const cible = document.getElementById(n.handle) || document.getElementById(n.chapitre); if (cible) cible.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' }); };
   addEventListener('pointermove', ev => {
     [souris.x, souris.y] = local(ev);
     ciel.tire(souris.x, souris.y); ciel.tireFoyer(souris.x, souris.y);
     const node = ev.pointerType==='mouse'&&dessus(ev)&&ciel.touche(souris.x,souris.y);
-    cv.style.cursor = node?'pointer':'auto';
+    const c = ciel.pris||ciel.prisF ? 'grabbing' : node ? 'pointer' : 'auto';   // référence : pointer sur un nœud ; main fermée pendant la saisie (propre au site)
+    cv.style.cursor = c; if (c === 'grabbing') { document.documentElement.style.cursor = c; posePoigne = true; } else if (posePoigne) { document.documentElement.style.cursor = ''; posePoigne = false; }   // n'efface que le curseur posé ici (l'Expo gère le sien)
     etiquette.toggleAttribute('data-visible',Boolean(node));
     if(node){
       etiquette.textContent=node.title;
@@ -118,10 +119,10 @@ export function demarre(chapitres) {
   cv.addEventListener('pointerleave', () => { if (!ciel.pris) souris.x = souris.y = -1e4; });
   /* écoute au niveau du document : d'autres calques de l'accueil passent au-dessus du canevas et recevraient l'appui à sa place */
   const dessus = (ev) => { const r = cv.getBoundingClientRect(); return !document.documentElement.classList.contains('cv-parity-active') && ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom && !ev.target.closest('a,button,input,select,textarea,.cv-site-nav'); };
-  document.addEventListener('pointerdown', (ev) => { if (ev.button !== 0 || !dessus(ev)) return; [souris.x, souris.y] = local(ev); if (!ciel.saisitFoyer(souris.x, souris.y)) ciel.saisit(souris.x, souris.y); }, { capture: true });
+  document.addEventListener('pointerdown', (ev) => { if (ev.button !== 0 || !dessus(ev)) return; [souris.x, souris.y] = local(ev); if (ciel.saisitFoyer(souris.x, souris.y) || ciel.saisit(souris.x, souris.y)) { cv.style.cursor = document.documentElement.style.cursor = 'grabbing'; posePoigne = true; } }, { capture: true });
   const fin = (annule) => { const r = ciel.lache(); if (r?.clic && !annule) va(r); };
   const finFoyer = (annule) => { const r = ciel.lacheFoyer(annule); if (r?.clic && !annule) va({ chapitre: r.chapitre }); };   // foyer : clic vers le chapitre, glisser pour le lancer
-  document.addEventListener('pointerup', () => { fin(false); finFoyer(false); }, { capture: true }); document.addEventListener('pointercancel', () => { fin(true); finFoyer(true); });
+  document.addEventListener('pointerup', () => { fin(false); finFoyer(false); if (posePoigne) { document.documentElement.style.cursor = ''; posePoigne = false; } }, { capture: true }); document.addEventListener('pointercancel', () => { fin(true); finFoyer(true); });
   function image(t) {
     requestAnimationFrame(image);
     if (!vu || document.hidden || W < 120 || H < 120 || t - dernier < 30 || document.documentElement.classList.contains('cv-parity-active')) return;

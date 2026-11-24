@@ -893,3 +893,9 @@ Mêmes lois et mêmes paramètres que la section « Survol du graphe » (référ
 ## Mini-jeu : piste étirée
 
 La page fusionnée est plus courte (29 431 px). Le plan du jeu est construit sur des rangées multipliées par K = 70 000 / longueur de page, et l'affichage divise par K (`pt` dans `refonte/jeu.js`) : physique, sauts et trous inchangés, partie de nouveau dans la cible de 1 à 3 minutes.
+
+## Les 10 passages entre chapitres (couleur, à plat) et curseur de l'accueil
+
+Relevé sur la référence et sur le site à 700, 500 et 360 px avant chaque chapitre (pixel du fond au coin bas droit) : départ identique sur 9 passages sur 10, mi-chemin à 5 à 25 unités près, arrivée identique à quelques unités. Seul écart : le passage vers le chapitre 6 part du gris du tableau des gains (sol sombre de main) au lieu du bleu.
+
+Curseur sur le graphe de l'accueil : `pointer` sur un nœud ou un foyer (relevé de la référence), `grabbing` pendant une saisie ; le curseur posé par le mode Expo n'est plus effacé par l'accueil. `test-modes` vert en entier (il attendait `grab` au survol, contraire au relevé de la référence).
