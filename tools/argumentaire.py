@@ -1,5 +1,5 @@
 """Argumentaire « De l'innovation dans les bureaux », placé dans le chapitre Gains, après le tableau des gains.
-Ton : professionnel et ironique, à la manière d'un moraliste politique (maximes, antithèses), en français courant.
+Texte suivi à la manière de Tocqueville (longues périodes, observations générales), en français courant.
 Chiffres repris du site : 3 200 à 4 000 h par an, 104,74 € de l'heure.
 Usage : python3 -I tools/argumentaire.py index.html"""
 import sys, json, html
@@ -8,19 +8,13 @@ assert 'cv-argumentaire' not in s, 'déjà appliqué'
 TITRE = 'De l’innovation dans les bureaux'
 CHAPO = 'Quelques remarques sur la manière dont une organisation accueille les outils qui lui rendent du temps.'
 PARAS = [
- ('On dit que ce n’est pas de l’innovation.',
-  'J’ai souvent entendu que ces outils ne relèvent pas de l’innovation, puisqu’ils sont numériques. L’argument est singulier. Il suppose qu’une chose n’est nouvelle que si elle se touche, et qu’une heure gagnée devant un écran vaut moins qu’une heure gagnée dans un atelier. Une organisation qui raisonne ainsi ne refuse pas l’innovation : elle refuse seulement de la reconnaître quand elle ne fait pas de bruit.'),
- ('On demande s’ils dureront.',
-  'On s’inquiète ensuite de leur pérennité, et l’inquiétude est légitime. Je remarque seulement qu’on la réserve aux outils nouveaux. Le tableur que plus personne ne comprend, la procédure que chacun contourne, le dossier partagé où l’on ne retrouve rien durent depuis des années sans que nul ne s’en alarme. La durée n’est donc pas ce qu’on exige d’un outil ; c’est ce qu’on accorde volontiers à l’habitude. C’est pourquoi ces outils reposent sur des logiciels courants, Excel, SharePoint, Power Automate, que d’autres sauront reprendre.'),
- ('On ne voit pas la masse documentaire.',
-  'Dans le secteur tertiaire, le document est partout, et c’est précisément pour cela qu’on ne le voit plus. Rapports, plans de prévention, comptes rendus, relevés : chacun en traite un peu, personne n’en mesure le total. Le temps qu’ils consomment se disperse en mille petites tâches, si bien qu’il n’apparaît jamais nulle part en entier. On ne combat pas un mal qu’on ne voit pas ; on commence par le compter. Ici, le compte donne de 3 200 à 4 000 heures par an.'),
- ('On résiste au changement.',
-  'La résistance au changement n’est presque jamais une opposition déclarée. Elle prend la forme plus douce de la prudence, du calendrier, de la réunion suivante. Chacun tient moins à sa méthode qu’à la tranquillité qu’elle lui procure, et l’on préfère souvent une peine connue à un soulagement qu’il faudrait apprendre. Je n’en fais reproche à personne : c’est la pente naturelle de toute organisation. Mais un outil qui ne demande aucun effort à ceux qu’il soulage a plus de chances de durer qu’un outil qui a simplement raison.'),
- ('Le mot importe peu.',
-  'On peut discuter longtemps du nom qu’il convient de donner à ces outils. Les heures qu’ils rendent ne se discutent pas : elles se comptent, et chacune vaut 104,74 €.'),
+ 'Il règne dans la plupart des organisations une idée assez commune, selon laquelle l’innovation véritable doit laisser une trace dans la matière : une machine, un procédé, un objet que l’on puisse montrer. Ce qui se passe sur un écran semble, par comparaison, relever de l’arrangement plutôt que de l’invention, et l’on accorde volontiers à l’outil numérique le mérite de la commodité en lui refusant celui de la nouveauté. Je doute que cette distinction résiste longtemps à l’examen, mais je comprends qu’elle se maintienne, car elle dispense ceux qui la font de mesurer ce que l’outil a réellement changé.',
+ 'Cette mesure est pourtant ce qui manque le plus. Dans le secteur tertiaire, le travail s’accomplit pour une large part au moyen de documents, rapports, plans de prévention, comptes rendus, relevés, qui circulent, se recopient, se vérifient et s’archivent. Leur présence est si constante qu’elle cesse d’être remarquée, et le temps qu’ils absorbent, partagé entre un grand nombre de personnes et dispersé en une multitude de petites tâches, ne se rassemble jamais sous les yeux de quiconque. Une charge que personne ne voit tout entière ne trouve guère de défenseur ni d’adversaire ; elle demeure, parce que rien ne la signale. Lorsqu’on prend la peine d’en faire le compte, les outils présentés ici en rendent entre 3 200 et 4 000 heures par an, à 104,74 € l’heure.',
+ 'On s’interroge alors sur leur durée, et la question est légitime. J’observe seulement qu’on la pose de préférence à ce qui est nouveau. Les usages anciens, même devenus obscurs ou incommodes, jouissent d’une présomption de solidité que leur ancienneté suffit à leur conférer, tandis que l’outil récent doit établir d’avance qu’il survivra à celui qui l’a conçu. Il est juste qu’il l’établisse, et c’est pourquoi ceux-ci reposent sur des logiciels courants, Excel, SharePoint, Power Automate, Power BI, que d’autres sauront reprendre après moi.',
+ 'Il resterait à parler de la résistance au changement, qu’on aurait tort de confondre avec l’hostilité. Elle procède plutôt de ce goût de la tranquillité qui porte chacun à préférer une méthode connue, fût-elle pénible, à une méthode meilleure qu’il faudrait apprendre ; elle s’exprime rarement par un refus, et bien plus souvent par des délais, des précautions et des réunions qui en appellent d’autres. La démonstration n’y peut presque rien, car on se rend moins aux raisons qu’aux habitudes. On y parvient mieux en concevant des outils qui s’insèrent dans le travail tel qu’il se fait déjà, de sorte que leur adoption ressemble moins à une conversion qu’à un soulagement, et que ce qu’on hésitait d’abord à nommer innovation finisse par n’avoir plus besoin de nom, parce qu’on ne saurait plus s’en passer.',
 ]
 e = lambda t: html.escape(t, quote=False)
-corps = ''.join('<p><strong>%s</strong> %s</p>' % (e(a), e(b)) for a, b in PARAS)
+corps = ''.join('<p>%s</p>' % e(p) for p in PARAS)
 art = ('<article id="cv-argumentaire" data-product-handle="cv-argumentaire" data-component-extra-product-handle="cv-argumentaire" class="relative product-card group/cv col-span-12 min-w-0 scroll-mt-header-height focus:outline-none " tabindex="-1">'
        '<span aria-hidden="true" data-card-marker="" class="absolute left-10 top-28 hidden size-4 border border-current global-lg:block"></span>'
        '<div data-card-copy="" class="cv-card-content space-y-16" style="--html-in-canvas-rise:.45"><h3 class="trim-cap font-sans font-medium global-lg:text-body-lg">%s</h3></div>'
@@ -41,7 +35,6 @@ css = '''<style id="cv-argumentaire-css">
 /* argumentaire : texte suivi, colonne de lecture, intertitres en gras dans le paragraphe */
 .cv-essai{max-width:68ch}
 .cv-essai p{margin:0 0 1.1em}
-.cv-essai p strong{display:block;margin:0 0 .35em;font-weight:500}
 .cv-essai .cv-essai-chapo{opacity:.75}
 </style>'''
 s = s.replace('</head>', css + '</head>', 1)

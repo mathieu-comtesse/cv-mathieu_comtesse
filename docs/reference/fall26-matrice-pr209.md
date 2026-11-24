@@ -922,6 +922,6 @@ La présentation au ton de la référence, perdue à la fusion avec main, est r�
 
 ## Argumentaire « De l’innovation dans les bureaux » (chapitre Gains)
 
-- Carte texte après le tableau des gains : chapeau + 5 paragraphes à intertitre (innovation et numérique, pérennité, masse documentaire du tertiaire, résistance au changement, conclusion chiffrée).
-- Ton : moraliste ironique (maximes, antithèses), français courant, sans tiret cadratin. Seuls chiffres : ceux du site (3 200 à 4 000 h/an, 104,74 €/h).
+- Carte texte après le tableau des gains : chapeau + 4 paragraphes en texte suivi, sans intertitres (innovation et numérique, masse documentaire du tertiaire, pérennité, résistance au changement), chaque idée amenée par la précédente.
+- Ton : Tocqueville (longues périodes, observations générales, ironie retenue), français courant, sans tiret cadratin. Seuls chiffres : ceux du site (3 200 à 4 000 h/an, 104,74 €/h).
 - Même gabarit que les cartes d’introduction (h3 + cv-card-body), enregistrement ajouté au chapitre (graphe, recherche). Outil : `tools/argumentaire.py`.
