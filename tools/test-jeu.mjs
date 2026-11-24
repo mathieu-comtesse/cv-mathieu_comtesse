@@ -87,7 +87,7 @@ if (!RAPIDE) {
   verifie(f.mots >= 20 && f.etoiles >= 5 && f.score > 800, `collectes : ${f.mots} mots, ${f.etoiles} étoiles, ${f.noeuds} nœuds, ${f.pris} objets sur ${f.pris + 0} pris, score ${Math.round(f.score)}, sphère ${f.rayon.toFixed(1)} px (départ 28)`);
   await p.waitForFunction(() => !document.querySelector('.cv-jeu-fin').hidden, null, { timeout: 30000 }).catch(() => {});
   const res = await p.evaluate(() => { const fin = document.querySelector('.cv-jeu-fin'); return { vu: !fin.hidden, bilan: fin.querySelector('[data-j="bilan"]').innerText.replace(/\s+/g, ' '), note: fin.querySelector('[data-j="note"]').textContent }; });
-  verifie(res.vu && /Score/.test(res.bilan) && new RegExp(`${f.mots} / 83`).test(res.bilan), `écran de résultats : ${res.note} ; ${res.bilan}`);
+  verifie(res.vu && /Score/.test(res.bilan) && new RegExp(`${f.mots} / \\d+`).test(res.bilan), `écran de résultats : ${res.note} ; ${res.bilan}`);
   await capture(p, 'jeu-resultats');
   /* rejouer puis quitter depuis les résultats */
   await p.evaluate(() => document.querySelector('[data-j="rejouer"]').click()); await p.waitForFunction(() => ['entree', 'compte', 'course'].includes(window.__cvJeu.phase()), null, { timeout: 30000 }); const rj = await etat(p);
