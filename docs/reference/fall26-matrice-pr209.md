@@ -919,3 +919,9 @@ La présentation au ton de la référence, perdue à la fusion avec main, est r�
 ## Accroche de l'accueil
 
 - « Ingénieur maintenance et qualité · Automatisation des processus & BI ». Vérifiée : 1440×900 (vertical, 631 px), 1366×768 (538 px, tient dans le cadre), 390×844 (2 lignes alignées à droite).
+
+## Argumentaire « De l’innovation dans les bureaux » (chapitre Gains)
+
+- Carte texte après le tableau des gains : chapeau + 5 paragraphes à intertitre (innovation et numérique, pérennité, masse documentaire du tertiaire, résistance au changement, conclusion chiffrée).
+- Ton : moraliste ironique (maximes, antithèses), français courant, sans tiret cadratin. Seuls chiffres : ceux du site (3 200 à 4 000 h/an, 104,74 €/h).
+- Même gabarit que les cartes d’introduction (h3 + cv-card-body), enregistrement ajouté au chapitre (graphe, recherche). Outil : `tools/argumentaire.py`.
