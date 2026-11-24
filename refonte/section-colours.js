@@ -32,9 +32,15 @@ export function transitionsPapier(source,height,rect){
     const bounds=rect(el),colour=el.dataset.cvFloor||el.dataset.htmlInCanvasColour;
     const rawLead=getComputedStyle(el).getPropertyValue('--f26-entry-lead').trim();
     const lead=el.dataset.cvFloor?0:(rawLead.endsWith('px')&&/^-?\d/.test(rawLead)?parseFloat(rawLead):0);
-    return {colour,top:bounds.top,bottom:bounds.bottom,start:bounds.top-height*line-lead+1,distance};
+    // bas du contenu (sans la marge basse de la section) : point de départ du trajet de la référence
+    /* relevé sur la référence (mi-transition à 500 px avant le chapitre, fin du trajet à 360 px, écran de 900 px) : le bas du contenu quitté est à 87 px au-dessus du haut du suivant ;
+       quand un élément s'intercale entre deux sections, le départ reste calé sur le haut du chapitre suivant */
+    return {colour,top:bounds.top,bottom:bounds.bottom,flow:bounds.bottom-87,start:bounds.top-height*line-lead+1,distance,height,section:!el.dataset.cvFloor};
   }).sort((a,b)=>a.top-b.top).map(next=>{
     const entry={...next,from:previous.colour,edge:(Math.min(previous.bottom,next.top)+next.top)/2};
+    /* trajet entre deux chapitres (module journey de la référence) : du bas du contenu quitté − 0,55 écran au haut du suivant − 0,4 écran ;
+       la couleur passe de 11 % à 63 % du trajet, lissée */
+    if(next.section&&previous.flow!==undefined&&Number.isFinite(previous.flow)){entry.jstart=Math.max(previous.flow,next.top-87)-next.height*.55;entry.jend=Math.max(entry.jstart+1,next.top-next.height*.4);}
     previous=next;return entry;
   });
 }
@@ -42,6 +48,14 @@ export function etatCouleur(transitions,scroll,reduced=false){
   let stable=base;
   for(const next of transitions){
     if(next.from===next.colour)continue;
+    if(next.jstart!==undefined){
+      const a=(scroll-next.jstart)/(next.jend-next.jstart);
+      if(reduced){if(a>=.37)stable=next.colour;continue;}
+      if(a<=.11)break;
+      if(a>=.63){stable=next.colour;continue;}
+      const x=(a-.11)/.52;
+      return {stable,from:triplet(next.from),to:triplet(next.colour),colour:next.colour,amount:x*x*(3-2*x),next};
+    }
     const progress=(scroll-next.start)/next.distance;
     if(reduced){
       if(progress>=.5)stable=next.colour;

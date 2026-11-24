@@ -1,4 +1,4 @@
-import {transitionsPapier,etatCouleur,radialCouleur,couleurAuPoint} from './section-colours.js?v=2';
+import {transitionsPapier,etatCouleur,radialCouleur,couleurAuPoint} from './section-colours.js?v=5';
 import {initFlatColourRenderer} from './flat-colour-renderer.js?v=1';
 import {surfaceGraph,brancheSpectrale} from './fall26-graph-adapter.js?v=1';
 import {poussiere,notesCadre} from './card-effects.js?v=4';
@@ -259,13 +259,13 @@ function scene(chapitres) {
     for (const c of chapitres) {
       const S = c.section.getBoundingClientRect(); if (S.top < H * 0.5 && S.bottom > H * 0.5) actif = c; if (S.top < H * 1.4) vuNav = true;
       const T = c.titre.getBoundingClientRect(), u = (H - T.top) / H;
-      const plein = libre ? lisse(u, 0.02, 0.34) : 1;
+      const plein = libre ? lisse(u, 0.08, 0.20) : 1;   // remplissage relevé sur la référence : nul avant 0,08, plein à 0,20
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
       // Le foyer et ses branches entrent avec le titre, jamais sur le chapitre précédent.
       const g = libre ? lisse(u, 0.06, 0.37) : Number(u >= 0.06);
       const relais = entrant && c===sortant ? 1-poids : c===entrant ? poids : 1;
       const alpha = g * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8) * (.26+.74*relais);
-      if (alpha <= 0.004) continue;
+      if (alpha <= 0.004 || window.__cvGrapheChapitres) continue;   // graphe des chapitres (graphe-chapitres.js) : le graphe reste en fond, comme sur la référence
       const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
       const hx = W < 760 ? W * 0.5 : W * 0.6, hy = H * 0.56 - Math.max(0, u - 0.62) * H, R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g);
       ctx.save(); ctx.globalAlpha = alpha; ctx.lineCap = 'round';

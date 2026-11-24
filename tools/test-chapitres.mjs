@@ -73,10 +73,10 @@ for (const id of IDS) {
   for (const u of US) { await calage(id, u); await attend(300); bas.push(await fill(id)); }
   for (const u of [...US].reverse()) { await calage(id, u); await attend(300); haut_.push(await fill(id)); } haut_.reverse();
   const mono = bas.every((v, i) => i === 0 || v >= bas[i - 1] - 0.01), ecart = Math.max(...bas.map((v, i) => Math.abs(v - haut_[i]))), saut = Math.max(...bas.map((v, i) => i ? Math.abs(v - bas[i - 1]) : 0));
-  const bornes = bas[0] <= 0.01 && bas[2] <= 0.15 && bas.at(-1) >= 0.99   /* courbe de main : lisse(u, 0,02, 0,34) */;
+  const bornes = bas[0] <= 0.01 && bas[2] <= 0.15 && bas[US.indexOf(0.22)] >= 0.99 && bas.at(-1) >= 0.99   /* référence : nul avant 0,08, plein dès 0,22 */;
   if (!(mono && ecart < 0.05 && saut < 0.45 && bornes)) pbRempli.push(`${id} (mono ${mono}, écart ${ecart.toFixed(2)}, saut ${saut.toFixed(2)}, bornes ${bornes}: ${bas.map((v) => v.toFixed(2)).join(' ')})`);
 }
-verifie(pbRempli.length === 0, `remplissage des 11 titres : nul au départ, complet à u = 0,34 (courbe de main), croissant, identique en descendant et en remontant (écart < 0,05), saut < 0,45 par pas de 0,02 à 0,04${pbRempli.length ? ' ; défauts : ' + pbRempli.join(' | ') : ''}`);
+verifie(pbRempli.length === 0, `remplissage des 11 titres : nul avant u = 0,08, complet dès 0,22 (référence), croissant, identique en descendant et en remontant (écart < 0,05), saut < 0,45 par pas de 0,02 à 0,04${pbRempli.length ? ' ; défauts : ' + pbRempli.join(' | ') : ''}`);
 
 /* ---- 4. liste latérale à plat : chapitre actif, navigation ---- */
 for (let k = 0; k < 11; k++) {

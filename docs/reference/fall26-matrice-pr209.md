@@ -862,3 +862,16 @@ Non reporté sur le nouveau moteur (retiré, conservé dans l'historique Git) : 
 Tests : `test-no-shopify --strict` vert (contrôle de la tirelire remplacé par le tableau de bord des gains, qui l'a remplacée dans `main`) ; `test-modes` de `main` : le contrôle du curseur échoue aussi sur `main` seul ; caméra et saisie instables en rendu logiciel. `test-chapitres` adapté à l'interface de `main` (menu d'en-tête, courbe de remplissage 0,02 à 0,34).
 
 Mesures après fusion : `test-chapitres` 33 contrôles verts (11 transitions, couleurs, navigation à plat et expo, mobile) ; attribution `twitter:site` « @Shopify » réintroduite par `main` retirée. Mini-jeu : entrée, commandes, chute, relance, partie complète au clavier, résultats, sortie et tactile verts ; la page fusionnée est plus courte (parcours de 29 431 px au lieu de 77 833), d'où une partie de 31 s (cible 60 à 180 s) et moins d'objets, et le saut n'est pas compté dans un passage : rééquilibrage à faire.
+
+## Passages entre chapitres après la fusion : comparaison image par image avec la référence (à plat, 1 400 × 900)
+
+Relevé : référence en ligne et site capturés aux mêmes positions (700, 500, 360, 200 et 0 px avant le haut des chapitres 2, 6 et 11), pixel du fond au coin bas droit.
+
+| Élément | Référence | Après fusion (main) | Corrigé |
+|---|---|---|---|
+| Couleur de page | ancienne à −700, mi-chemin à −500, nouvelle à −360 | déjà nouvelle à −700 (onde lancée ≈ 990 px avant) | loi `journey` de la référence dans `section-colours.js` : trajet du haut du chapitre − 87 px − 0,55 écran au haut − 0,4 écran, couleur de 11 % à 63 % du trajet, lissée ; mesuré : ancienne à −700, en cours à −500, nouvelle à −360 sur les 3 passages |
+| Remplissage des titres | plein en entrant dans l'écran | 0,02 à 0,34 (réglage à l'œil de main) | 0,08 à 0,20, relevé sur la référence |
+| Étoiles | graphe en fond, en continu, une étoile au milieu de l'écran (≈ 50 %, 45 %), traits et points blancs, vignettes, sans nom | étoile liée au titre, absente avant lui | graphe des chapitres rétabli (`graphe-chapitres.js` + `moteur-plat.js`, moteur à plat d'origine séparé du moteur Expo de main), cadrage 50 % / 45 %, traits blancs, sans nom, sans remontée des autres étoiles |
+| Accueil | 4 cadres | 4e cadre (gains, filtre animé) masqué par `hero-tuning.css` | rétabli, trois rangées |
+
+Écart restant : à −500 px l'étoile du chapitre entrant est déjà déployée sur la référence, encore repliée ici. Mode 3D : la référence exige une carte graphique et l'API « HTML dans le canevas », non observable ici ; sur le site, couleur au sol par chapitre, titres en volume et étoiles vérifiés aux mêmes positions. Tests : `test-graphe-chapitres` vert, `test-no-shopify --strict` vert ; `test-modes` : curseur (échec aussi sur main seul) et caméra (instable en rendu logiciel).

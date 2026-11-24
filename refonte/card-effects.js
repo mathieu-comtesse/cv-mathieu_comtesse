@@ -1,5 +1,5 @@
 import {surfaceGraph,fluidePointeur} from './fall26-graph-adapter.js?v=1';
-import {tonePapier} from './section-colours.js?v=2';
+import {tonePapier} from './section-colours.js?v=5';
 // La poussière est attachée au papier. Les éclats du pointeur vivent dans le plan de l’écran.
 const grains=Array.from({length:110},()=>({
   x:Math.random(),y:Math.random(),phase:Math.random()*6.28,size:Math.random()>.92?3:1.4
