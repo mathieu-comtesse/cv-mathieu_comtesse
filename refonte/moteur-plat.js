@@ -226,6 +226,7 @@ export class Ciel {
     const dens = typeof innerWidth !== 'undefined' && innerWidth < 520 ? 0.5 : 1;   // moins de branches sur petit écran
     const nDeco = typeof spec.deco === 'number' ? spec.deco : Math.round(dens * (spec.racine ? 120 : spec.parent ? 20 + Math.floor(rd() * 10) : spec.petit ? 24 + Math.floor(rd() * 10) : 38 + Math.floor(rd() * 14)));
     for (let k = 0; k < nDeco; k++) {
+      if (typeof spec.deco === 'number') { noeuds.push({ a: k / nDeco * 6.283 + rd() * 0.4, r: 0.5 + 0.5 * rd(), dh: 0, phase: rd() * 6.283, taille: 1, sous: [] }); continue; }   // rayons répartis tout autour, de 0,5 à 1 fois le rayon (relevé)
       noeuds.push({ a: eventail(k, nDeco) + (spec.parent || spec.racine ? 0 : rd() * 1.2), r: spec.racine ? 0.12 + Math.sqrt(rd()) * 1.05 : 0.3 + 0.9 * rd() ** 1.3, dh: (rd() - 0.4) * (spec.racine ? 1.6 : 0.6), phase: rd() * 6.283, taille: 1.0 + rd() ** 2 * 2.6, sous: [] });
     }
     noeuds.forEach((n, idx) => {
@@ -233,7 +234,7 @@ export class Ciel {
       n.cv = (f4 - 0.5) * 0.5; n.ar = frac(n.phase * 3.71) * 0.28; n.vit = 0.8 + 0.5 * f3; n.t0 = 0.35 + 0.5 * f3; n.ang = (f1 - 0.5) * 2.2; n.len = 0.1 + 0.2 * frac(n.phase * 7.3);
       n.enf = []; n.par = null; n.vis = false; n.gg = 0; n.cl = 0;
       if (n.ed) { n.niveau = 0; return; }
-      const lv = spec.racine ? (f1 < 0.8 ? 1 : 2) : f1 < 0.56 ? 1 : f1 < 0.86 ? 2 : 3;
+      const lv = typeof spec.deco === 'number' ? 1 : spec.racine ? (f1 < 0.8 ? 1 : 2) : f1 < 0.56 ? 1 : f1 < 0.86 ? 2 : 3;   // nombre de rayons imposé : rayons simples, sans ramification
       const cands = noeuds.slice(0, idx).filter((q) => q.niveau !== undefined && q.niveau < lv);
       if (lv > 1 && cands.length) { n.par = cands[Math.floor(f2 * cands.length)]; n.par.enf.push(n); n.niveau = lv; } else n.niveau = 1;
       n.pul = n.niveau === 1 && f5 < 0.1;
@@ -456,7 +457,7 @@ export class Ciel {
       const BASE = e.racine ? (plat ? [0, 0.16, 0.1, 0.07] : [0, 0.2, 0.13, 0.09]) : plat ? [0, 0.55, 0.4, 0.3] : [0, 0.4, 0.29, 0.21], LW = [0, 0.8, 0.7, 0.6];   /* rayons fins et discrets : le centre des foyers ne sature pas */
       for (let lv = 3; lv >= 1; lv--) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
-        ctx.strokeStyle = plat ? degrade(MULT[cl] * kE * (discret ? 0.4 : 1)) : `rgba(225,238,255,${Math.min(1, BASE[lv] * MULT[cl] * kE).toFixed(3)})`; ctx.lineWidth = (plat ? 1 : LW[lv]) * (cl === 2 ? 1.5 : 1); ctx.beginPath();
+        ctx.strokeStyle = plat ? (discret ? `rgba(255,255,255,${Math.min(1, 0.2 * MULT[cl] * kE).toFixed(3)})` : degrade(MULT[cl] * kE)) : `rgba(225,238,255,${Math.min(1, BASE[lv] * MULT[cl] * kE).toFixed(3)})`; ctx.lineWidth = (plat ? 1 : LW[lv]) * (cl === 2 ? 1.5 : 1); ctx.beginPath();
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); }
         ctx.stroke();
       }
@@ -480,7 +481,7 @@ export class Ciel {
         const actif = focus === n, gr = ctx.createLinearGradient(n.x0, n.y0, n.x1, n.y1), cy = j < 2, m = MULT[n.cl] * (n.cl === 0 ? kE : 1);
         gr.addColorStop(0, actif ? 'rgba(255,255,255,1)' : plat ? `rgba(${TE},${Math.min(1, 0.95 * m).toFixed(2)})` : cy ? `rgba(120,235,255,${Math.min(1, 1 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.95 * m).toFixed(2)})`);
         gr.addColorStop(1, actif ? 'rgba(255,255,255,1)' : plat ? `rgba(${TE},${Math.min(1, 0.7 * m).toFixed(2)})` : cy ? `rgba(95,230,255,${Math.min(1, 0.7 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.55 * m).toFixed(2)})`);
-        ctx.strokeStyle = plat && !actif ? degrade(m) : gr; ctx.lineWidth = actif ? 2.4 : plat ? 1 : actifC ? 1.4 : 1.15; ctx.beginPath(); ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); ctx.stroke();
+        ctx.strokeStyle = plat && !actif ? (discret ? `rgba(255,255,255,${Math.min(1, 0.3 * m).toFixed(3)})` : degrade(m)) : gr;   /* discret : trait uniforme (relevé : +25 à +55 sur le fond, sans dégradé) */ ctx.lineWidth = actif ? 2.4 : plat ? 1 : actifC ? 1.4 : 1.15; ctx.beginPath(); ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); ctx.stroke();
         if (!compact && !fs && libre && !this.pris && souris.x > -1e3) { const d = this.distanceCourbe(n, souris.x, souris.y); if (d < dBranche && n.cl !== 3) { dBranche = d; brancheMeilleure = { noeud: n, etoile: e }; } }
       }
       /* 5. impulsions : le long des courbes réelles, transmises aux ramifications */

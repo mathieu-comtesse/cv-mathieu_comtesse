@@ -1,13 +1,12 @@
 /* Graphe des chapitres (mode à plat, grand écran) : après l'accueil, le même graphe reste en fond, fixe, et une caméra se cale sur l'étoile
    du chapitre en cours. Lois du passage d'une section à l'autre de la référence (modules journey, heroMediaFlight, build-section-frame) :
-   - cadrage : étoile du chapitre au milieu de l'écran (50 % de la largeur, 50 % de la hauteur, relevé en WebGPU sur la référence : 454 px sur 900), ses rayons tenus dans le cadre (18 px à gauche, 24 px à droite,
-     82 px en haut, 78 % de la hauteur en bas), agrandissement au plus 2,8 puis × 0,92 ;
+   - cadrage : étoile du chapitre au milieu de l'écran (50 % de la largeur, 50 % de la hauteur, relevé en WebGPU sur la référence : 454 px sur 900), plus long rayon à environ 420 px (44 % de la hauteur, 30 % de la largeur au plus) ;
    - trajet entre deux chapitres : de (bas du chapitre quitté − 0,55 hauteur d'écran) à (haut du suivant − 0,4 hauteur d'écran) ;
      repli des rayons du chapitre quitté sur les 30 premiers %, glissement de caméra en courbe cubique, dépli des rayons du suivant
      sur la seconde moitié, les autres étoiles remontent de 0,12 à 1 au milieu du trajet (contexte) puis s'effacent ;
    - hors trajet : seule l'étoile du chapitre est pleine, les autres à 0,12.
    Un chapitre = une section de la page = une étoile du graphe (11). Code propre, moteur commun avec l'accueil (moteur.js). */
-import { Ciel } from './moteur-plat.js?v=3';   // moteur à plat d'origine, séparé du moteur Expo de main
+import { Ciel } from './moteur-plat.js?v=6';   // moteur à plat d'origine, séparé du moteur Expo de main
 
 const borne = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x)), plage = (x, a, b) => borne((x - a) / (b - a));
 const lisse = (x) => x * x * (3 - 2 * x), cubique = (x) => (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2), mel = (a, b, k) => a + (b - a) * k;
@@ -27,7 +26,7 @@ export function demarre(chapitres) {
   document.body.append(cv);
   const ciel = new Ciel(); ciel.sansNoms = true;
   ciel.definit('accueil', { groupe: 'accueil', label: 'Mathieu Comtesse', racine: true });
-  chapitres.forEach((r, i) => ciel.definit('accueil:' + r.id, { groupe: 'accueil', parent: 'accueil', num: String(i + 1).padStart(2, '0'), label: r.name, chapitre: r.id, editoriaux: r.cards, sol: true, deco: 4 }));   /* relevé WebGPU de la référence : une dizaine de rayons par étoile */
+  chapitres.forEach((r, i) => ciel.definit('accueil:' + r.id, { groupe: 'accueil', parent: 'accueil', num: String(i + 1).padStart(2, '0'), label: r.name, chapitre: r.id, editoriaux: r.cards, sol: true, deco: 13 }));   /* relevé WebGPU de la référence : 16 rayons pour 3 contenus (13 cercles creux), longs de 208 à 421 px */
   let W = 0, H = 0, dpr = 1, dernier = 0, etat = null;
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
   addEventListener('resize', taille); taille();
@@ -36,7 +35,7 @@ export function demarre(chapitres) {
     return { id: 'accueil:' + r.id, top: q.top + scrollY, bas: q.bottom + scrollY, flux: f + scrollY }; }).filter(Boolean);
   /* cadrage d'une étoile : agrandissement qui tient ses rayons dans le cadre */
   const cadre = (e) => { const ax = W * 0.5, ay = H * 0.5, R = Math.max(1, e.rayon), Rv = R * 0.78;
-    const g = Math.min((ax - 18) / R, (W - 24 - ax) / R, (ay - 82) / Rv, (H * 0.78 - ay) / Rv, 2.8); return Math.max(0.08, g * 0.92); };
+    return Math.min(420, H * 0.44, W * 0.3) / R; };   /* relevé WebGPU : le plus long rayon fait environ 420 px à 900 px de haut ; les rayons peuvent sortir du cadre */
   function image(t) {
     requestAnimationFrame(image);
     if (document.hidden || t - dernier < 30) return; const dt = Math.min(0.1, (t - dernier) / 1000); dernier = t;

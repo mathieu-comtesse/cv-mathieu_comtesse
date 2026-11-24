@@ -941,3 +941,11 @@ Méthode : Chromium avec `--enable-unsafe-webgpu --use-angle=swiftshader` (WebGP
 Défaut trouvé en WebGPU : le sillage de l'accueil (WebGL2) perdait son contexte (limite de contextes du navigateur) et s'affichait en grand panneau blanc pendant les passages. Il se retire désormais à la perte de contexte (`sillage.js?v=s5`).
 
 Test : `node tools/test-graphe-chapitres.mjs` (loi de sortie : 167 px à 260 px, relevé 167 à 179).
+
+### Rayons des étoiles à plat (relevé WebGPU, étoile épinglée à −500 px)
+
+| Relevé (référence) | Reprise |
+|---|---|
+| 16 rayons (13 cercles creux + 3 vignettes pour 3 contenus), répartis tout autour | 13 rayons décoratifs simples (sans ramification), angles réguliers + 0,4 rad d'écart |
+| longueurs 208 à 421 px à 900 px de haut, rayons pouvant sortir du cadre | rayon d'étoile = min(420, 0,44 H, 0,3 W), longueurs 0,5 à 1 fois ce rayon |
+| trait uniforme : +45 à +85 à 80 px, +24 à +53 à 150 px, +18 à +24 à 250 px | blanc à 0,2 (0,3 pour les rayons de contenu) : +38 à +73, +38 à +44, +19 à +29 |
