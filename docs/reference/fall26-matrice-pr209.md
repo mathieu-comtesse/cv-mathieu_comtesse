@@ -949,3 +949,10 @@ Test : `node tools/test-graphe-chapitres.mjs` (loi de sortie : 167 px à 260 px,
 | 16 rayons (13 cercles creux + 3 vignettes pour 3 contenus), répartis tout autour | 13 rayons décoratifs simples (sans ramification), angles réguliers + 0,4 rad d'écart |
 | longueurs 208 à 421 px à 900 px de haut, rayons pouvant sortir du cadre | rayon d'étoile = min(420, 0,44 H, 0,3 W), longueurs 0,5 à 1 fois ce rayon |
 | trait uniforme : +45 à +85 à 80 px, +24 à +53 à 150 px, +18 à +24 à 250 px | blanc à 0,2 (0,3 pour les rayons de contenu) : +38 à +73, +38 à +44, +19 à +29 |
+
+### Vue Expo (3D) de la référence : non observable sans carte graphique
+
+- Le bouton « Expo Mode » de la référence (`data-component-name="expo-mode"`) reste masqué (`visibility: hidden`, hors écran) sous WebGPU logiciel.
+- Conditions relevées dans son module d'entrée : API expérimentale HTML-dans-canvas (`HTMLCanvasElement.prototype.requestPaint` et `CanvasRenderingContext2D.prototype.drawElementImage`), pointeur fin, grand écran.
+- Essais : drapeau `--enable-blink-features=CanvasDrawElement` (l'API devient disponible), indicateur `isFallbackAdapter` masqué : le bouton reste caché et la vue reste à plat.
+- Conclusion : comparaison 3D à faire sur une machine avec carte graphique, dans un Chrome qui expose l'API HTML-dans-canvas.
