@@ -39,7 +39,7 @@ verifie(st.menu.every((n) => n === 2), `menu des chapitres : une entrée par cha
 verifie(st.cartes.slice(0, 7).join(',') === '3,6,3,3,2,10,19', `cartes des 7 premiers chapitres = 4 types de projets (introduction + projets), gains, compétences regroupées (${st.cartes.slice(0, 7).join(',')})`);
 verifie(st.sk === 7 && st.puces >= 52 && st.bi, `« Parcours » garde sous le hublot les compétences : ${st.sk} rubriques, ${st.puces} pastilles, automatisation et BI incluses`);
 const noeuds = await p.evaluate((IDS) => { const r = window.__cvHeroGraph.ciel, res = []; for (const e of r.etoiles.values()) for (const n of e.noeuds) if (n.ed) res.push([e.chapitre, n.ed.handle]); return res.map(([c, h]) => { const el = document.getElementById(h), s = el && el.closest('section[data-f26-page-section]'); return !!s && s.id === c; }); }, IDS);
-verifie(noeuds.length === 84 && noeuds.every(Boolean),   // 84 : 11 projets, gains, 43 compétences (dont 5 d'automatisation et de BI), 8 savoir-être, 11 jeux, 10 articles
+verifie(noeuds.length === 85 && noeuds.every(Boolean),   // 85 : 11 projets, gains, argumentaire, 43 compétences (dont 5 d'automatisation et de BI), 8 savoir-être, 11 jeux, 10 articles
   `les ${noeuds.length} nœuds du graphe pointent vers un élément de leur propre chapitre (${noeuds.filter(Boolean).length} valides)`);
 
 const TOPS = {}; for (const id of IDS) TOPS[id] = await haut(id);   /* positions à plat : en expo le DOM d'origine est déplacé, le moteur garde ces mesures */
