@@ -20,17 +20,17 @@ const p = await page();
 import('node:fs');
 const dossier = process.argv[2];
 const va = async (y) => { await p.evaluate((v) => window.scrollTo(0, v), y); await p.waitForTimeout(2500); return p.evaluate(() => window.__cvGrapheChapitres.etat()); };
-const bornes = await p.evaluate(() => { const S = ['agentic', 'sidekick', 'online'].map((id) => { const q = document.getElementById(id).getBoundingClientRect(); return { top: q.top + scrollY, bas: q.bottom + scrollY }; });
-  const j = window.__cvGrapheChapitres.trajet(0, Math.max(S[0].bas, S[1].top) - 87, S[1].top, innerHeight); return { S, debut: j.debut, fin: j.fin, H: innerHeight }; });
+const bornes = await p.evaluate(() => { const S = ['agentic', 'sidekick', 'online'].map((id) => { const el = document.getElementById(id), q = el.getBoundingClientRect(), g = [...el.querySelectorAll('[data-card-group]')].filter((x) => x.dataset.cardGroup !== 'text').pop(); return { top: q.top + scrollY, bas: q.bottom + scrollY, flux: (g ? g.getBoundingClientRect().bottom : q.bottom - 87) + scrollY }; });
+  const j = window.__cvGrapheChapitres.trajet(0, S[0].flux, S[1].top, innerHeight); return { S, debut: j.debut, fin: j.fin, H: innerHeight }; });
 const mesures = [];
-for (const [nom, y] of [['chapitre-1', bornes.S[0].top + bornes.H * 0.3], ['trajet-15', bornes.debut + (bornes.fin - bornes.debut) * 0.15], ['trajet-50', bornes.debut + (bornes.fin - bornes.debut) * 0.5], ['trajet-85', bornes.debut + (bornes.fin - bornes.debut) * 0.85], ['chapitre-2', bornes.fin + 20]]) {
+for (const [nom, y] of [['chapitre-1', bornes.S[0].top - bornes.H * 0.4 + 260], ['trajet-15', bornes.debut + (bornes.fin - bornes.debut) * 0.15], ['trajet-50', bornes.debut + (bornes.fin - bornes.debut) * 0.5], ['trajet-85', bornes.debut + (bornes.fin - bornes.debut) * 0.85], ['chapitre-2', bornes.fin + 60]]) {
   const e = await va(y); mesures.push([nom, e]); console.log(nom, JSON.stringify(e)); if (dossier) await p.screenshot({ path: `${dossier}/gc-${nom}.png` }); }
 const m = Object.fromEntries(mesures);
-verifie(m['chapitre-1'].de === 'accueil:agentic' && !m['chapitre-1'].vers && Math.abs(m['chapitre-1'].foyer[0] - 1440 * 0.5) < 3 && Math.abs(m['chapitre-1'].foyer[1] - 900 * 0.45) < 3, `dans le chapitre 1 : son étoile au milieu de l'écran (50 %, 45 %) (${m['chapitre-1'].foyer})`);
+verifie(m['chapitre-1'].de === 'accueil:agentic' && !m['chapitre-1'].vers && Math.abs(m['chapitre-1'].foyer[0] - 1440 * 0.5) < 3 && Math.abs(m['chapitre-1'].foyer[1] - (900 * 0.5 - m['chapitre-1'].decale)) < 3 && m['chapitre-1'].decale > 150 && m['chapitre-1'].decale < 180, `dans le chapitre 1 : son étoile au centre (50 %, 50 %) remonte avec la page après le trajet (décalage ${m['chapitre-1'].decale} px à 260 px, relevé 167 à 179) (${m['chapitre-1'].foyer})`);
 verifie(m['trajet-15'].vers === 'accueil:sidekick' && m['trajet-15'].deploieDe > 0.9 && m['trajet-15'].pan < 0.1, `début du trajet : étoile du chapitre 1 toujours déployée, comme sur la référence (${m['trajet-15'].deploieDe}), caméra encore sur lui (${m['trajet-15'].pan})`);
 verifie(m['trajet-50'].pan > 0.4 && m['trajet-50'].pan < 0.6, `milieu du trajet : caméra à mi-chemin (${m['trajet-50'].pan})`);
 verifie(m['trajet-85'].isolate > 0.5, `fin du trajet : rayons du chapitre 2 dépliés (${m['trajet-85'].isolate})`);
-verifie(m['chapitre-2'].de === 'accueil:sidekick' && !m['chapitre-2'].vers && Math.abs(m['chapitre-2'].foyer[0] - 1440 * 0.5) < 3, `dans le chapitre 2 : son étoile prend la place (${m['chapitre-2'].foyer})`);
+verifie(m['chapitre-2'].de === 'accueil:sidekick' && !m['chapitre-2'].vers && Math.abs(m['chapitre-2'].foyer[0] - 1440 * 0.5) < 3 && Math.abs(m['chapitre-2'].foyer[1] - 450) < 20, `fin du trajet vers le chapitre 2 : son étoile au centre, encore épinglée (${m['chapitre-2'].foyer})`);
 verifie(p.erreurs.length === 0, `aucune erreur de page (${p.erreurs.length})`);
 await b.close(); srv.close();
 if (echecs.length) { console.log('\nÉCHEC : ' + echecs.length); process.exit(1); } console.log('\nPASS : graphe des chapitres');

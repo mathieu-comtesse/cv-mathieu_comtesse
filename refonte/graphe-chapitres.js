@@ -1,6 +1,6 @@
 /* Graphe des chapitres (mode à plat, grand écran) : après l'accueil, le même graphe reste en fond, fixe, et une caméra se cale sur l'étoile
    du chapitre en cours. Lois du passage d'une section à l'autre de la référence (modules journey, heroMediaFlight, build-section-frame) :
-   - cadrage : étoile du chapitre au milieu de l'écran (50 % de la largeur, 45 % de la hauteur, relevé sur les captures de la référence), ses rayons tenus dans le cadre (18 px à gauche, 24 px à droite,
+   - cadrage : étoile du chapitre au milieu de l'écran (50 % de la largeur, 50 % de la hauteur, relevé en WebGPU sur la référence : 454 px sur 900), ses rayons tenus dans le cadre (18 px à gauche, 24 px à droite,
      82 px en haut, 78 % de la hauteur en bas), agrandissement au plus 2,8 puis × 0,92 ;
    - trajet entre deux chapitres : de (bas du chapitre quitté − 0,55 hauteur d'écran) à (haut du suivant − 0,4 hauteur d'écran) ;
      repli des rayons du chapitre quitté sur les 30 premiers %, glissement de caméra en courbe cubique, dépli des rayons du suivant
@@ -31,9 +31,11 @@ export function demarre(chapitres) {
   let W = 0, H = 0, dpr = 1, dernier = 0, etat = null;
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
   addEventListener('resize', taille); taille();
-  const sections = () => chapitres.map((r) => { const el = document.getElementById(r.id); if (!el) return null; const q = el.getBoundingClientRect(); return { id: 'accueil:' + r.id, top: q.top + scrollY, bas: q.bottom + scrollY }; }).filter(Boolean);
+  const sections = () => chapitres.map((r) => { const el = document.getElementById(r.id); if (!el) return null; const q = el.getBoundingClientRect(); /* fin du flux : bas du dernier groupe de cartes (hors colonne de texte), comme la référence */
+    const g = [...el.querySelectorAll('[data-card-group]')].filter((x) => x.dataset.cardGroup !== 'text').pop(), f = g ? g.getBoundingClientRect().bottom : q.bottom - 87;
+    return { id: 'accueil:' + r.id, top: q.top + scrollY, bas: q.bottom + scrollY, flux: f + scrollY }; }).filter(Boolean);
   /* cadrage d'une étoile : agrandissement qui tient ses rayons dans le cadre */
-  const cadre = (e) => { const ax = W * 0.5, ay = H * 0.45, R = Math.max(1, e.rayon), Rv = R * 0.78;
+  const cadre = (e) => { const ax = W * 0.5, ay = H * 0.5, R = Math.max(1, e.rayon), Rv = R * 0.78;
     const g = Math.min((ax - 18) / R, (W - 24 - ax) / R, (ay - 82) / Rv, (H * 0.78 - ay) / Rv, 2.8); return Math.max(0.08, g * 0.92); };
   function image(t) {
     requestAnimationFrame(image);
@@ -47,16 +49,25 @@ export function demarre(chapitres) {
     /* entrée : l'accueil s'efface (même courbe que son canevas), le graphe des chapitres le remplace et la caméra vient sur la première étoile */
     const premier = S[0], finAccueil = premier.top - H * 0.8, sA = borne(scrollY / Math.max(200, finAccueil)), entree = plage(sA, 0.45, 0.95);
     let de = premier, vers = null, k = { pan: 0, unfold: 0, isolate: 0, context: 0, progres: 0 }, deploieDe = entree;
-    for (let i = 1; i < S.length; i++) { const j = trajet(scrollY, Math.max(S[i - 1].bas, S[i].top) - 87, S[i].top, H); /* même départ que la couleur (section-colours.js) */ if (j.actif) { de = S[i - 1]; vers = S[i]; k = j; break; } }
+    for (let i = 1; i < S.length; i++) { const j = trajet(scrollY, S[i - 1].flux, S[i].top, H); /* départ relevé en WebGPU : fin du flux de la section quittée − 0,55 hauteur d'écran */ if (j.actif) { de = S[i - 1]; vers = S[i]; k = j; break; } }
     if (!vers) { de = S[0]; for (const s of S) if (s.top - scrollY < H * 0.5) de = s; deploieDe = de === premier ? entree : 1; }
     else deploieDe = 1 - lisse(plage(k.progres, 0.45, 0.55));   /* relevé fin (tous les 50 px) : la référence garde une étoile déployée à chaque instant ; relais à mi-trajet */
     const eDe = ciel.etoiles.get(de.id), eVers = vers && ciel.etoiles.get(vers.id);
     const cDe = eDe.centre, sDe = cadre(eDe), cV = eVers ? eVers.centre : cDe, sV = eVers ? cadre(eVers) : sDe;
     const hx = mel(cDe[0], cV[0], k.pan), hy = mel(cDe[1], cV[1], k.pan), sc0 = mel(sDe, sV, k.pan);
     /* à l'entrée, la caméra part de la vue d'ensemble (centre de l'écran, échelle 1) */
-    const ax = W * 0.5, ay = H * 0.45, sc = mel(1, sc0, vers ? 1 : (de === premier ? cubique(entree) : 1));
+    const ax = W * 0.5, ay = H * 0.5, sc = mel(1, sc0, vers ? 1 : (de === premier ? cubique(entree) : 1));
     const cx = mel(W / 2, hx, vers ? 1 : (de === premier ? cubique(entree) : 1)), cy = mel(H / 2, hy, vers ? 1 : (de === premier ? cubique(entree) : 1));
-    const proj = (c, r, h) => ({ x: ax + (c - cx) * sc, y: ay + (r - cy) * sc - h * 0.62 * sc, z: 2000 - h });
+    /* entrée et sortie de l'étoile (relevé WebGPU de la référence, pas de 100 px) : l'étoile se comporte comme un élément épinglé.
+       Avant le trajet vers le chapitre suivant, elle monte du bas avec la page ; pendant le trajet elle reste au centre ;
+       après la fin du trajet (haut du chapitre − 0,4 hauteur d'écran), elle remonte avec la page et sort par le haut.
+       Décalage = u − 100 (1 − e^(−u/100)), u = distance de défilement hors du trajet : lent au début, puis à la vitesse de la page. */
+    const glisse = (u) => (u <= 0 ? 0 : Math.min(H * 2, u - 100 * (1 - Math.exp(-u / 100))));
+    let decale = 0;
+    if (!vers) { const i = S.indexOf(de), suiv = S[i + 1];
+      const monte = glisse(scrollY - (de.top - H * 0.4)), arrive = suiv ? glisse(trajet(0, de.flux, suiv.top, H).debut - scrollY) : Infinity;
+      decale = monte <= arrive ? monte : -arrive; }   /* la plus proche des deux : sortie par le haut ou entrée par le bas */
+    const proj = (c, r, h) => ({ x: ax + (c - cx) * sc, y: ay + (r - cy) * sc - h * 0.62 * sc - decale, z: 2000 - h });
     const poids = new Map(), deploie = new Map();
     for (const s of S) poids.set(s.id, FOND);   /* relevé : pendant un passage la référence ne montre que l'étoile du chapitre (pas de remontée des autres) */
     poids.set('accueil', FOND);
@@ -66,7 +77,7 @@ export function demarre(chapitres) {
     cv.style.opacity = alpha.toFixed(3);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     if (alpha > 0.002) ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { W, H, dt, plat: true, poids, deploie, alpha, discret: true });
-    etat = { de: de.id, vers: vers && vers.id, pan: +k.pan.toFixed(3), isolate: +k.isolate.toFixed(3), unfold: +k.unfold.toFixed(3), context: +k.context.toFixed(3), echelle: +sc.toFixed(3), alpha: +alpha.toFixed(3),
+    etat = { de: de.id, vers: vers && vers.id, pan: +k.pan.toFixed(3), isolate: +k.isolate.toFixed(3), unfold: +k.unfold.toFixed(3), context: +k.context.toFixed(3), echelle: +sc.toFixed(3), decale: Math.round(decale), alpha: +alpha.toFixed(3),
       foyer: eDe.ecran && [Math.round(eDe.ecran.x), Math.round(eDe.ecran.y)], foyerVers: eVers?.ecran && [Math.round(eVers.ecran.x), Math.round(eVers.ecran.y)], deploieDe: +borne(deploieDe).toFixed(3) };
   }
   requestAnimationFrame(image);

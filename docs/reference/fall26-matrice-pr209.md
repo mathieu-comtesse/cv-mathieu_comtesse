@@ -925,3 +925,19 @@ La présentation au ton de la référence, perdue à la fusion avec main, est r�
 - Carte texte après le tableau des gains : chapeau + 5 paragraphes en texte suivi, sans intertitres (innovation et numérique, masse documentaire du tertiaire, outils nés de la demande des utilisateurs, pérennité (classeurs Excel des années 1990-2000 toujours utilisés sans être compris), réticence au niveau de la décision, abordée sans affect, et besoin d’indicateurs de performance pour parler la langue de la direction), chaque idée amenée par la précédente.
 - Ton : Tocqueville (longues périodes, observations générales, ironie retenue), français courant, sans tiret cadratin. Seuls chiffres : ceux du site (3 200 à 4 000 h/an, 104,74 €/h).
 - Même gabarit que les cartes d’introduction (h3 + cv-card-body), enregistrement ajouté au chapitre (graphe, recherche). Outil : `tools/argumentaire.py`.
+
+## Relevé GPU (WebGPU logiciel) : étoiles à plat entre les chapitres
+
+Méthode : Chromium avec `--enable-unsafe-webgpu --use-angle=swiftshader` (WebGPU et WebGL actifs, sans carte graphique), captures de la référence et du site toutes les 100 px autour du haut d'un chapitre, position du foyer détectée image par image. Seules des mesures sont reprises, aucun code.
+
+| Relevé (référence, 1400 × 900) | Valeur | Reprise (`graphe-chapitres.js?v=gc12`, `moteur-plat.js?v=3`) |
+|---|---|---|
+| Centre de l'étoile pendant le passage | x 686 à 694, y 454 (50 % de la hauteur) | 50 %, 50 % (au lieu de 45 %) |
+| Début du trajet | bas du dernier groupe de cartes de la section quittée (hors colonne de texte) − 0,55 H | idem (avant : haut du chapitre − 87 px, trajet de 222 px seulement) |
+| Sortie | après la fin du trajet (haut − 0,4 H), l'étoile remonte avec la page : 15, 78, 179 px à 60, 160, 260 px | décalage u − 100 (1 − e^(−u/100)) : 15, 80, 167 px |
+| Entrée | symétrique : l'étoile monte du bas avec la page avant le trajet | idem, la plus proche des deux s'applique |
+| Rayons | opacité ≈ 0,2, une dizaine par étoile, extrémités en cercles creux de 8 px, foyer carré de 6 px | mode `discret` du moteur à plat (opacité × 0,4, cercles creux), 4 rayons décoratifs |
+
+Défaut trouvé en WebGPU : le sillage de l'accueil (WebGL2) perdait son contexte (limite de contextes du navigateur) et s'affichait en grand panneau blanc pendant les passages. Il se retire désormais à la perte de contexte (`sillage.js?v=s5`).
+
+Test : `node tools/test-graphe-chapitres.mjs` (loi de sortie : 167 px à 260 px, relevé 167 à 179).
