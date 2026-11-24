@@ -46,10 +46,10 @@ export function demarre(chapitres) {
     for (const s of S) { const e = ciel.etoiles.get(s.id); e.rayon = R0 * 0.52; e.centre[2] = 0; }
     /* entrée : l'accueil s'efface (même courbe que son canevas), le graphe des chapitres le remplace et la caméra vient sur la première étoile */
     const premier = S[0], finAccueil = premier.top - H * 0.8, sA = borne(scrollY / Math.max(200, finAccueil)), entree = plage(sA, 0.45, 0.95);
-    let de = premier, vers = null, k = { pan: 0, unfold: 0, isolate: 0, context: 0 }, deploieDe = entree;
+    let de = premier, vers = null, k = { pan: 0, unfold: 0, isolate: 0, context: 0, progres: 0 }, deploieDe = entree;
     for (let i = 1; i < S.length; i++) { const j = trajet(scrollY, Math.max(S[i - 1].bas, S[i].top) - 87, S[i].top, H); /* même départ que la couleur (section-colours.js) */ if (j.actif) { de = S[i - 1]; vers = S[i]; k = j; break; } }
     if (!vers) { de = S[0]; for (const s of S) if (s.top - scrollY < H * 0.5) de = s; deploieDe = de === premier ? entree : 1; }
-    else deploieDe = 1 - k.unfold;
+    else deploieDe = 1 - lisse(plage(k.progres, 0.45, 0.55));   /* relevé fin (tous les 50 px) : la référence garde une étoile déployée à chaque instant ; relais à mi-trajet */
     const eDe = ciel.etoiles.get(de.id), eVers = vers && ciel.etoiles.get(vers.id);
     const cDe = eDe.centre, sDe = cadre(eDe), cV = eVers ? eVers.centre : cDe, sV = eVers ? cadre(eVers) : sDe;
     const hx = mel(cDe[0], cV[0], k.pan), hy = mel(cDe[1], cV[1], k.pan), sc0 = mel(sDe, sV, k.pan);
@@ -61,7 +61,7 @@ export function demarre(chapitres) {
     for (const s of S) poids.set(s.id, FOND);   /* relevé : pendant un passage la référence ne montre que l'étoile du chapitre (pas de remontée des autres) */
     poids.set('accueil', FOND);
     poids.set(de.id, 1); deploie.set(de.id, borne(deploieDe));
-    if (vers) { poids.set(vers.id, Math.max(FOND, k.isolate)); deploie.set(vers.id, k.isolate); }
+    if (vers) { const r = lisse(plage(k.progres, 0.45, 0.55)); poids.set(de.id, Math.max(FOND, 1 - r)); poids.set(vers.id, Math.max(FOND, r)); deploie.set(vers.id, r); }
     const alpha = de === premier && !vers ? entree : 1;
     cv.style.opacity = alpha.toFixed(3);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);

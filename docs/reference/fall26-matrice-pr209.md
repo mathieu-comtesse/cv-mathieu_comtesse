@@ -875,3 +875,13 @@ Relevé : référence en ligne et site capturés aux mêmes positions (700, 500,
 | Accueil | 4 cadres | 4e cadre (gains, filtre animé) masqué par `hero-tuning.css` | rétabli, trois rangées |
 
 Écart restant : à −500 px l'étoile du chapitre entrant est déjà déployée sur la référence, encore repliée ici. Mode 3D : la référence exige une carte graphique et l'API « HTML dans le canevas », non observable ici ; sur le site, couleur au sol par chapitre, titres en volume et étoiles vérifiés aux mêmes positions. Tests : `test-graphe-chapitres` vert, `test-no-shopify --strict` vert ; `test-modes` : curseur (échec aussi sur main seul) et caméra (instable en rendu logiciel).
+
+## Passages entre chapitres : relevé fin (tous les 50 px, de 700 à 300 px avant le chapitre 2)
+
+| Élément | Référence | Avant | Après |
+|---|---|---|---|
+| Couleur (coin bas droit, teinte R) | 05 11 25 3a 4c 5d 69 70 70 : mélange **uniforme** (centre et coin identiques), quasi linéaire de 690 à 360 px | front radial, changement entre 550 et 450 px | mélange uniforme, linéaire de 0,767 à 0,407 écran (690 à 366 px) : 05 0e 22 38 4e 60 6c 70 70, écart ≤ 3 unités à chaque pas |
+| Étoile | une étoile déployée à chaque pas, qui glisse d'un chapitre à l'autre | repliée vers −500 (vide) | toujours déployée, relais entre les deux étoiles à mi-trajet |
+| Chapitres 6 et 11 | 11 : 15311d à −500 | — | 11 : 0d3120 à −500 ; 6 : départ du gris du tableau des gains (sol sombre de main) au lieu du bleu |
+
+Essai d'un mélange en teinte pure (TSL) : plus proche pour le chapitre 6, plus loin pour les chapitres 2 et 11 ; mélange de main conservé (90 % oklab, 10 % teinte). Ces mesures portent sur le rendu sans WebGPU (repli CSS, chez la référence comme ici) ; sur carte graphique, le fond est peint par le shader de couleur de la référence, non vérifiable ici. Tests : `test-chapitres` 34 contrôles verts, `test-graphe-chapitres` et `test-no-shopify --strict` verts.

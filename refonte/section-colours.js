@@ -49,12 +49,13 @@ export function etatCouleur(transitions,scroll,reduced=false){
   for(const next of transitions){
     if(next.from===next.colour)continue;
     if(next.jstart!==undefined){
-      const a=(scroll-next.jstart)/(next.jend-next.jstart);
-      if(reduced){if(a>=.37)stable=next.colour;continue;}
-      if(a<=.11)break;
-      if(a>=.63){stable=next.colour;continue;}
-      const x=(a-.11)/.52;
-      return {stable,from:triplet(next.from),to:triplet(next.colour),colour:next.colour,amount:x*x*(3-2*x),next};
+      /* relevé sur la référence (pas de 50 px, centre et coin identiques) : mélange uniforme, linéaire, de 0,767 à 0,467 écran
+         au-dessus du haut du chapitre (690 à 420 px pour un écran de 900 px) ; avancement mesuré 0,11 0,31 0,52 0,70 0,86 0,97 */
+      const x=(scroll-(next.top-next.height*.767))/(next.height*.36);   /* .36 : compense le mélange oklab, plus rapide que celui de la référence */
+      if(reduced){if(x>=.5)stable=next.colour;continue;}
+      if(x<=0)break;
+      if(x>=1){stable=next.colour;continue;}
+      return {stable,from:triplet(next.from),to:triplet(next.colour),colour:next.colour,amount:x,next};
     }
     const progress=(scroll-next.start)/next.distance;
     if(reduced){
@@ -77,7 +78,7 @@ export function couleurAuPoint(etat,wave,x,y){
   const t=limit((Math.hypot(x-wave.x,y-wave.y)-wave.radius+wave.extent)/wave.extent);
   const a=1-t*t*(3-2*t);
   const from=p3(etat.from),to=p3(etat.to);
-  return mix(mix(from,to,a),mix(from,to,a,'hsl shorter hue'),.1);
+  return mix(mix(from,to,a),mix(from,to,a,'hsl shorter hue'),.1);   // essai en teinte pure : plus loin de la référence sur 2 passages sur 3, mélange de main conservé
 }
 export function couleurBande(band,flat,cover){
   return mix(flat,band.colour,cover,'srgb');

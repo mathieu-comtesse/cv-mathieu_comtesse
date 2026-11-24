@@ -1,4 +1,4 @@
-import {transitionsPapier,etatCouleur,radialCouleur,couleurAuPoint} from './section-colours.js?v=5';
+import {transitionsPapier,etatCouleur,radialCouleur,couleurAuPoint} from './section-colours.js?v=10';
 import {initFlatColourRenderer} from './flat-colour-renderer.js?v=1';
 import {surfaceGraph,brancheSpectrale} from './fall26-graph-adapter.js?v=1';
 import {poussiere,notesCadre} from './card-effects.js?v=4';
@@ -239,6 +239,7 @@ function scene(chapitres) {
       // La transition part du foyer visible de l’étoile du chapitre entrant.
       const originY=H*.56;
       const wave=radialCouleur(etat,W*.6,originY,W,H);
+      { const E=wave.extent*40; wave.extent=E; wave.radius=etat.amount*E; }   /* relevé : sur la référence le fond se mélange uniformément (même teinte au centre et au coin), pas en front qui balaie l'écran */
       painted=shader.draw(etat,wave,W,H,dpr);
       couleur=couleurAuPoint(etat,wave,W*.5,25);
       if(!painted){

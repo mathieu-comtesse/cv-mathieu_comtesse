@@ -27,7 +27,7 @@ for (const [nom, y] of [['chapitre-1', bornes.S[0].top + bornes.H * 0.3], ['traj
   const e = await va(y); mesures.push([nom, e]); console.log(nom, JSON.stringify(e)); if (dossier) await p.screenshot({ path: `${dossier}/gc-${nom}.png` }); }
 const m = Object.fromEntries(mesures);
 verifie(m['chapitre-1'].de === 'accueil:agentic' && !m['chapitre-1'].vers && Math.abs(m['chapitre-1'].foyer[0] - 1440 * 0.5) < 3 && Math.abs(m['chapitre-1'].foyer[1] - 900 * 0.45) < 3, `dans le chapitre 1 : son étoile au milieu de l'écran (50 %, 45 %) (${m['chapitre-1'].foyer})`);
-verifie(m['trajet-15'].vers === 'accueil:sidekick' && m['trajet-15'].deploieDe < 0.6 && m['trajet-15'].pan < 0.1, `début du trajet : rayons du chapitre 1 repliés (${m['trajet-15'].deploieDe}), caméra encore sur lui (${m['trajet-15'].pan})`);
+verifie(m['trajet-15'].vers === 'accueil:sidekick' && m['trajet-15'].deploieDe > 0.9 && m['trajet-15'].pan < 0.1, `début du trajet : étoile du chapitre 1 toujours déployée, comme sur la référence (${m['trajet-15'].deploieDe}), caméra encore sur lui (${m['trajet-15'].pan})`);
 verifie(m['trajet-50'].pan > 0.4 && m['trajet-50'].pan < 0.6, `milieu du trajet : caméra à mi-chemin (${m['trajet-50'].pan})`);
 verifie(m['trajet-85'].isolate > 0.5, `fin du trajet : rayons du chapitre 2 dépliés (${m['trajet-85'].isolate})`);
 verifie(m['chapitre-2'].de === 'accueil:sidekick' && !m['chapitre-2'].vers && Math.abs(m['chapitre-2'].foyer[0] - 1440 * 0.5) < 3, `dans le chapitre 2 : son étoile prend la place (${m['chapitre-2'].foyer})`);
