@@ -11,8 +11,13 @@ const ID = () => window.__cvStandardPath, MONDE = () => window.__cvParity.jeuMon
 const T = { entree: 1.8, compte: 2.4, sortie: 0.9 };
 
 /* ---------- plan tiré de la page (positions mesurées par le moteur de l'Expo) ---------- */
+/* piste étirée : la page s'est raccourcie (fiches compactes) ; le plan est construit sur des rangées multipliées par K pour garder
+   une partie de 1 à 3 minutes, et l'affichage divise par K (`pt`) : physique et équilibre des sauts inchangés */
+let K = 1;
 function construit() {
-  const m = MONDE(), chapitres = m.chapitres.map((c) => ({ id: c.id, nom: c.nom, top: c.top, bas: c.bas })), mots = [];
+  const m0 = MONDE(); K = Math.max(1, 70000 / Math.max(1, m0.fin));
+  const m = { fin: m0.fin * K, chapitres: m0.chapitres.map((c) => ({ ...c, top: c.top * K, bas: c.bas * K, cartes: c.cartes.map((k) => ({ ...k, row: k.row === undefined ? undefined : k.row * K })) })) };
+  const chapitres = m.chapitres.map((c) => ({ id: c.id, nom: c.nom, top: c.top, bas: c.bas })), mots = [];
   for (const c of m.chapitres) { const l = c.cartes; l.forEach((k, j) => mots.push({ texte: k.titre, row: k.row ?? c.top + 400 + (j + 0.5) * Math.max(200, c.bas - c.top - 800) / l.length, chapitre: c.id, id: k.id })); }
   return J.construitPlan({ chapitres, mots, fin: m.fin });
 }
@@ -96,7 +101,7 @@ const GAUCHE_ = [...GAUCHE], DROITE_ = [...DROITE], HAUT_ = [...HAUT], BAS_ = [.
 export async function ouvre() {
   if (S.phase !== 'repos') return; const id = ID(); if (!id) return;
   if (!id.active) { id.bascule(); await new Promise((r) => { const t0 = performance.now(), v = () => (id.active && id.progress > 0.999) || performance.now() - t0 > 20000 ? r() : setTimeout(v, 60); v(); }); }
-  S.plan = construit(); S.etat = J.creeEtat(S.plan); S.priseHorloge = {}; creeDom(); S.yEntree = scrollY; S.yDepart = Math.max(0, S.plan.depart - innerHeight * 0.7);   /* cadrage de la course : la sphère aux trois quarts de la hauteur */ S.parts.length = 0; S.trainee.length = 0; S.cam = { v: 0, d: 0 }; S.compteur = 4;
+  S.plan = construit(); S.etat = J.creeEtat(S.plan); S.priseHorloge = {}; creeDom(); S.yEntree = scrollY; S.yDepart = Math.max(0, S.plan.depart / K - innerHeight * 0.7);   /* cadrage de la course : la sphère aux trois quarts de la hauteur */ S.parts.length = 0; S.trainee.length = 0; S.cam = { v: 0, d: 0 }; S.compteur = 4;
   S.meilleur = 0; try { S.meilleur = +localStorage.getItem('cv-jeu-meilleur') || 0; } catch { /* stockage indisponible */ }
   document.documentElement.classList.add('cv-jeu-actif'); S.dom.hidden = false; S.dom.classList.remove('sortie', 'aide-masquee'); requestAnimationFrame(() => S.dom.classList.add('vu')); dq('fin').hidden = true;
   Son.init(); ecoute(true); phase('entree'); window.dispatchEvent(new CustomEvent('cv-jeu', { detail: { etat: 'ouvert' } }));
@@ -111,7 +116,7 @@ function termine() { S.phase = 'repos'; ecoute(false); S.dom.hidden = true; S.do
 
 /* ---------- projection : la piste dans le repère de l'Expo ---------- */
 let V = null, PR = null, COL0 = 0, COLW = 1;
-const pt = (x, r, h = 0) => { const q = PR(COL0 + x / J.LARGEUR * COLW, r - V.offset, h);   /* PR(colonne, rangée, hauteur) : la vue est déjà liée par le moteur */ return q && Number.isFinite(q.x) && Number.isFinite(q.y) ? q : null; };
+const pt = (x, r, h = 0) => { const q = PR(COL0 + x / J.LARGEUR * COLW, r / K - V.offset, h);   /* PR(colonne, rangée, hauteur) : la vue est déjà liée par le moteur */ return q && Number.isFinite(q.x) && Number.isFinite(q.y) ? q : null; };
 function disque(ctx, x, y, ray, c0, c1) { const g = ctx.createRadialGradient(x - ray * 0.3, y - ray * 0.35, ray * 0.1, x, y, ray); g.addColorStop(0, c0); g.addColorStop(1, c1); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, ray, 0, 6.283); ctx.fill(); }
 function quad(ctx, x0, x1, r0, r1, h, remplir, trait) { const a = pt(x0, r0, h), b = pt(x1, r0, h), c = pt(x1, r1, h), d = pt(x0, r1, h); if (!a || !b || !c || !d) return null; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y); ctx.closePath(); if (remplir) { ctx.fillStyle = remplir; ctx.fill(); } if (trait) { ctx.strokeStyle = trait; ctx.stroke(); } return [a, b, c, d]; }
 const echelle = (x, r, h, ray) => { const a = pt(x - ray, r, h), b = pt(x + ray, r, h); return a && b ? Math.max(2, Math.hypot(b.x - a.x, b.y - a.y) / 2) : 0; };
@@ -241,7 +246,7 @@ function majInterface(e) {
 /* ---------- accès pour les tests et le pilote automatique ---------- */
 window.__cvJeu = { ouvre, ferme, dessine, phase: () => S.phase,
   etat: () => { const e = S.etat; return e ? { phase: S.phase, etat: e.etat, t: e.t, n: e.n, r: e.r, x: e.x, h: e.h, vr: e.vr, vx: e.vx, vh: e.vh, gaz: e.gaz, rayon: e.rayon, score: e.score, mots: e.mots, etoiles: e.etoiles, noeuds: e.noeuds, chutes: e.chutes, chocs: e.chocs, sauts: e.sauts, tremplins: e.tremplins, combo: e.combo, empreinte: J.empreinte(e), pris: e.pris.reduce((s, v) => s + (v >= 0 ? 1 : 0), 0), scrollY: Math.round(scrollY), dbg: S.dbg, depart: S.plan.depart, arrivee: S.plan.arrivee } : { phase: S.phase }; },
-  plan: () => S.plan && { depart: S.plan.depart, arrivee: S.plan.arrivee, trous: S.plan.trous.length, rampes: S.plan.rampes.length, obstacles: S.plan.obstacles.length, noirs: S.plan.noirs.length, objets: S.plan.objets.length },
+  echelle: () => K, plan: () => S.plan && { depart: S.plan.depart, arrivee: S.plan.arrivee, trous: S.plan.trous.length, rampes: S.plan.rampes.length, obstacles: S.plan.obstacles.length, noirs: S.plan.noirs.length, objets: S.plan.objets.length },
   pilote: (opts) => (S.etat && S.phase === 'course' ? J.pilote(S.etat, S.plan, opts) : { dir: 0, dgaz: 0, saut: false }),
   sonde: (col, rowRel, h = 0) => { const q = PR && PR(col, rowRel, h); return q ? { x: q.x, y: q.y, z: q.z } : q; }, vue: () => V && { W: V.W, H: V.H, T: V.T, e: V.e, offset: V.offset, focusRow: V.focusRow },
   reglages: (o = {}) => { if (o.dtMax) S.dtMax = bornes(o.dtMax, 0.01, 0.25); return { dtMax: S.dtMax }; },   /* test : pas de temps maximal par image ; une valeur basse ralentit la simulation sans la changer */

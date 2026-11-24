@@ -885,3 +885,11 @@ Relevé : référence en ligne et site capturés aux mêmes positions (700, 500,
 | Chapitres 6 et 11 | 11 : 15311d à −500 | — | 11 : 0d3120 à −500 ; 6 : départ du gris du tableau des gains (sol sombre de main) au lieu du bleu |
 
 Essai d'un mélange en teinte pure (TSL) : plus proche pour le chapitre 6, plus loin pour les chapitres 2 et 11 ; mélange de main conservé (90 % oklab, 10 % teinte). Ces mesures portent sur le rendu sans WebGPU (repli CSS, chez la référence comme ici) ; sur carte graphique, le fond est peint par le shader de couleur de la référence, non vérifiable ici. Tests : `test-chapitres` 34 contrôles verts, `test-graphe-chapitres` et `test-no-shopify --strict` verts.
+
+## Effets du pointeur reportés sur le nouveau graphe d'accueil de main (`CielExpo`, à plat)
+
+Mêmes lois et mêmes paramètres que la section « Survol du graphe » (référence : module renderer) : poussée des foyers par la vitesse du pointeur (265 / 24 / 1 800 / élan 1,45 / bouclier), ressort de rappel, resserrement de 25 % des rayons du foyer survolé échelonné sur 0,15 s selon l'angle (réponse 15/s, relâche 3/s), calme quand un contenu est survolé (allure 0,2 appliquée à l'orbite), lueur des points à moins de 265 px (montée 24/s, extinction 0,6 s après un délai propre de 0 à 0,35 s), saisie et lancer d'un foyer (vitesse lissée 0,6/0,4, × 1,25, plafond 1 400 px/s, clic vers le chapitre conservé), sillage de glyphes WebGL2 sous le graphe. Les réactions propres à main (poussée locale des points, saisie d'un point, nœud survolé grossi) sont conservées. Test : `tools/test-pointeur-graphe.mjs` (attentes allongées : en rendu logiciel la physique n'avance que de 0,1 s par image) et `tools/test-sillage.mjs`, verts.
+
+## Mini-jeu : piste étirée
+
+La page fusionnée est plus courte (29 431 px). Le plan du jeu est construit sur des rangées multipliées par K = 70 000 / longueur de page, et l'affichage divise par K (`pt` dans `refonte/jeu.js`) : physique, sauts et trous inchangés, partie de nouveau dans la cible de 1 à 3 minutes.

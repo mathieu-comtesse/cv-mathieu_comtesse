@@ -1,5 +1,5 @@
 /* Graphe à plat. Les foyers et vignettes utilisent la même constellation que le chemin Expo. */
-import { CielExpo } from './ciel-expo.js?v=15';
+import { CielExpo } from './ciel-expo.js?v=17';
 import {surfaceGraph,brancheSpectrale,nœudSpectral} from './fall26-graph-adapter.js?v=1';
 
 const borne = t => Math.max(0, Math.min(1,t));
@@ -78,7 +78,10 @@ export function demarre(chapitres) {
   cv.style.cssText = 'position:absolute;top:0;left:0;height:100%;z-index:3;touch-action:pan-y';
   const graph=surfaceGraph('position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none');
   graph.canvas.dataset.cvSpectralGraph='';
-  zone.append(graph.canvas,cv); zone.querySelector('.hero-graph-spinner-track')?.remove();
+  /* sillage de glyphes sous le graphe (refonte/sillage.js, WebGL2, pointeur fin seulement), d'après les shaders de fluide de la référence */
+  const zs=document.createElement('div');zs.className='cv-sillage-zone';zs.style.cssText='position:absolute;inset:0;z-index:1;pointer-events:none';
+  zone.append(zs,graph.canvas,cv); zone.querySelector('.hero-graph-spinner-track')?.remove();
+  let sillage=null;import('./sillage.js?v=s4').then(m=>{sillage=m.monteSillage(zs);}).catch(()=>{});
   const ciel = new CielExpo(), souris = { x: -1e4, y: -1e4 };
   ciel.accueil(chapitres,'Mathieu Comtesse');
   const etiquette = document.createElement('span');
@@ -102,7 +105,7 @@ export function demarre(chapitres) {
   const va = (n) => { const cible = document.getElementById(n.handle) || document.getElementById(n.chapitre); if (cible) cible.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' }); };
   addEventListener('pointermove', ev => {
     [souris.x, souris.y] = local(ev);
-    ciel.tire(souris.x, souris.y);
+    ciel.tire(souris.x, souris.y); ciel.tireFoyer(souris.x, souris.y);
     const node = ev.pointerType==='mouse'&&dessus(ev)&&ciel.touche(souris.x,souris.y);
     cv.style.cursor = node?'pointer':'auto';
     etiquette.toggleAttribute('data-visible',Boolean(node));
@@ -115,9 +118,10 @@ export function demarre(chapitres) {
   cv.addEventListener('pointerleave', () => { if (!ciel.pris) souris.x = souris.y = -1e4; });
   /* écoute au niveau du document : d'autres calques de l'accueil passent au-dessus du canevas et recevraient l'appui à sa place */
   const dessus = (ev) => { const r = cv.getBoundingClientRect(); return !document.documentElement.classList.contains('cv-parity-active') && ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom && !ev.target.closest('a,button,input,select,textarea,.cv-site-nav'); };
-  document.addEventListener('pointerdown', (ev) => { if (ev.button !== 0 || !dessus(ev)) return; [souris.x, souris.y] = local(ev); ciel.saisit(souris.x, souris.y); }, { capture: true });
+  document.addEventListener('pointerdown', (ev) => { if (ev.button !== 0 || !dessus(ev)) return; [souris.x, souris.y] = local(ev); if (!ciel.saisitFoyer(souris.x, souris.y)) ciel.saisit(souris.x, souris.y); }, { capture: true });
   const fin = (annule) => { const r = ciel.lache(); if (r?.clic && !annule) va(r); };
-  document.addEventListener('pointerup', () => fin(false), { capture: true }); document.addEventListener('pointercancel', () => fin(true));
+  const finFoyer = (annule) => { const r = ciel.lacheFoyer(annule); if (r?.clic && !annule) va({ chapitre: r.chapitre }); };   // foyer : clic vers le chapitre, glisser pour le lancer
+  document.addEventListener('pointerup', () => { fin(false); finFoyer(false); }, { capture: true }); document.addEventListener('pointercancel', () => { fin(true); finFoyer(true); });
   function image(t) {
     requestAnimationFrame(image);
     if (!vu || document.hidden || W < 120 || H < 120 || t - dernier < 30 || document.documentElement.classList.contains('cv-parity-active')) return;
@@ -139,5 +143,5 @@ export function demarre(chapitres) {
     graph.canvas.style.opacity=cv.style.opacity;graph.render(W,H,dpr,edges,undefined,marks);
   }
   requestAnimationFrame(image);
-  window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };
+  window.__cvHeroGraph = { sillage: () => sillage, cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };
 }
