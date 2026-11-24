@@ -122,6 +122,8 @@ export function monteSillage(hote, { avant = null } = {}) {
   const gl = cv.getContext('webgl2', { premultipliedAlpha: true, alpha: true, antialias: false });
   if (!gl || !gl.getExtension('EXT_color_buffer_float')) return null;
   hote.insertBefore(cv, avant);
+  /* contexte perdu (limite de contextes WebGL du navigateur, réinitialisation du GPU) : le canevas est retiré, sinon il s'affiche en blanc */
+  cv.addEventListener('webglcontextlost', (e) => { e.preventDefault(); fini = true; cancelAnimationFrame(raf); raf = 0; cv.remove(); hote.dataset.sillage = 'perdu'; });
   const prog = (fs) => { const p = gl.createProgram(); for (const [t, s] of [[gl.VERTEX_SHADER, SOMMET], [gl.FRAGMENT_SHADER, COMMUN + fs]]) { const sh = gl.createShader(t); gl.shaderSource(sh, s); gl.compileShader(sh);
       if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh)); gl.attachShader(p, sh); } gl.linkProgram(p); if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p)); return p; };
   let P; try { P = { advecte: prog(ADVECTE), diverge: prog(DIVERGE), pression: prog(PRESSION), projette: prog(PROJETTE), cellules: prog(CELLULES), compose: prog(COMPOSE) }; }

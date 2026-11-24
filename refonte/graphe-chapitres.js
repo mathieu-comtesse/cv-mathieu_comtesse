@@ -7,7 +7,7 @@
      sur la seconde moitié, les autres étoiles remontent de 0,12 à 1 au milieu du trajet (contexte) puis s'effacent ;
    - hors trajet : seule l'étoile du chapitre est pleine, les autres à 0,12.
    Un chapitre = une section de la page = une étoile du graphe (11). Code propre, moteur commun avec l'accueil (moteur.js). */
-import { Ciel } from './moteur-plat.js?v=2';   // moteur à plat d'origine, séparé du moteur Expo de main
+import { Ciel } from './moteur-plat.js?v=3';   // moteur à plat d'origine, séparé du moteur Expo de main
 
 const borne = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x)), plage = (x, a, b) => borne((x - a) / (b - a));
 const lisse = (x) => x * x * (3 - 2 * x), cubique = (x) => (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2), mel = (a, b, k) => a + (b - a) * k;
@@ -23,11 +23,11 @@ export function demarre(chapitres) {
   const grand = matchMedia('(min-width: 940px)'), reduit = matchMedia('(prefers-reduced-motion: reduce)');
   const cv = document.createElement('canvas'), ctx = cv.getContext('2d');
   cv.className = 'cv-graphe-chapitres'; cv.setAttribute('aria-hidden', 'true');
-  cv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;z-index:1;pointer-events:none;opacity:0;filter:saturate(0) brightness(1.9)';   /* traits et points blancs, comme sur la référence */
+  cv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;z-index:1;pointer-events:none;opacity:0;filter:saturate(0) brightness(1.9)';   /* traits et points blancs, comme sur la référence (rayons à 0,2 environ, extrémités en cercles creux : mode discret du moteur) */
   document.body.append(cv);
   const ciel = new Ciel(); ciel.sansNoms = true;
   ciel.definit('accueil', { groupe: 'accueil', label: 'Mathieu Comtesse', racine: true });
-  chapitres.forEach((r, i) => ciel.definit('accueil:' + r.id, { groupe: 'accueil', parent: 'accueil', num: String(i + 1).padStart(2, '0'), label: r.name, chapitre: r.id, editoriaux: r.cards, sol: true }));
+  chapitres.forEach((r, i) => ciel.definit('accueil:' + r.id, { groupe: 'accueil', parent: 'accueil', num: String(i + 1).padStart(2, '0'), label: r.name, chapitre: r.id, editoriaux: r.cards, sol: true, deco: 4 }));   /* relevé WebGPU de la référence : une dizaine de rayons par étoile */
   let W = 0, H = 0, dpr = 1, dernier = 0, etat = null;
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
   addEventListener('resize', taille); taille();
@@ -65,7 +65,7 @@ export function demarre(chapitres) {
     const alpha = de === premier && !vers ? entree : 1;
     cv.style.opacity = alpha.toFixed(3);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    if (alpha > 0.002) ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { W, H, dt, plat: true, poids, deploie, alpha });
+    if (alpha > 0.002) ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { W, H, dt, plat: true, poids, deploie, alpha, discret: true });
     etat = { de: de.id, vers: vers && vers.id, pan: +k.pan.toFixed(3), isolate: +k.isolate.toFixed(3), unfold: +k.unfold.toFixed(3), context: +k.context.toFixed(3), echelle: +sc.toFixed(3), alpha: +alpha.toFixed(3),
       foyer: eDe.ecran && [Math.round(eDe.ecran.x), Math.round(eDe.ecran.y)], foyerVers: eVers?.ecran && [Math.round(eVers.ecran.x), Math.round(eVers.ecran.y)], deploieDe: +borne(deploieDe).toFixed(3) };
   }

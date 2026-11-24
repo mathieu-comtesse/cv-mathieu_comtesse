@@ -81,7 +81,7 @@ export function demarre(chapitres) {
   /* sillage de glyphes sous le graphe (refonte/sillage.js, WebGL2, pointeur fin seulement), d'après les shaders de fluide de la référence */
   const zs=document.createElement('div');zs.className='cv-sillage-zone';zs.style.cssText='position:absolute;inset:0;z-index:1;pointer-events:none';
   zone.append(zs,graph.canvas,cv); zone.querySelector('.hero-graph-spinner-track')?.remove();
-  let sillage=null;import('./sillage.js?v=s4').then(m=>{sillage=m.monteSillage(zs);}).catch(()=>{});
+  let sillage=null;import('./sillage.js?v=s5').then(m=>{sillage=m.monteSillage(zs);}).catch(()=>{});
   const ciel = new CielExpo(), souris = { x: -1e4, y: -1e4 };
   ciel.accueil(chapitres,'Mathieu Comtesse');
   const etiquette = document.createElement('span');

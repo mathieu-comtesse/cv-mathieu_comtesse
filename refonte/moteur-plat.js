@@ -224,7 +224,7 @@ export class Ciel {
     const eventail = (k, n) => spec.parent || spec.racine ? rd() * 6.283 : -2.5 + (k + 0.5) / n * 3.3 + (rd() - 0.5) * 0.3;     // titres : éventail ouvert vers le haut et la droite
     ed.forEach((e, k) => noeuds.push({ ed: e, a: spec.parent ? k / ed.length * 6.283 + rd() * 0.5 : eventail(k, ed.length), r: 0.62 + rd() * 0.38, dh: (rd() - 0.3) * 0.5, phase: rd() * 6.283, sous: [] }));
     const dens = typeof innerWidth !== 'undefined' && innerWidth < 520 ? 0.5 : 1;   // moins de branches sur petit écran
-    const nDeco = Math.round(dens * (spec.racine ? 120 : spec.parent ? 20 + Math.floor(rd() * 10) : spec.petit ? 24 + Math.floor(rd() * 10) : 38 + Math.floor(rd() * 14)));
+    const nDeco = typeof spec.deco === 'number' ? spec.deco : Math.round(dens * (spec.racine ? 120 : spec.parent ? 20 + Math.floor(rd() * 10) : spec.petit ? 24 + Math.floor(rd() * 10) : 38 + Math.floor(rd() * 14)));
     for (let k = 0; k < nDeco; k++) {
       noeuds.push({ a: eventail(k, nDeco) + (spec.parent || spec.racine ? 0 : rd() * 1.2), r: spec.racine ? 0.12 + Math.sqrt(rd()) * 1.05 : 0.3 + 0.9 * rd() ** 1.3, dh: (rd() - 0.4) * (spec.racine ? 1.6 : 0.6), phase: rd() * 6.283, taille: 1.0 + rd() ** 2 * 2.6, sous: [] });
     }
@@ -311,7 +311,7 @@ export class Ciel {
     const lim = e.recup > 0.01 ? 1e4 : 160, r = Math.hypot(e.dx, e.dy); if (r > lim) { e.dx *= lim / r; e.dy *= lim / r; }
     if (Math.abs(e.dx) + Math.abs(e.dy) + Math.abs(e.vx) + Math.abs(e.vy) < 0.05) e.dx = e.dy = e.vx = e.vy = 0;
   }
-  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1, plat = false, intro = null, poids = null, deploie = null } = {}) {   /* intro : secondes écoulées depuis le début de l'apparition à plat (null : pas d'apparition) */
+  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1, plat = false, intro = null, poids = null, deploie = null, discret = false } = {}) {   /* intro : secondes écoulées depuis le début de l'apparition à plat (null : pas d'apparition) */
     if (alpha <= 0.003) { this.cibles = []; this.survol = null; this.survolBranche = null; return; }
     const A0 = Math.min(1, alpha), retour = Math.exp(-dt * 9);
     const libre = t !== null, tt = t || 0, cibles = [], cache = (x, y, z) => covers.some((c) => c.z < z - 30 && dansQuad(c.pts, x, y));
@@ -456,7 +456,7 @@ export class Ciel {
       const BASE = e.racine ? (plat ? [0, 0.16, 0.1, 0.07] : [0, 0.2, 0.13, 0.09]) : plat ? [0, 0.55, 0.4, 0.3] : [0, 0.4, 0.29, 0.21], LW = [0, 0.8, 0.7, 0.6];   /* rayons fins et discrets : le centre des foyers ne sature pas */
       for (let lv = 3; lv >= 1; lv--) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
-        ctx.strokeStyle = plat ? degrade(MULT[cl] * kE) : `rgba(225,238,255,${Math.min(1, BASE[lv] * MULT[cl] * kE).toFixed(3)})`; ctx.lineWidth = (plat ? 1 : LW[lv]) * (cl === 2 ? 1.5 : 1); ctx.beginPath();
+        ctx.strokeStyle = plat ? degrade(MULT[cl] * kE * (discret ? 0.4 : 1)) : `rgba(225,238,255,${Math.min(1, BASE[lv] * MULT[cl] * kE).toFixed(3)})`; ctx.lineWidth = (plat ? 1 : LW[lv]) * (cl === 2 ? 1.5 : 1); ctx.beginPath();
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); }
         ctx.stroke();
       }
@@ -494,8 +494,8 @@ export class Ciel {
       for (let lv = 1; lv <= 3; lv++) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
         ctx.globalAlpha = A * Math.min(1, MULT[cl] * kE); ctx.fillStyle = plat ? (vif ? 'rgb(90,255,160)' : 'rgb(88,112,255)') : e.racine ? 'rgba(200,215,255,.55)' : lv === 1 ? 'rgba(223,233,255,.9)' : lv === 2 ? 'rgba(223,233,255,.75)' : 'rgba(223,233,255,.6)'; ctx.beginPath();
-        for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; const r = plat ? 1.9 * (n.tI ?? 1) : (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech) * (lv === 1 ? 1 : lv === 2 ? 0.8 : 0.6); ctx.moveTo(n.x1 + r, n.y1); ctx.arc(n.x1, n.y1, r, 0, 6.283); }
-        ctx.fill();
+        for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; const r = plat ? (discret ? 4 : 1.9) * (n.tI ?? 1) : (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech) * (lv === 1 ? 1 : lv === 2 ? 0.8 : 0.6); ctx.moveTo(n.x1 + r, n.y1); ctx.arc(n.x1, n.y1, r, 0, 6.283); }
+        if (discret) { ctx.lineWidth = 1.3; ctx.strokeStyle = ctx.fillStyle; ctx.stroke(); } else ctx.fill();
       }
       ctx.globalAlpha = A;
       /* 7. cartes des contenus éditoriaux */
