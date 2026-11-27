@@ -1012,3 +1012,17 @@ Bleu du sol (canal bleu, médiane de la colonne centrale, 40 à 60 % de la large
 | Site après | 142 | 152 | 156 | 160 | 165 | 168 | 170 |
 
 Reprise : calque noir à opacité décroissante au-dessus de la grille et du sol et sous le contenu (`.cv-parity-stage::after`, 0,142 en haut, 0,059 à 20 %, 0,03 à 35 %, 0,012 à 50 %, nul à 60 %) ; le dégradé du fond sombre est relevé en haut pour que le fond mesuré reste à 15, 13, 12, 12, 11, 10, 9, 9 (site : 15, 14, 13, 11, 11, 10, 9, 9). Le rouge et le vert du sol baissent dans les mêmes proportions sur la référence (25 pour 30), cohérent avec un calque noir. Écart maximal restant : 3 unités de bleu. `test-modes` et `test-no-shopify --strict` : PASS.
+
+### Traits de la grille du fond (27 novembre 2026)
+
+Méthode : deux zooms de la référence (200 × 160 px d'écran, colonnes gauche et droite du fond, au défilement 1 500 px, enregistrés en PNG, 263 × 211 px) et deux découpes du site de la même taille relative, ramenées à 263 × 211 px par interpolation bilinéaire. Pixels sombres seulement (hors sol bleu, hors texte clair), luminance moyenne des trois canaux. Une seule paire de zones : mesure à confirmer sur d'autres défilements.
+
+| Relevé | Référence | Site avant | Site après |
+|---|---|---|---|
+| Fond (médiane) | 8 | 10 | 10 |
+| 90e centile | 24 à 25 | 21 | 25 |
+| 99e centile (grands traits) | 43 à 44 | 37 | 45 à 46 |
+| Part des pixels à plus de 6 unités du fond | 23,5 à 26,1 % | 21,5 à 21,7 % | 25,9 à 26,0 % |
+| Médiane de ces pixels | 24 | 21 | 24 |
+
+Reprise : traits secondaires à 0,14 (au lieu de 0,10) et traits principaux (tous les 10) à 0,34 (au lieu de 0,26), blanc (`drawFallbackGrid`, `index.html`). Les traits de la référence ont aussi une densité très proche (part des pixels de trait 23,5 à 26 % contre 21,6 %). L'épaisseur (0,85 px) n'est pas modifiée : la résolution des captures de la référence ne permet pas de la mesurer. Le relevé précédent sur bandes entières (traits plus lumineux sur le site) mélangeait annotations, arcs et règles ; il ne portait pas sur la grille seule. `test-modes` et `test-no-shopify --strict` : PASS.
