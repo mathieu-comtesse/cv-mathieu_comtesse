@@ -956,3 +956,22 @@ Test : `node tools/test-graphe-chapitres.mjs` (loi de sortie : 167 px à 260 px,
 - Conditions relevées dans son module d'entrée : API expérimentale HTML-dans-canvas (`HTMLCanvasElement.prototype.requestPaint` et `CanvasRenderingContext2D.prototype.drawElementImage`), pointeur fin, grand écran.
 - Essais : drapeau `--enable-blink-features=CanvasDrawElement` (l'API devient disponible), indicateur `isFallbackAdapter` masqué : le bouton reste caché et la vue reste à plat.
 - Conclusion : comparaison 3D à faire sur une machine avec carte graphique, dans un Chrome qui expose l'API HTML-dans-canvas.
+
+## Vue Expo (3D), comparaison côte à côte du 27 novembre 2026
+
+Conditions : référence dans le Chrome de l'utilisateur (GPU réel, API HTML-dans-canvas présente), fenêtre 2 498 × 1 440 (viewport 1 584 × 1 255, puis 1 584 × 1 311, le redimensionnement à 1 400 × 900 n'a pas été appliqué par le navigateur). Site local dans Chromium sans tête à 1 400 × 900, rendu logiciel (`localhost:8765` n'était pas joignable depuis Chrome). Captures de la référence à environ 1,4 s, 4,3 s et 10,4 s après le clic (latence de capture comprise), puis défilement à 600, 1 500 et 3 000 px. Site local à 1 s, 4,1 s et 12 s, mêmes défilements. Aucun code de la référence n'est repris, seules des valeurs relevées.
+
+| Mesure | Référence | Site avant | Site après |
+|---|---|---|---|
+| Visibilité du bouton à 0 px | masqué (`visibility: hidden`, opacité 0, hors écran à x = −14 px) | opacité 0, fixe à x = 10 px | opacité 0, x = −14 px |
+| Apparition du bouton | seuil net entre 1 260 et 1 270 px à H = 1 311 (0,965 H) ; à H = 1 255 masqué à 1 200 px, visible à 1 500 px | progressive (lissage de 0,25 hero à hero + 0,6 H + 50) : 0,47 à 800 px, 0,90 à 1 200 px (H = 900) | marche à 0,965 H : masqué à 800 px, visible à 1 200 px (H = 900) |
+| Fondu et glissement | opacité 0,2 s, glissement de −24 px à 0 sur 0,25 s | aucun | opacité 0,2 s, translation −24 px à 0 sur 0,25 s |
+| Position du bouton | gauche 10 px, bas 24 px, 32 × 32 px | identique | identique |
+| Caméra en régime établi | non lisible dans le DOM | 30,2° sous l'horizontale, champ 45° | inchangé (acquis dans `fall26-camera.md`) |
+
+Écarts relevés et non corrigés :
+- À 3 000 px le sol du site local passe au violet (chapitre suivant) alors que la référence reste bleue : effet de la longueur des chapitres du CV, pas de la vue Expo.
+- Teinte du bleu du sol, épaisseur et opacité des traits, apparition des étoiles et des titres : comparés à l'œil sur les captures (mêmes familles de valeurs), sans écart mesurable à 1 px ou à 5 unités de couleur près ; les valeurs déjà relevées pour les étoiles et la caméra restent celles de `fall26-etoiles-expo.md` et `fall26-camera.md`.
+- Timing de la bascule : la référence est encore en transition à 1,4 s sur la capture, le site local est arrivé à 1 s en rendu logiciel. Les latences de capture des deux bancs ne sont pas comparables ; la durée programmée reste 800 ms.
+
+Fichiers modifiés : `index.html` (`positionExpoDock`, seuil net) et `refonte/hero-tuning.css` (fondu et glissement). `ciel-expo.js`, `hero-graph.js` et `moteur.js` n'ont pas de mesure qui justifie un changement. `node tools/test-modes.mjs` : PASS.

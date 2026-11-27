@@ -1229,16 +1229,11 @@ async function startParityPath(){
  /* mini-jeu de la sphère : bouton en mode expo, invitation en fin de parcours ; le module n'est chargé qu'au premier usage */
  const jeuBtn=document.createElement('button');jeuBtn.type='button';jeuBtn.className='cv-jeu-bouton';jeuBtn.innerHTML='<span class="cv-jeu-ico" aria-hidden="true"></span><span>Jouer</span>';jeuBtn.setAttribute('aria-label','Jouer : traverser le site en sphère');document.body.append(jeuBtn);
  const ouvreJeu=async()=>{const m=await import('./refonte/jeu.js?v=j3');return m.ouvre();};jeuBtn.addEventListener('click',ouvreJeu);window.__cvOuvreJeu=ouvreJeu;document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-cv-jeu]'))ouvreJeu();});
- const heroDock=document.getElementById('hero');
- const desktopDock=matchMedia('(min-width:58.75rem)');
  function positionExpoDock(){
-   const heroHeight=heroDock?.offsetHeight||innerHeight;
-   const start=desktopDock.matches ? heroHeight*.25 : Math.min(heroHeight*.25,innerHeight*.25);
-   const end=50+heroHeight+innerHeight*.6;
-   const t=Math.max(0,Math.min(1,(scrollY-start)/Math.max(1,end-start)));
-   const shown=toggle.getAttribute('aria-pressed')==='true'?1:reduced.matches?Number(scrollY>=end):t*t*(3-2*t);
-   toggle.style.setProperty('--cv-expo-reveal',shown.toFixed(4));
-   toggle.inert=shown<.035;
+   /* relevé sur la référence (Chrome, 1 584 × 1 311) : bouton masqué à 1 260 px, visible à 1 270 px, soit un seuil net à 0,965 hauteur d'écran, sans progression */
+   const shown=toggle.getAttribute('aria-pressed')==='true'||scrollY>=innerHeight*.965?1:0;
+   toggle.style.setProperty('--cv-expo-reveal',String(shown));
+   toggle.inert=!shown;
  }
  toggle.addEventListener('cv-expo-mode',positionExpoDock);
  addEventListener('scroll',positionExpoDock,{passive:true});

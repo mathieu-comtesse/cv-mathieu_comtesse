@@ -13,7 +13,7 @@
 .cv-inspector .cv-inspector-board{height:49%}
 .cv-inspector .cv-inspector-tag{border-radius:999px;background:#0c1f86}
 #hero .hero-tagline{margin-top:.35rem}
-.cv-parity-toggle{opacity:var(--cv-expo-reveal,0);pointer-events:none}
+.cv-parity-toggle{opacity:var(--cv-expo-reveal,0);translate:calc((1 - var(--cv-expo-reveal,0)) * -24px) 0;transition:opacity .2s ease-out,translate .25s ease-in;pointer-events:none}
 .cv-parity-toggle:not([inert]){pointer-events:auto}
 @media(min-width:58.75rem){
   #hero .hero-sidebar{grid-template-rows:minmax(0,30.3fr) minmax(0,67.9fr);gap:clamp(8px,1.55vh,15px)}
