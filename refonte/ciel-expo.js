@@ -1,4 +1,4 @@
-import { Ciel, hache } from './moteur.js?v=m36';
+import { Ciel, hache } from './moteur.js?v=project-face1';
 
 const angleOr = 2.399963, cercle = Math.PI * 2;
 const tons = ['25,122,220', '85,238,172', '105,131,251'];
