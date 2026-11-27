@@ -1028,3 +1028,23 @@ Méthode : deux zooms de la référence (200 × 160 px d'écran, colonnes gauche
 Reprise : traits secondaires à 0,14 (au lieu de 0,10) et traits principaux (tous les 10) à 0,34 (au lieu de 0,26), blanc (`drawFallbackGrid`, `index.html`). Les traits de la référence ont aussi une densité très proche (part des pixels de trait 23,5 à 26 % contre 21,6 %). L'épaisseur (0,85 px) n'est pas modifiée : la résolution des captures de la référence ne permet pas de la mesurer. Le relevé précédent sur bandes entières (traits plus lumineux sur le site) mélangeait annotations, arcs et règles ; il ne portait pas sur la grille seule. `test-modes` et `test-no-shopify --strict` : PASS.
 
 Confirmation des traits de grille à 600 px de défilement (zone gauche, même méthode) : référence fond 8, 90e centile 24, 99e centile 45, 24,6 % de pixels de trait, médiane 24 ; site après correction fond 10, 90e centile 26, 99e centile 47, 26,4 %, médiane 24. Écart maximal 2 unités. La zone droite à 3 000 px n'est pas exploitable (dessins isométriques dans le cadre).
+
+# Effacement de l'accueil au défilement (27 novembre 2026)
+
+Conditions : même Chrome que la référence, viewport 2498 × 1263 (ratio 1), site local servi sur `localhost:8765` (version allégée de la branche), référence `shopify.com/editions/fall2026`. Relevé visuel par captures aux mêmes défilements (0, 200, 350, 480, 600 px) ; aucune mesure de pixel. Les sondes `__cvParity` et `__cvStandardPath` ne sont pas exposées dans cette configuration : la caméra n'a donc pas été remesurée (la passe 1 reste valable).
+
+Constat à 600 px : la référence ne montre plus qu'un foyer et ses rayons (foyers pâles dès 350 px) ; le site gardait plusieurs foyers étiquetés (opacité de l'accueil 1,00 à 400 px, 0,78 à 600 px, 0,04 à 1 000 px).
+
+Reprise : fin de l'effacement plafonnée à 0,55 hauteur d'écran (`hero-graph.js`, `graphe-chapitres.js`), début à 25 % de la course au lieu de 45 %, et même plage pour l'entrée du graphe des chapitres (0,25 à 0,75).
+
+| Défilement | Opacité de l'accueil | Opacité du graphe des chapitres |
+|---|---|---|
+| 0 px | 1,00 | 0 |
+| 200 px | 0,92 | 0,08 |
+| 350 px | 0,49 | 0,51 |
+| 480 px | 0,12 | 0,88 |
+| 600 px | 0 | 1,00 |
+
+Après reprise, à 600 px, un seul foyer reste visible, comme sur la référence. Les temps réels de la référence entre 200 et 600 px n'ont pas été relevés au pas fin : les valeurs ci-dessus sont calées sur trois captures, pas sur une courbe mesurée.
+
+Tests : `test-modes` PASS, `test-graphe-chapitres` PASS. `test-defilement` : 1 échec (90 % de la course en 733 ms pour une cible de 230 ms), identique avant la reprise (817 ms) ; il vient du rendu logiciel. `test-chapitres` : interrompu après 7 minutes, sans verdict.
