@@ -549,3 +549,502 @@ Le mode expo de la référence repose sur l'API expérimentale de dessin d'élé
 - **Véhicule :** la PR 209 (`main` ← `claude/integration-fall26`, brouillon) reste la bonne. Plan : fusionner `origin/main` dans l'intégration (commit de fusion, sans réécriture d'historique ni force), attendre la CI, puis la PR 209 devient fusionnable.
 - **Point d'attention :** `unga-web.yml` et les tests THALÉOLITHIC arrivent avec la fusion ; leur CI sera exécutée pour la première fois sur l'intégration et pourrait révéler des échecs sans lien avec Fall 26.
 - **Statut :** en attente de l'autorisation explicite pour fusionner `main` dans l'intégration puis pour fusionner la PR 209.
+
+# Passe de contrôle après les PR 211 à 220 (base `41ad3c6`, `main`)
+
+Le pack de reprise visait la tête `65de99d` de la PR 210. Elle est dépassée : la PR 210 (`3587e29`) et la chaîne des PR 211 à 220 sont fusionnées dans `main`. Cette passe part donc de `main` et ne refait pas les phases déjà livrées (JSON brut exploité ci-dessus, captures Chrome 157, branches 3D, défilement lissé, mesures GPU).
+
+| Effet | Preuve brute (JSON du 13 novembre) | État avant | Action | État |
+|---|---|---|---|---|
+| Curseur sur le graphe de l'accueil, hors nœud | `pointermove` sur les canevas : `auto` 265, `default` 15, `pointer` 2, **`crosshair` 0** ; `crosshair` seulement sur un graphique de carte (41) | la matrice déclarait le viseur retiré, mais `refonte/hero-graph.js` le posait encore | viseur retiré, curseur normal ; main ouverte et fermée conservées sur les nœuds (ajout propre au site) ; nouveau contrôle dans `tools/test-modes.mjs` | CORRIGÉ (OBSERVÉ) |
+| Défilement lissé, temps de réponse | 43 gestes isolés : à partir du dernier cran, 50 % de la course à 122 ms, 90 % à 279 ms, arrêt à 629 ms (médianes) ; environ 6 événements `scroll` par geste, soit un pas d'environ 100 ms | modèle exponentiel, constante de temps 100 ms (50 % à 69 ms, 90 % à 230 ms, arrêt vers 660 ms) | aucune : l'écart de 50 ms aux deux seuils correspond au demi-pas d'échantillonnage ; l'arrêt concorde | CONFIRMÉ (INFÉRÉ pour la forme de la courbe) |
+| Graphe sous 940 px de large | captures de la passe précédente : titre horizontal, foyers en grille, nom sous le foyer | disposition rayonnante : à 390 px foyers coupés aux bords et numéros seuls ; à 900 px libellés superposés | grille sous 940 px de fenêtre (2 colonnes sous 520 px de canevas, 4 au-delà), dernière rangée centrée, foyer central masqué, nom entier sous chaque foyer et borné au cadre, 56 px réservés au bouton du chemin 3D ; titre déjà horizontal ; coût de dessin inchangé (900 px : 2,14 ms contre 2,14 ; 390 px : 1,52 contre 1,67, rendu logiciel) ; contrôle ajouté à `test-modes` ; capture `docs/fall26-evidence/accueil-grille-moins-940-avant-apres.png` (avant, après à 390 puis 900 px) | CORRIGÉ (OBSERVÉ pour le principe ; nombre de colonnes et espacements choisis par nous) |
+
+Tests de cette passe (Chromium sans tête, rendu logiciel, aucun chiffre de cadence revendiqué) : `test-modes` PASS (20 contrôles, dont le retour élastique, en échec auparavant), `test-branches` PASS, `test-entrypoints` PASS, `test-no-shopify --strict` PASS (0 requête), `test-objets-3d` PASS, `test-machines` ok (onze machines), `test-navigation` PASS (102 routes), `test-site-consistency` PASS (40 pages), `test-defilement` PASS seul (2 échecs quand il tourne en parallèle d'une autre suite : sensible à la charge du banc).
+
+`test-ux` (11 fiches machines, deux tailles) : non conclu, coupé à 25 min sans sortie dans ce banc ; il n'exerce pas l'accueil.
+
+## Suite de la passe : règles perdues à une fusion, transitions et libellé de survol
+
+Constat : les commits `c62c36b` et `25ef8fc` (branche `claude/fall26-preuves-pr210`, fusionnée) avaient calé le graphe à plat sur la capture de la référence, retiré le viseur et donné un retard au libellé de survol. La réécriture des branches en courbes 3D (`d52304b`) les a écrasés : la matrice les déclarait « CORRIGÉ » alors que le code ne les contenait plus. Ils sont reportés sur le moteur actuel et couverts par des contrôles.
+
+| Effet | Preuve | Avant cette passe | Maintenant | État |
+|---|---|---|---|---|
+| Rendu du graphe à plat | capture de la référence (`expo-ref-chrome157-a-plat.jpg`) : traits bleus fins, certains foyers verts, anneau au centre, pas de cercle au sol, nom contre le foyer suivi d'un nombre gris | branches blanches, gerbe centrale lumineuse, cercles et tiges au sol, numéro et nom sous le cercle, libellés superposés | option `plat` du moteur : traits bleus, un foyer sur trois vert, anneau central sans halo, aucune trace au sol, contenu sans image en point, nom à droite du foyer et nombre de contenus en gris ; envergure portée à 44 % de la largeur ; courbes des branches conservées (observées en zoom sur la référence) | CORRIGÉ (OBSERVÉ ; teintes et proportion de foyers verts choisies à l'œil) |
+| Libellé de survol | JSON : `left 0.12s ease-out, top 0.12s ease-out` sur l'infobulle (30 échantillons) ; opacité `0.15s cubic-bezier(0.65, 0, 0.35, 1)` | fixe contre le nœud, apparition instantanée | suit le pointeur (constante de temps 40 ms, 95 % de l'écart en 0,12 s), fondu de 0,15 s en lissage cubique symétrique ; contre le nœud sans pointeur ou en mouvement réduit | CORRIGÉ (OBSERVÉ pour les durées ; le décalage de 18 px est notre choix) |
+| Bouton du mode 3D | captures : masqué sur l'accueil, visible dans un chapitre | visible partout | masqué tant que l'accueil occupe l'écran, sauf si le mode 3D est engagé ; fondu de 0,15 s ; le clavier reste actif partout | CORRIGÉ (OBSERVÉ) |
+| Survols des liens | JSON : `color 0.15s, text-decoration-color 0.15s` (136 échantillons) | changement instantané | appliqué aux liens du site (`.cv-link`, liens des fiches et des deux navigations) | CORRIGÉ (OBSERVÉ) |
+| Survols des boutons | JSON : `background-size 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.15s, color 0.2s, scale 0.1s` | instantané, ou 0,25 s uniforme pour le bouton de mode | mêmes durées et courbe sur le fond, la bordure et la couleur des boutons du site | CORRIGÉ (OBSERVÉ pour les durées ; l'effet de fond glissant de la référence n'est pas repris) |
+| Barres de graphique | JSON : `scale 0.55s cubic-bezier(0.2, 0.7, 0.2, 1)`, retards de 0,36 à 0,96 s | sans objet | non repris : aucun graphique à barres équivalent sur l'accueil | NON APPLICABLE |
+| Curseur sur un nœud cliquable | JSON : `pointer` (2 mouvements sur canevas) | `grab` puis `grabbing` | inchangé : la saisie des nœuds est un ajout propre au site | ÉCART ASSUMÉ |
+| Fuite des nœuds devant le pointeur, inclinaison du plan | aucune donnée (rendu de canevas) | choix internes | inchangés | NON DOCUMENTÉ |
+
+Sous 940 px la référence n'a pas de bouton de mode expo : le site le retire aussi de l'écran (décision de l'auteur : interface alignée sur la référence). Le mode 3D mobile reste dans le code et dans les tests, sans commande visible ; la réserve de 56 px de la grille est supprimée.
+
+Tests : `test-modes` PASS (24 contrôles, dont rendu à plat, transitions, bouton, libellé de survol, grille), `test-branches`, `test-entrypoints`, `test-no-shopify --strict`, `test-defilement`, `test-objets-3d`, `test-site-consistency` PASS. Capture : `docs/fall26-evidence/accueil-graphe-plat-avant-apres.png` (avant, après à 1 400 px, après à 390 px).
+
+## Observation directe de la référence à 1 400 × 900 et recalage du graphe à plat
+
+Banc : Chromium sans tête (rendu logiciel), page publique `https://www.shopify.com/editions/fall2026`, fenêtre 1 400 × 900, captures à 3, 6, 10, 15, 22 et 30 s après le chargement. Les captures de la référence ne sont pas versées dans le dépôt. Aucune vidéo : les animations sont déduites de l'écart entre deux captures.
+
+| Effet | Mesure sur la référence | Avant | Maintenant | État |
+|---|---|---|---|---|
+| Forme des rayons, à plat | segments droits, 1 px, aucune ramification, aucune gerbe au centre (seuls des traits vers les foyers) | courbes, ramifications sur trois niveaux, 120 rayons au centre | droits, sans ramification ni rayon central ; courbes et ramifications conservées en 3D, où elles avaient été observées | CORRIGÉ (OBSERVÉ) |
+| Longueur des rayons | environ 110 à 330 px pour un cadre de 945 px | 37 à 150 px | 65 à 260 px (rayon de foyer porté à 52 % de l'envergure) | CORRIGÉ (OBSERVÉ, réglé pour rester dans le cadre) |
+| Couleur des rayons | clair et turquoise au foyer, bleu vers l'extrémité ; quelques foyers verts | teinte uniforme | dégradé radial par foyer, un foyer sur trois vert | CORRIGÉ (OBSERVÉ ; choix des foyers verts arbitraire) |
+| Extrémités | points bleus d'environ 2 px, y compris pour les foyers verts | points de 1 à 3 px, verts pour les foyers verts | points bleus de 1,9 px ; contenus sans image en points de 2,6 px | CORRIGÉ (OBSERVÉ) |
+| Halo des foyers | aucun | halo lumineux | aucun à plat | CORRIGÉ (OBSERVÉ) |
+| Impulsions sur les rayons | aucune visible sur les deux captures stabilisées | impulsions blanches | retirées à plat, conservées en 3D | CORRIGÉ (INFÉRÉ : deux images fixes seulement) |
+| Vignettes | environ 20 px de côté, bord blanc | 22 à 46 px | 20 à 25 px × 15 à 20 px | CORRIGÉ (OBSERVÉ) |
+| Libellés | nom à droite du foyer, environ 12 px ; nombre gris en exposant, environ 10 px | 11 px et 9 px | 12 px et 10 px | CORRIGÉ (OBSERVÉ à l'œil, à un pixel près) |
+| Disposition | foyers répartis sur tout le cadre, anneau au centre du cadre | foyers dans un disque, centre à 53 % de la hauteur, foyers surélevés | envergure de 41 % de la largeur, centre au milieu, foyers à hauteur nulle | CORRIGÉ (positions exactes non reprises : elles dépendent des contenus) |
+| Dérive des foyers | 5 à 20 px de déplacement entre 10 s et 30 s, soit de l'ordre de 0,3 à 1 px/s | foyers fixes | dérive sinusoïdale lente (amplitude 3,5 % de l'envergure, au plus 0,7 px/s), immobile en mouvement réduit | CORRIGÉ (OBSERVÉ pour l'ordre de grandeur ; la loi du mouvement est INFÉRÉE) |
+| Apparition du graphe | cadre noir à 3 s, graphe complet à 10 s | croissance échelonnée des rayons | inchangé | NON DOCUMENTÉ (étapes intermédiaires non capturées) |
+| Réaction au pointeur | non observée | fuite des nœuds, inclinaison du plan | inchangées | NON DOCUMENTÉ |
+
+`tools/test-branches.mjs` vérifie maintenant les deux régimes : à plat, 249 rayons droits sur 249, aucune ramification ; en 3D, courbes (seuil de 80 %, les petites branches lointaines passant sous 0,8 px en perspective) et raccords exacts. `tools/test-modes.mjs` : le contrôle du retour d'un nœud relâché porte sur la stabilité à moins de 25 px (le retour est devenu plus rapide que le premier relevé).
+
+## Apparition du graphe à plat (rafale sur la référence, 1 400 × 900)
+
+Rafale de 22 captures entre 0,9 s et 27 s après la navigation (rendu logiciel : la page fige les captures pendant qu'elle se construit, d'où seulement deux instants utiles). Cadre noir jusqu'à 3,8 s ; une image intermédiaire saisie entre 4,9 s et 6,5 s ; une image presque finale à 6 s dans la série précédente ; état final ensuite.
+
+| Instant | Observé sur la référence | Repris |
+|---|---|---|
+| Début | foyers seuls, carrés environ trois fois plus gros qu'à l'arrivée, resserrés autour du centre, traits vers l'anneau central, quelques rayons courts, noms à peine visibles | écartement 0,45, grossissement 3, rayons en croissance, noms transparents |
+| Vers 2 s | positions presque finales, points et vignettes encore environ 1,5 fois plus gros, tous les rayons tracés, noms lisibles | écartement terminé en 1,6 s, grossissement terminé en 2,6 s (sorties cubiques), noms en fondu de 0,9 s à 1,9 s |
+| Fin | tailles finales | écartement 1, grossissement 1 |
+
+Certitude : OBSERVÉ pour les deux états et l'ordre des événements ; INFÉRÉ pour les durées (1,6 s et 2,6 s) et les courbes, calées sur deux instants seulement. En mouvement réduit l'état final est affiché d'emblée. Non repris sous 940 px (grille), faute d'observation. Capture du site : `docs/fall26-evidence/accueil-graphe-apparition.png` (trois instants). Contrôle ajouté à `test-modes` (26 contrôles).
+
+## Réaction au pointeur sur le graphe à plat (observation directe, 1 400 × 900)
+
+Banc : même page publique, pointeur déplacé par le navigateur sur deux foyers, le centre, une zone vide et une ligne de balayage ; capture 2,5 s après chaque déplacement et lecture du curseur calculé. Captures de la référence non versées.
+
+| Effet | Observé sur la référence | Avant | Maintenant | État |
+|---|---|---|---|---|
+| Survol d'un foyer : couleur | rayons, points et carré du foyer en vert vif | aucun effet | idem (vert vif), bord vert sur ses vignettes | CORRIGÉ (OBSERVÉ) |
+| Survol d'un foyer : nom | nom agrandi, d'environ 12 px à environ 22 px | aucun effet | corps de 12 à 22 px | CORRIGÉ (OBSERVÉ à l'œil) |
+| Survol d'un foyer : rayons | rayons resserrés vers le foyer | aucun effet | rayon réduit de 35 % | CORRIGÉ (OBSERVÉ ; taux estimé) |
+| Survol d'un foyer : autres foyers | rayons, points et vignettes des autres foyers estompés | aucun effet | estompés de 60 % | CORRIGÉ (OBSERVÉ ; taux estimé) |
+| Survol d'un foyer : trait vers le centre | allumé, en vert | aucun effet | idem | CORRIGÉ (OBSERVÉ) |
+| Curseur | `pointer` sur un foyer et sur une vignette, `auto` au centre et dans le vide | `grab` sur une vignette, rien sur un foyer | `pointer` sur un foyer et sur une vignette ; `grabbing` pendant qu'on tient un nœud (saisie propre au site) | CORRIGÉ (OBSERVÉ) |
+| Clic sur un foyer | non essayé sur la référence | sans effet | mène au chapitre du foyer | AJOUT (cohérent avec le curseur `pointer`, non observé) |
+| Durée des transitions de survol | non mesurée (une capture par état) | sans objet | lissage de constante de temps 0,12 s | NON DOCUMENTÉ, choix interne |
+| Retour au repos | points du foyer précédent en anneaux creux pendant le retour (une capture) | sans objet | non repris | NON REPRIS |
+| Infobulle au survol d'une vignette | non déclenchée pendant ce balayage | libellé qui suit le pointeur | inchangé | NON OBSERVÉ ici (durées issues du JSON) |
+
+Pendant le survol d'un foyer, la mise en évidence d'une trajectoire (ajout antérieur du site) est suspendue. Capture du site : `docs/fall26-evidence/accueil-graphe-survol-foyer.png`.
+
+Tests : `test-modes` PASS (27 contrôles, dont le survol d'un foyer), `test-branches` PASS, `test-entrypoints`, `test-defilement`, `test-objets-3d`, `test-no-shopify --strict` PASS ; `test-machines` (onze machines) et `test-navigation` (102 routes) PASS, relancés sur `e972cd2` ; `test-ux` : la fiche `moteur44` passe sur ses quatre tailles quand la suite est lancée fiche par fiche (les dix autres fiches non relancées ; la suite complète dépasse 25 min dans ce banc).
+
+`test-ux` relancé fiche par fiche sur `df88def` : les onze fiches passent sur leurs quatre tailles (44 contrôles). Un échec isolé, `gares` en mobile, au premier passage ; la fiche relancée seule passe entièrement. Échec intermittent déjà consigné pour cette suite ; la branche ne modifie aucun fichier des fiches machines (seuls `index.html`, `refonte/hero-graph.js`, `refonte/moteur.js` et deux tests changent).
+
+## Transitions entre chapitres (observation directe, 1 400 × 900, défilement instantané puis capture)
+
+Banc : même page publique et même fenêtre que le site ; `scrollTo` instantané à des pas de 170 px autour du haut d'un chapitre, lecture de la couleur de fond calculée et capture de la fenêtre. Référence : transition « Agentic » vers « Sidekick » (haut du chapitre suivant à 6 009 px). Site : transition « Projets professionnels » vers « Parcours » (haut à 46 272 px). Captures de la référence non versées ; planche du site : `docs/fall26-evidence/chapitres-transition-site.png`. Les captures sont lentes en rendu logiciel (de 10 s à plus de 60 s par image) : aucun état intermédiaire d'animation temporelle n'est capturable.
+
+| Effet | Référence | Site | État |
+|---|---|---|---|
+| Fond avant la transition | oklab(0,357162 −0,0193286 −0,214271) | identique | CONFIRMÉ (OBSERVÉ) |
+| Fond après la transition | oklab(0,428252 0,13336 −0,174502) | identique | CONFIRMÉ (OBSERVÉ) |
+| Fenêtre de la transition | commence entre 669 et 499 px avant le haut du chapitre : progression 0,02 à 669, 0,57 à 499, 1 à 329 | 0,01 à 680, 0,53 à 510, 1 à 340 | CONFIRMÉ à un pas d'échantillonnage près (170 px) ; la forme de la courbe entre deux points n'est pas mesurée |
+| Position verticale du titre pendant la montée | environ 69 %, 51 %, 32 % et 13 % de la hauteur de fenêtre à 329 px avant, 159 px avant, au niveau puis 181 px après le haut du chapitre | 71 %, 52 %, 33 % et 14 % aux positions équivalentes | CONFIRMÉ à 2 % près (lecture sur vignettes, à l'œil) |
+| Remplissage du titre (contour puis plein) | titre déjà plein sur toutes les captures, à 499 px avant et après | contour qui se remplit de la droite vers la gauche avec le défilement | NON DOCUMENTÉ : à position fixe, le nombre de pixels blancs du titre ne change pas entre des images prises de 13 s à 340 s d'écart (69, 12 340 puis 7 220 pixels selon la position) ; à 5 420 px il vaut 69 en arrivant par le haut et 7 223 en revenant de 5 500 px : l'état dépend du sens du défilement, pas seulement de la position. La vidéo de l'auteur (24 s) reste la seule preuve du remplissage ; le site n'est pas modifié. |
+| Liste fixe des chapitres, à gauche | 11 noms, le chapitre actif en évidence, centrée verticalement | 4 noms (les 4 sections réelles) | DIFFÉRENT : voir structure |
+| Structure | 11 sections de chapitre, chacune avec son titre et sa couleur | 4 sections réelles ; les 7 premières entrées de la liste (« Prévention & sécurité » à « Savoir-être ») sont des blocs de compétences (`rf-sk`) dans la section « Parcours », leurs ancres `#agentic` à `#operations` pointent sur ces blocs de 257 à 452 px | À DÉCIDER par l'auteur : passer à 11 sections est un choix de contenu et de structure, pas un réglage |
+| Contenu des chapitres | visuels 3D produits, textes marketing | contenu du CV | HORS PÉRIMÈTRE (contenus propres à chaque site) |
+
+Observation annexe : le fond de page est piloté par 11 chronologies `--f26-page-0` à `--f26-page-10` ; le site n'en utilise que 4 (une par section réelle), les 7 autres restent à zéro.
+
+# Passage de 4 à 11 chapitres (PR 224)
+
+Décision de l'auteur : les 7 blocs de compétences de « Parcours » deviennent de vrais chapitres. Mesures : `tools/test-chapitres.mjs` (rendu logiciel, 1 440 × 900, Shopify bloqué). Planches du site : `docs/fall26-evidence/chapitres-plat-site.png` (à plat) et `chapitres-expo-site.png` (expo).
+
+| Élément | Avant | Maintenant | Mesure ou preuve | État |
+|---|---|---|---|---|
+| Sections de chapitre | 4 (`shop`, `marketing`, `fulfillment`, `developer`) | 11, dans l'ordre du graphe : `agentic`, `sidekick`, `online`, `merchandising`, `retail`, `payments`, `operations`, puis les 4 existantes | 11 sur 11, identifiants HTML uniques | CORRIGÉ |
+| Contenus des 7 blocs | liste de pastilles dans « Parcours » | une carte par compétence (6, 4, 7, 7, 6, 8, 8), identifiant = nœud du graphe, icônes conservées | « Parcours » ne garde qu'un renvoi vers les 7 chapitres, sans doublon | CORRIGÉ |
+| Nœuds du graphe | 83 nœuds, 7 chapitres pointant vers des blocs de 257 px dans « Parcours » | 83 nœuds pointant vers un élément de leur chapitre | 83 sur 83 | CORRIGÉ |
+| Chronologies et couleurs | 4 sections sur les chronologies 0, 1, 2 et 10 | 11 sections sur les chronologies 0 à 10, suite bleu, violet, rose, orange, bleu, vert, rose, violet, orange, vert, ardoise | couleur au cœur de chaque chapitre = couleur attendue ; moteur chromatique et paramètres inchangés | CORRIGÉ |
+| Transitions de couleur | 1 transition mesurée | 11 mesurées dans les deux sens | écart entre descente et remontée 0,000 ; fenêtre de 660 à 360 px avant le haut du chapitre (340 px avec un pas de 20 px, mesure validée) pour les chapitres 2 à 11 ; chapitre 1 de 390 à 90 px (avance d'entrée nulle, comme sur la référence) | CONFIRMÉ |
+| Avance d'entrée de « Mondes & jeux » | 0 px (un `<span id="perso">` entre deux sections cassait le sélecteur voisin) | 247,5 px comme les autres ; l'ancre `#perso` est dans la section | référence : 247,5 px pour tous sauf le premier ; fenêtre mesurée identique aux autres chapitres | CORRIGÉ |
+| Remplissage des titres | 0,02 à 0,34 de `u` (calage à l'œil) | 0,08 à 0,20 ; fonction pure de la position, donc sans état | à `u = 0,20` (haut du titre à 720 px) le titre est entièrement blanc sur la référence ; invisible à 0,11 en arrivant par le haut. Sur les 11 titres : nul avant 0,08, complet dès 0,22, croissant, identique en descendant et en remontant (écart < 0,05), saut < 0,45. La courbe entre les deux bornes n'est pas observée (le DOM de la référence ne porte aucun état : tout est peint dans le canevas) | CALIBRÉ sur deux points ; forme NON DOCUMENTÉE |
+| Hystérésis de la référence | état du titre dépendant du sens du défilement (69 pixels blancs à 5 420 px en arrivant par le haut, 7 223 en revenant de 5 500 px) | non reproduite : le site se règle sur la position seule | choix délibéré (consigne : pas de saut ni de remise à zéro) | ÉCART ASSUMÉ |
+| Liste latérale à plat | 4 noms | 11 noms, un seul actif, le bon, pour chaque chapitre | 11 sur 11 | CORRIGÉ |
+| Liste en expo | pas de chapitre actif marqué | chapitre actif marqué (`aria-current`, même style qu'à plat) | 11 sur 11 | AJOUT (non observable sur la référence, qui exige l'API HTML dans le canevas) |
+| Navigation à plat | ancres vers 4 sections | 11 ancres ; atterrissage à 359 px avant le haut de section | référence : 359 px aussi, relevé sur `#sidekick` et `#payments` ; retour arrière du navigateur exact | CONFIRMÉ |
+| Navigation en expo | non testée | défilement doux, atterrissage à +207 px (première carte moins 30 % de la fenêtre), chapitre actif juste à l'arrivée | 11 sur 11 | CONFIRMÉ |
+| Étoiles de titre en expo | 8 | 15 (11 chapitres et 4 thèmes), chaque chapitre a son foyer et son nom | 11 sur 11 visibles avec leur nom | CORRIGÉ |
+| Cartes du chapitre à plat | pleine largeur, passant sous la liste latérale | à partir de la 3e colonne dès 940 px (la référence : cartes à 187 px à 1 400 px) | recouvrement supprimé | CORRIGÉ |
+| Entrée en expo depuis un défilement profond | blocs 3D décalés d'environ 31 000 px (`scrollY` plafonné par le navigateur quand la page rétrécit, relu pendant les déplacements) | position d'entrée mémorisée | 0 étoile visible avant, 2 après dans le scénario reproduit ; défaut préexistant, révélé par la nouvelle structure | CORRIGÉ |
+| Métadonnées | `twitter:site` = `@Shopify` | retiré, avec `twitter:account_id` | contrôle dans `test-chapitres` | CORRIGÉ |
+
+Tests sur le dernier code : `test-chapitres` PASS (à plat et en expo ; première passe complète du mode à plat, puis relances de la seule partie expo après réglage des attentes), `test-modes`, `test-branches`, `test-defilement`, `test-entrypoints`, `test-objets-3d`, `test-machines`, `test-navigation` (102 routes), `test-site-consistency` (40 pages), `test-no-shopify --strict` : PASS.
+
+Origine du balisage et éléments issus de la référence : `docs/reference/origine-et-elements-tiers.md`.
+
+# Mini-jeu de la sphère (PR 224)
+
+Décision de l'auteur : annulation du retrait décidé en PR 209 ; mini-jeu original réintégré au parcours final, dans la scène Expo. Détail, règles, commandes, mesures et limites : `docs/reference/mini-jeu-sphere.md`. Vérifications qui exigent un GPU réel : `docs/reference/verifications-gpu-expo.md`.
+
+| Élément | Référence | Ce dépôt | État |
+|---|---|---|---|
+| Touches | `d` 28, `a` 22, `z` 14, `q` 2, `e` 1 (journal brut) | flèches, A, D, Q, W, S, Z, Espace, molette | REPRIS pour a, d, z, q ; reste ORIGINAL |
+| Commande à saisir et glisser, bouton de départ | `div.game-grab` (curseurs `grab` et `grabbing`), `button.game-start` | zone de glisser tactile, bouton Jouer, invitation en fin de parcours | REPRIS dans le principe |
+| Règles, durée d'une partie, rendu, son | NON DOCUMENTÉS (session de 36 s dont 25 s de touches) | mécanique originale ; 1 à 3 minutes visées (92,0 s mesurées au clavier) | ORIGINAL |
+| Même environnement que l'Expo | sans objet | dessin dans le canevas de l'Expo avec la projection du moteur, caméra pilotant la position de lecture, entrée et sortie progressives | IMPLÉMENTÉ ET TESTÉ en rendu logiciel |
+| Fluidité, rendu et ressenti sur GPU | sans objet | banc logiciel de cette session : 0,8 image/s avec le jeu, non représentatif. Une autre session déclare (commit `b275c1f`) 24 vérifications réussies sur un GPU matériel, une partie de 93,8 s au clavier et une vidéo ; non reproduit ici | DÉCLARÉ PAR UNE AUTRE SESSION ; autres GPU, son et tactile réel OUVERTS |
+
+Tests : `tools/test-jeu-coeur.mjs` (noyau, 0,3 s) et `tools/test-jeu.mjs` (navigateur, partie complète au clavier seul) PASS ; non-régression : `test-modes`, `test-branches`, `test-entrypoints`, `test-objets-3d`, `test-machines`, `test-navigation`, `test-site-consistency`, `test-no-shopify --strict`, `test-chapitres expo` PASS ; `test-defilement` : passe seul, échoue par intermittence quand le banc est chargé (timing de 250 ms), module de défilement non modifié.
+
+## Effets du pointeur sur le graphe de l'accueil (analyse REA des scripts publics, code propre)
+
+Méthode : analyse statique des modules du graphe de la référence (outil REA, mode inerte, aucune exécution de code tiers), lecture des paramètres par défaut du moteur de simulation. Aucun code ni asset de la référence n'est copié ; les formules ci-dessous sont réécrites dans `refonte/moteur.js` (`repousse`).
+
+| Comportement observé (réf.) | Paramètre relevé | Reprise dans `moteur.js?v=m30` |
+|---|---|---|
+| Le pointeur repousse les foyers d'après sa **vitesse**, pas sa position | portée 265, intérieur 24, seuil de vitesse 24, vitesse max 1800, élan 1,45, noyau L² | oui, mêmes bornes et même forme |
+| Bouclier : un foyer situé devant le mouvement est moins poussé | bouclier 1 | oui |
+| Retour vers la position d'origine | ressort de rappel | oui (ressort 16, amortissement 6 : choix propre, la référence n'expose pas d'équivalent direct) |
+| Foyers non survolés ralentis | hoverSlow 0,2 | oui (poussée et rappel × 0,2 quand un foyer est survolé) |
+| Voisins du foyer survolé : anneau, étiquette, arête allumée, fondu 0,3 s | 6 voisins au plus | oui (fondu 0,1 s de constante de temps) |
+| Resserrement des rayons du foyer survolé | hoverConstrict 0,25 | déjà présent (0,35) |
+| Sillage de glyphes fluide (WebGPU), aimant, saisie et lancer, orbite lente | fluide GPU, magnetRadius 15, orbite | **non repris** : le sillage demande un rendu GPU, le reste n'est pas relevé sur l'accueil à plat |
+
+Vérification : `node tools/test-pointeur-graphe.mjs` (poussée 37 px au balayage rapide, retour à 0,04 px, aucune poussée à pointeur immobile, voisin et foyers estompés au survol). Le réglage d'amplitude (facteur 1,5) est un choix propre, à comparer à la référence sur matériel réel.
+
+## 4e cadre de l'accueil : filtre animé (composant « checkpoint » rétabli)
+
+- Historique : jusqu'au commit `7534fe4a`, ce cadre montait le composant `checkpoint` de la référence, chargé depuis le CDN Shopify (`PrototypeStage`, visible à partir de 940 × 693 px). Il a disparu quand l'accueil est devenu indépendant de Shopify (0 requête) ; seule l'affiche fixe (`checkpoint-stage__poster`) restait.
+- Rétabli en local : `refonte/checkpoint.js` (code propre ; lois relevées sur le module de la référence : 5 000 arrivées par minute, 3,5 % bloqués qui rebondissent, ligne à 0,5, quatre flux à 0,2 / 0,4 / 0,6 / 0,8, enveloppes calculées sur 22 tranches, points qui défilent sur les bords, impacts de 0,52 s, poussée du pointeur). Même condition d'affichage (940 × 693 px), affiche fixe conservée en dessous et en mouvement réduit.
+- Proportions des cadres de l'accueil à 2498 × 1319 comparées à la capture de référence : positions identiques à 1 px près.
+
+## Survol du graphe de l'accueil : lois de la simulation de la référence (moteur `m31`)
+
+Source : module `renderer` de la référence (fonctions de simulation et jeu de réglages `pack`), lu dans l'extraction ; réécrit dans `refonte/moteur.js`.
+
+| Loi de la référence | Valeur | Reprise |
+|---|---|---|
+| Survol d'un foyer : ses rayons raccourcissent | `hoverConstrict` 0,25 | oui |
+| Ordre du resserrement : selon l'angle de chaque rayon, à partir du haut | `hoverStagger` 0,15 s | oui |
+| Vitesse du resserrement / de la relâche | `hoverResponse` 15/s, `releaseRelaxation` 3/s | oui |
+| Survol d'un contenu : tout le graphe se calme | calme vers 1 à 10/s, allure = 1 − (1 − `hoverSlow` 0,2) × calme | oui |
+| Orbite lente des rayons autour du foyer, un foyer sur deux en sens inverse | `orbitSpeed` 0,02 rad/s, `orbitAlternate` | oui |
+| Aimant : un rayon proche du pointeur s'y colle | `magnetRadius` 15 px × échelle (min(L, H) / 741, bornée 0,4 à 3), noyau (1 − (d/r)²)², 0,9 | oui (déplacement direct vers le pointeur, sans la force de la simulation) |
+| Poussée par la vitesse du pointeur, coupée pendant le survol d'un foyer | voir section précédente | oui |
+| Deux traits qui circulent sur chaque branche | `flowSpeed` 1,5, `flowTrail` 1 s, sens et vitesse tirés du hachage de la branche | oui (couleur choisie : celle du foyer) |
+| Anneaux des voisins | appartiennent à la vue de section, pas à l'accueil | **retirés** de l'accueil |
+
+Non repris : sillage de glyphes WebGPU (rendu GPU), saisie et lancer d'un foyer (`grabPull` 38, `throwScale` 1,25), forces de répulsion entre foyers (notre disposition des foyers est fixe). Test : `node tools/test-pointeur-graphe.mjs`.
+
+## Apparition du graphe de l'accueil : séquence « intro » de la référence (moteur `m32`)
+
+Source : classe d'intro du module `controller` de la référence et ses réglages par défaut. Les captures `t03` à `t30` prises sur la référence étaient à 3, 6, 10, 15, 22 et 30 **secondes** (graphe déjà complet) : elles ne renseignent pas l'intro, c'est le code qui fait foi.
+
+| Loi | Valeur | Reprise |
+|---|---|---|
+| Ordre de sortie des foyers | rang × pas premier avec leur nombre (11 foyers : pas 5), décalage 0,07 s | oui |
+| Trajet d'un foyer depuis le centre | 1,1 s, courbe 1 − (1 − d)⁵ | oui |
+| Rotation pendant la sortie | foyers −180°, rayons −67°, amorties en (1 − t/3)⁵ | oui |
+| Rayons | partent 0,45 s après leur foyer, + 0,025 s chacun, trajet 0,99 s | oui |
+| Taille d'un élément | min(1, 6d) × (1 + 0,7 sin(πd)) × souffle | oui |
+| Souffle (échelle globale des tailles) | 5,6 → 1, maintien 0,25 s, retour 1,75 s, puissance 3, mélange 0,2 | oui |
+| Foyer central | part de 1/5,6, atteint 1 en 0,25 s, gonfle 0,6 s (× 1,42 au plus) | oui |
+| Dérive lente des foyers | `driftOn` désactivé sur la référence | **retirée** (c'était un choix propre) |
+
+Remplace l'apparition estimée sur deux captures (écartement 0,45 → 1 en 1,6 s, taille × 3 → 1 en 2,6 s). Mouvement réduit : aucune apparition. Outil : `VW=1400 VH=900 REJOUE=0.15,0.4,0.7,1,1.5,2.4 OUT=x.png node tools/capture-accueil.mjs` (horloge de l'intro figée, une image par instant).
+
+## Saisie et lancer d'un foyer (moteur `m33`)
+
+Lois du module `renderer` de la référence : pendant la saisie, le foyer suit le pointeur (vitesse estimée 0,6 × ancienne + 0,4 × nouvelle), ses rayons se resserrent ; au lâcher, vitesse × 1,25 × exp(−max(0, arrêt − 80 ms) / 60 ms), plafonnée à 1 400 px/s × échelle ; freinage renforcé après le lâcher (+14, qui s'éteint à 1,5/s) puis retour à la place. Un clic (moins de 5 px parcourus) mène toujours au chapitre. Priorité au foyer quand le pointeur est à moins de 12 px de son centre. Test : `tools/test-pointeur-graphe.mjs` (suit de 120 px, pas de navigation après un glisser, retour à moins de 1 px).
+
+## Sillage de glyphes et lueur des points (sillage `s3`, moteur `m34`)
+
+Sources : shaders `fluid`, `fluid-ambient` et `glyph-glitch` de la référence, réglages par défaut du `renderer` (`fluidGlyphSize` 6, `fluidRadius` 6, `fluidForce` 0,6, `fluidDye` 0,15, `fluidFade` 4, `fluidTurbulence` 200, `fluidGlitch` 3, `fluidAir` 0,95, `fluidMask` 0,1, `fluidMarksOnly`, `fluidAmbient` 100, opacités accueil 0,4 et 0,6), module `glow` (`glowStagger` 0,35, `glowFade` 0,6). Réécrits ; aucun fichier de la référence n'est versionné ni chargé.
+
+| Élément | Référence | Ici |
+|---|---|---|
+| Moteur | WebGPU | **WebGL2** (carte graphique, textures demi-flottantes), même suite de passes : advection, divergence, 16 itérations de Jacobi, projection, choix des glyphes par cellule, composition |
+| Grille | une cellule par glyphe, 4 × 6 px (taille 6, proportion 30/48) | identique |
+| Pointeur | une poussée par mouvement (16 par image au plus), ignorée après 0,25 s d'arrêt ; fluide arrêté sous 0,015 d'énergie | identique (énergie décomptée au pas de la simulation) |
+| Glyphes | marques du graphe (cercle, carré, plein, creux, 2 tailles), rampe de 22, bords plus clairs, 95 % de cellules vides, masque de bruit, bascules d'un quart de tour, déchirures, scintillement × 5 | identique ; défilement des marques de bord approché (sans le décalage de rangée du texte) |
+| Page nue | 100 marques isolées sur une grille 3 × 4 px, chacune à son rythme (0,5/s), ordre mélangé par réseau de Feistel | identique (atlas commun aux deux grilles) |
+| Teinte | surface bleue `#0822B5` relevée vers le blanc (0,2 ; bords 0,6) | identique |
+| Conditions | pointeur fin avec survol, mouvement normal | identique |
+| Lueur | points à moins de 265 px du pointeur mêlés de blanc (lissage 3 − 2x), montée 24/s, extinction 0,6 s après un délai propre à chaque point (0 à 0,35 s) | identique (points des rayons et contenus sans image) |
+
+Mesures (rendu logiciel) : grille 249 × 139, teinte maximale 0,33 pendant un geste, retombée sous le seuil du premier glyphe (0,025) au repos. Le rendu sur carte graphique matérielle reste à comparer visuellement à la référence. Tests : `tools/test-sillage.mjs`, `tools/test-pointeur-graphe.mjs` (lueur).
+
+## Transitions entre chapitres : graphe commun et caméra (graphe-chapitres `gc2`, moteur `m36`)
+
+Sources : modules `journey`, `heroMediaFlight` (calcul de l'image de section à partir du défilement) et `build-section-frame` de la référence. Réécrit dans `refonte/graphe-chapitres.js`.
+
+**Séparation en 11 chapitres** : un chapitre = une section de la page (`agentic` … `developer`) = une étoile du graphe ; même identifiant partout, pas d'autre découpage.
+
+| Loi de la référence | Valeur | Reprise |
+|---|---|---|
+| Après l'accueil, le même graphe reste en fond (couche fixe) | — | oui : canevas fixe, même moteur, même disposition que l'accueil |
+| Cadrage d'un chapitre | étoile à 22 % de la largeur, mi-hauteur ; cadre 18 / W − 24 / 82 / 0,78 H ; agrandissement ≤ 2,8, × 0,92 | oui |
+| Trajet entre chapitres | de (bas du quitté − 0,55 H) à (haut du suivant − 0,4 H) | oui |
+| Repli des rayons du chapitre quitté | sur 0 à 30 % du trajet | oui |
+| Glissement de caméra | courbe cubique symétrique sur tout le trajet | oui |
+| Contexte (autres étoiles) | révélé de 2 à 8 %, effacé de 50 à 100 % ; plancher 0,12 | oui |
+| Dépli des rayons du chapitre suivant | 50 à 100 % (lissé) | oui |
+| Couleur de page | 11 à 63 % du trajet | inchangé : chaîne de couleurs CSS existante (mesurée au tour précédent) |
+| Entrée depuis l'accueil | zoom de la vue d'ensemble vers la première section | approché : la caméra va du centre (échelle 1) à la première étoile pendant l'effacement de l'accueil |
+
+Retiré : l'étoile blanche propre à chaque titre (`theme-stars.js`), qui n'existe pas sur la référence ; le remplissage des titres et la liste des chapitres sont conservés. Hors grand écran (moins de 940 px) et en mode expo, la couche est masquée. Test : `node tools/test-graphe-chapitres.mjs [dossier]` (cadrage, repli, contexte, dépli, relais au chapitre suivant).
+
+## Disposition des chapitres : grille et cadres (relevé sur la page de référence en ligne, 1 400 × 900)
+
+Relevé : positions et tailles des `article` de chaque section, chaîne de grilles et styles calculés (script Playwright, page de référence en ligne, aucune ressource copiée).
+
+| Élément | Référence | Avant | Après |
+|---|---|---|---|
+| Grille | 16 colonnes, gouttière 16 px, groupe de cadres col. 3 à 16 | marge latérale ajoutée `clamp(20px,3vw,64px)` | marge retirée : départ à x = 189 (187 + barre de défilement) |
+| Grand cadre (média) | 12 colonnes = 1 011 px, bordure 10 %, fond blanc 8 %, marges 24/24/16, titre 18 px | toute la largeur forcée (1 122 à 1 195 px) | 12 colonnes (1 022 px) ; projets compris |
+| Paire | 6 colonnes = 497 px | — | jeux par paires (503 px) |
+| Petite entrée | 3 colonnes = 241 px, 4 par rangée, sans cadre, carré 4 px, 14 px, 96 px entre rangées | cadres de 159 px de haut, empilés, titre 28 à 44 px | compétences en entrées de 244 px, 4 par rangée, 14 px, 96 px entre rangées ; icône et rappel du chapitre masqués |
+| Texte des cadres | 18 px | 21 à 30 px (`clamp`) ; titres 28 à 44 px forcés | 18 px, titres hérités (18 px) |
+
+Reste différent : la référence garde des cadres de 400 à 735 px de haut (texte court, média, bouton vers le détail) ; nos fiches de projets intègrent tout leur contenu (environ 3 500 px chacune). Ramener ce contenu derrière un bouton est un choix de contenu, non fait ici.
+
+## Ordre des chapitres : projets en tête, par type (avis de Mathieu, confronté et retenu)
+
+Raisonnement : la référence ouvre sur son offre phare ; pour un CV, la preuve la plus forte est la réalisation concrète, et chaque type de projet porte une promesse lisible. Contre-avis retenu : sept chapitres de compétences de 4 à 7 lignes chacun sont trop minces pour un chapitre ; ils sont regroupés pour garder 11 chapitres.
+
+| Position (section) | Avant | Après |
+|---|---|---|
+| 1 `agentic` | Prévention & sécurité | **Faire fonctionner** (introduction + 2 projets) |
+| 2 `sidekick` | Maintenance & exploitation | **Fichiers retrouvés** (introduction + 5 projets) |
+| 3 `online` | Data & automatisation | **Construire une fois** (introduction + 2 projets) |
+| 4 `merchandising` | IA appliquée | **Savoir où regarder** (introduction + 2 projets) |
+| 5 `retail` | Référentiels | **Gains** (tirelire des gains annuels) |
+| 6 `payments` | Méthodes | Maintenance & prévention (10 compétences) |
+| 7 `operations` | Savoir-être | Data & IA (14) |
+| 8 `shop` | Projets professionnels | Référentiels & méthodes (14) |
+| 9 `marketing` | Parcours | Parcours + savoir-être (8) |
+| 10, 11 | Mondes & jeux, Blog & études | inchangés |
+
+Chaque position garde son identifiant, sa couleur et sa ligne de temps (chaîne de couleurs inchangée). Script reproductible : `python3 -I tools/reordonne-chapitres.py index.html` (contrôles : sections équilibrées, 73 cadres avant, 76 après = 3 introductions de types en plus). Menus, liste de l'accueil, données du graphe et liens de Parcours mis à jour ; titres en double des introductions retirés (ancres `s-p0` à `s-p3` conservées).
+
+## Fiches de projets compactes
+
+Référence : cadres de 400 à 735 px de haut (titre, texte court, média, bouton vers le détail). Avant : chaque fiche de projet affichait tout son contenu (environ 3 500 px). Après (`tools/compacte-projets.py`, passage unique) : rubrique, titre, sous-titre, « L'idée », **deux chiffres clés** tirés de « Ce que ça change » (temps libéré, valorisation), image de la machine et ses boutons restent visibles ; « L'objet en action », la démo, le projet, « Comment ça marche » et la construction se déplient avec « Voir le détail » (élément `details` natif, accessible au clavier, ouvert automatiquement quand un lien pointe à l'intérieur). Hauteur mesurée à 1 400 × 900 : 499 px par fiche (3 514 px une fois dépliée), aucune erreur de page.
+
+## Prose au ton des Éditions Shopify Automne 2026 (version française relevée en ligne)
+
+Relevé du ton (`shopify.com/fr/editions/fall2026`, 11 sections) : grand cadre = titre-bénéfice en groupe nominal (« Toute votre boutique gérée depuis une vue unique »), une ou deux phrases au présent, l'outil en sujet, chute courte (« Demandez-lui une fois : il s'en souviendra. ») ; petite entrée = une phrase à l'impératif ; boutons « En savoir plus », « Afficher l'aide » ; légendes chiffrées (« Plus de 12 000 … chaque minute »).
+
+| Texte | Avant | Après | Règle |
+|---|---|---|---|
+| 11 fiches de projets | rubrique, nom de l'outil, sous-titre, « L'idée » | titre-bénéfice (« Des dépassements de budget signalés le matin même ») + 1 à 2 phrases (outil en sujet) + chiffres clés | `tools/prose-projets.py` ; chaque phrase reprend un fait de la fiche |
+| 4 introductions de types | 2 à 4 notes | une phrase de promesse | idem |
+| Bouton de détail | « Voir le détail » | « En savoir plus » | libellé de la référence |
+| Légendes de l'accueil | « 3 200 à 4 000 h libérées… » | « Plus de 3 200 heures libérées chaque année pour les équipes » | format chiffre en tête |
+| Présentation (Parcours) | ton familier (« Salut ! ») | phrases courtes, mêmes faits | `tools/prose-accueil-parcours.py` |
+| Tailles | titre de fiche ≈ 28 px, texte 16 px, colonne ≈ 220 px | titre et texte 18 px, texte atténué, colonne 400 px | relevés de la référence |
+
+Non réécrit, faute de matière : les 46 compétences et les 11 jeux n'ont qu'un nom dans le site. Les transformer en phrases d'action, comme les petites entrées de la référence, demanderait d'inventer ce qu'ils recouvrent ; une ligne par compétence et par jeu fournie par Mathieu permettrait de le faire. Les détails dépliables des projets gardent leur texte d'origine.
+
+## Machines et « Voir la magie » repris de main
+
+La branche de la PR n'avait pas reçu les commits de `main` sur les machines (#240 à #243). Repris de `main` : le dossier `refonte/m3d/` (rendu trait `lines.js` : aplat bleu à tons de faces, contours blancs, halo au sol, accent sur la pièce qui bouge) et son accroche dans le montage des machines de `index.html`. Retirés : les 11 boutons « Voir la magie » des fiches et les 11 des schémas « Comment ça marche ». Légendes des cadres de l'accueil rétablies dans leur texte d'origine (seuls les noms de chapitres ont changé). Le reste de `main` (nouveau moteur du graphe, nouvelles fiches et nouveaux cadres de l'accueil) n'est pas fusionné : les deux versions ont divergé.
+
+## Fusion avec main
+
+Base : `main` (115 commits absents de la PR). Repris de `main` tel quel : en-tête et accueil (les 4 cadres), styles et scripts, moteur du graphe (`CielExpo`, adaptateur spectral, transitions de chapitres par fondu), machines en trait, fiches des 11 projets (captures, fenêtres animées), tableau de bord des gains, Parcours, Mondes & jeux, Blog & études, menu des chapitres de l'en-tête.
+
+Réappliqué depuis la PR : les **11 sections** dans le nouvel ordre (4 types de projets, Gains, 3 chapitres de compétences, Parcours, Mondes & jeux, Blog & études) avec leurs introductions, noms courts dans les menus et la liste de l'accueil, enregistrements des chapitres ; les 7 groupes de compétences que `main` plaçait dans Parcours sont remplacés par le renvoi vers les 3 chapitres de compétences, et leurs 46 ancres en double retirées ; règles de disposition alignées sur la référence ; mini-jeu de la sphère (bouton, invitation, `jeuMonde` et dessin par image raccordés au script Expo de `main`). Script : reconstruction d'`index.html` (tête, accueil et fin de page de `main`, sections de la PR, contenus récents de `main` transplantés par identifiant).
+
+Non reporté sur le nouveau moteur (retiré, conservé dans l'historique Git) : survol, apparition, saisie et lancer, lueur et sillage de glyphes de l'ancien graphe d'accueil, graphe des chapitres à caméra, filtre animé du 4e cadre de l'accueil. Les fiches de projets reprennent le texte de `main` (la prose au ton de la référence portait sur les anciennes fiches).
+
+Tests : `test-no-shopify --strict` vert (contrôle de la tirelire remplacé par le tableau de bord des gains, qui l'a remplacée dans `main`) ; `test-modes` de `main` : le contrôle du curseur échoue aussi sur `main` seul ; caméra et saisie instables en rendu logiciel. `test-chapitres` adapté à l'interface de `main` (menu d'en-tête, courbe de remplissage 0,02 à 0,34).
+
+Mesures après fusion : `test-chapitres` 33 contrôles verts (11 transitions, couleurs, navigation à plat et expo, mobile) ; attribution `twitter:site` « @Shopify » réintroduite par `main` retirée. Mini-jeu : entrée, commandes, chute, relance, partie complète au clavier, résultats, sortie et tactile verts ; la page fusionnée est plus courte (parcours de 29 431 px au lieu de 77 833), d'où une partie de 31 s (cible 60 à 180 s) et moins d'objets, et le saut n'est pas compté dans un passage : rééquilibrage à faire.
+
+## Passages entre chapitres après la fusion : comparaison image par image avec la référence (à plat, 1 400 × 900)
+
+Relevé : référence en ligne et site capturés aux mêmes positions (700, 500, 360, 200 et 0 px avant le haut des chapitres 2, 6 et 11), pixel du fond au coin bas droit.
+
+| Élément | Référence | Après fusion (main) | Corrigé |
+|---|---|---|---|
+| Couleur de page | ancienne à −700, mi-chemin à −500, nouvelle à −360 | déjà nouvelle à −700 (onde lancée ≈ 990 px avant) | loi `journey` de la référence dans `section-colours.js` : trajet du haut du chapitre − 87 px − 0,55 écran au haut − 0,4 écran, couleur de 11 % à 63 % du trajet, lissée ; mesuré : ancienne à −700, en cours à −500, nouvelle à −360 sur les 3 passages |
+| Remplissage des titres | plein en entrant dans l'écran | 0,02 à 0,34 (réglage à l'œil de main) | 0,08 à 0,20, relevé sur la référence |
+| Étoiles | graphe en fond, en continu, une étoile au milieu de l'écran (≈ 50 %, 45 %), traits et points blancs, vignettes, sans nom | étoile liée au titre, absente avant lui | graphe des chapitres rétabli (`graphe-chapitres.js` + `moteur-plat.js`, moteur à plat d'origine séparé du moteur Expo de main), cadrage 50 % / 45 %, traits blancs, sans nom, sans remontée des autres étoiles |
+| Accueil | 4 cadres | 4e cadre (gains, filtre animé) masqué par `hero-tuning.css` | rétabli, trois rangées |
+
+Écart restant : à −500 px l'étoile du chapitre entrant est déjà déployée sur la référence, encore repliée ici. Mode 3D : la référence exige une carte graphique et l'API « HTML dans le canevas », non observable ici ; sur le site, couleur au sol par chapitre, titres en volume et étoiles vérifiés aux mêmes positions. Tests : `test-graphe-chapitres` vert, `test-no-shopify --strict` vert ; `test-modes` : curseur (échec aussi sur main seul) et caméra (instable en rendu logiciel).
+
+## Passages entre chapitres : relevé fin (tous les 50 px, de 700 à 300 px avant le chapitre 2)
+
+| Élément | Référence | Avant | Après |
+|---|---|---|---|
+| Couleur (coin bas droit, teinte R) | 05 11 25 3a 4c 5d 69 70 70 : mélange **uniforme** (centre et coin identiques), quasi linéaire de 690 à 360 px | front radial, changement entre 550 et 450 px | mélange uniforme, linéaire de 0,767 à 0,407 écran (690 à 366 px) : 05 0e 22 38 4e 60 6c 70 70, écart ≤ 3 unités à chaque pas |
+| Étoile | une étoile déployée à chaque pas, qui glisse d'un chapitre à l'autre | repliée vers −500 (vide) | toujours déployée, relais entre les deux étoiles à mi-trajet |
+| Chapitres 6 et 11 | 11 : 15311d à −500 | — | 11 : 0d3120 à −500 ; 6 : départ du gris du tableau des gains (sol sombre de main) au lieu du bleu |
+
+Essai d'un mélange en teinte pure (TSL) : plus proche pour le chapitre 6, plus loin pour les chapitres 2 et 11 ; mélange de main conservé (90 % oklab, 10 % teinte). Ces mesures portent sur le rendu sans WebGPU (repli CSS, chez la référence comme ici) ; sur carte graphique, le fond est peint par le shader de couleur de la référence, non vérifiable ici. Tests : `test-chapitres` 34 contrôles verts, `test-graphe-chapitres` et `test-no-shopify --strict` verts.
+
+## Effets du pointeur reportés sur le nouveau graphe d'accueil de main (`CielExpo`, à plat)
+
+Mêmes lois et mêmes paramètres que la section « Survol du graphe » (référence : module renderer) : poussée des foyers par la vitesse du pointeur (265 / 24 / 1 800 / élan 1,45 / bouclier), ressort de rappel, resserrement de 25 % des rayons du foyer survolé échelonné sur 0,15 s selon l'angle (réponse 15/s, relâche 3/s), calme quand un contenu est survolé (allure 0,2 appliquée à l'orbite), lueur des points à moins de 265 px (montée 24/s, extinction 0,6 s après un délai propre de 0 à 0,35 s), saisie et lancer d'un foyer (vitesse lissée 0,6/0,4, × 1,25, plafond 1 400 px/s, clic vers le chapitre conservé), sillage de glyphes WebGL2 sous le graphe. Les réactions propres à main (poussée locale des points, saisie d'un point, nœud survolé grossi) sont conservées. Test : `tools/test-pointeur-graphe.mjs` (attentes allongées : en rendu logiciel la physique n'avance que de 0,1 s par image) et `tools/test-sillage.mjs`, verts.
+
+## Mini-jeu : piste étirée
+
+La page fusionnée est plus courte (29 431 px). Le plan du jeu est construit sur des rangées multipliées par K = 70 000 / longueur de page, et l'affichage divise par K (`pt` dans `refonte/jeu.js`) : physique, sauts et trous inchangés, partie de nouveau dans la cible de 1 à 3 minutes.
+
+## Les 10 passages entre chapitres (couleur, à plat) et curseur de l'accueil
+
+Relevé sur la référence et sur le site à 700, 500 et 360 px avant chaque chapitre (pixel du fond au coin bas droit) : départ identique sur 9 passages sur 10, mi-chemin à 5 à 25 unités près, arrivée identique à quelques unités. Seul écart : le passage vers le chapitre 6 part du gris du tableau des gains (sol sombre de main) au lieu du bleu.
+
+Curseur sur le graphe de l'accueil : `pointer` sur un nœud ou un foyer (relevé de la référence), `grabbing` pendant une saisie ; le curseur posé par le mode Expo n'est plus effacé par l'accueil. `test-modes` vert en entier (il attendait `grab` au survol, contraire au relevé de la référence).
+
+## Automatisation des processus et Business Intelligence (profil et projets)
+
+Ajouté par `tools/notions-automatisation-bi.py`, chaque notion découlant d'un fait déjà écrit dans la fiche (outil, chaîne de traitement, mesures DAX) :
+- **fiches projets** : une rangée de pastilles sous la phrase d'accroche, en police mono 12 px à fond sombre, comme les boutons des cadres de la référence (ex. Gares prioritaires : Business Intelligence · Power BI · DAX : 19 tables, 159 mesures · Indicateurs de criticité ; Reporteur Q18 : Automatisation des processus · Chaîne ETL · SharePoint → Excel → Power BI · Business Intelligence) ;
+- **chapitre « Data & IA »** : cinq entrées au format des autres (3 colonnes, 14 px) : Automatisation des processus, Business Intelligence, Modélisation DAX, Tableaux de bord et indicateurs, Chaînes ETL ; ajoutées aux enregistrements des chapitres (graphe, recherche, mini-jeu) ;
+- **présentation (Parcours)** : « Deux leviers : l'automatisation des processus (Power Automate, machines virtuelles, SharePoint) et la Business Intelligence (Power BI, modèles DAX, tableaux de bord et indicateurs). »
+
+La présentation au ton de la référence, perdue à la fusion avec main, est réappliquée. Tests : `test-chapitres` mis à jour (19 entrées dans « Data & IA », 84 nœuds), `test-modes` et `test-no-shopify --strict` verts.
+
+## Compétences sous le hublot (Parcours)
+
+- Bloc « Compétences » de main rétabli sous le hublot, à l'identique (7 rubriques, pastilles, légende « En cours d’acquisition », rail de la gare à gauche).
+- Ids des rubriques renommés `sk-…` : plus de doublon avec les ids de sections.
+- Data & automatisation : + Automatisation des processus, Business Intelligence, Modélisation DAX, Tableaux de bord et indicateurs, Chaînes ETL, SharePoint (icônes reprises des pastilles voisines). 52 pastilles au total.
+- Outil : `tools/competences-hublot.py`. Test : `test-chapitres` vérifie 7 rubriques, au moins 52 pastilles, BI présente.
+
+## Accroche de l'accueil
+
+- « Ingénieur maintenance et qualité · Automatisation des processus & BI ». Vérifiée : 1440×900 (vertical, 631 px), 1366×768 (538 px, tient dans le cadre), 390×844 (2 lignes alignées à droite).
+
+## Argumentaire « De l’innovation dans les bureaux » (chapitre Gains)
+
+- Carte texte après le tableau des gains : chapeau + 5 paragraphes en texte suivi, sans intertitres (innovation et numérique, masse documentaire du tertiaire, outils nés de la demande des utilisateurs, pérennité (classeurs Excel des années 1990-2000 toujours utilisés sans être compris), réticence au niveau de la décision, abordée sans affect, et besoin d’indicateurs de performance pour parler la langue de la direction), chaque idée amenée par la précédente.
+- Ton : Tocqueville (longues périodes, observations générales, ironie retenue), français courant, sans tiret cadratin. Seuls chiffres : ceux du site (3 200 à 4 000 h/an, 104,74 €/h).
+- Même gabarit que les cartes d’introduction (h3 + cv-card-body), enregistrement ajouté au chapitre (graphe, recherche). Outil : `tools/argumentaire.py`.
+
+## Relevé GPU (WebGPU logiciel) : étoiles à plat entre les chapitres
+
+Méthode : Chromium avec `--enable-unsafe-webgpu --use-angle=swiftshader` (WebGPU et WebGL actifs, sans carte graphique), captures de la référence et du site toutes les 100 px autour du haut d'un chapitre, position du foyer détectée image par image. Seules des mesures sont reprises, aucun code.
+
+| Relevé (référence, 1400 × 900) | Valeur | Reprise (`graphe-chapitres.js?v=gc12`, `moteur-plat.js?v=3`) |
+|---|---|---|
+| Centre de l'étoile pendant le passage | x 686 à 694, y 454 (50 % de la hauteur) | 50 %, 50 % (au lieu de 45 %) |
+| Début du trajet | bas du dernier groupe de cartes de la section quittée (hors colonne de texte) − 0,55 H | idem (avant : haut du chapitre − 87 px, trajet de 222 px seulement) |
+| Sortie | après la fin du trajet (haut − 0,4 H), l'étoile remonte avec la page : 15, 78, 179 px à 60, 160, 260 px | décalage u − 100 (1 − e^(−u/100)) : 15, 80, 167 px |
+| Entrée | symétrique : l'étoile monte du bas avec la page avant le trajet | idem, la plus proche des deux s'applique |
+| Rayons | opacité ≈ 0,2, une dizaine par étoile, extrémités en cercles creux de 8 px, foyer carré de 6 px | mode `discret` du moteur à plat (opacité × 0,4, cercles creux), 4 rayons décoratifs |
+
+Défaut trouvé en WebGPU : le sillage de l'accueil (WebGL2) perdait son contexte (limite de contextes du navigateur) et s'affichait en grand panneau blanc pendant les passages. Il se retire désormais à la perte de contexte (`sillage.js?v=s5`).
+
+Test : `node tools/test-graphe-chapitres.mjs` (loi de sortie : 167 px à 260 px, relevé 167 à 179).
+
+### Rayons des étoiles à plat (relevé WebGPU, étoile épinglée à −500 px)
+
+| Relevé (référence) | Reprise |
+|---|---|
+| 16 rayons (13 cercles creux + 3 vignettes pour 3 contenus), répartis tout autour | 13 rayons décoratifs simples (sans ramification), angles réguliers + 0,4 rad d'écart |
+| longueurs 208 à 421 px à 900 px de haut, rayons pouvant sortir du cadre | rayon d'étoile = min(420, 0,44 H, 0,3 W), longueurs 0,5 à 1 fois ce rayon |
+| trait uniforme : +45 à +85 à 80 px, +24 à +53 à 150 px, +18 à +24 à 250 px | blanc à 0,2 (0,3 pour les rayons de contenu) : +38 à +73, +38 à +44, +19 à +29 |
+
+### Vue Expo (3D) de la référence : non observable sans carte graphique
+
+- Le bouton « Expo Mode » de la référence (`data-component-name="expo-mode"`) reste masqué (`visibility: hidden`, hors écran) sous WebGPU logiciel.
+- Conditions relevées dans son module d'entrée : API expérimentale HTML-dans-canvas (`HTMLCanvasElement.prototype.requestPaint` et `CanvasRenderingContext2D.prototype.drawElementImage`), pointeur fin, grand écran.
+- Essais : drapeau `--enable-blink-features=CanvasDrawElement` (l'API devient disponible), indicateur `isFallbackAdapter` masqué : le bouton reste caché et la vue reste à plat.
+- Conclusion : comparaison 3D à faire sur une machine avec carte graphique, dans un Chrome qui expose l'API HTML-dans-canvas.
+
+## Vue Expo (3D), comparaison côte à côte du 27 novembre 2026
+
+Conditions : référence dans le Chrome de l'utilisateur (GPU réel, API HTML-dans-canvas présente), fenêtre 2 498 × 1 440 (viewport 1 584 × 1 255, puis 1 584 × 1 311, le redimensionnement à 1 400 × 900 n'a pas été appliqué par le navigateur). Site local dans Chromium sans tête à 1 400 × 900, rendu logiciel (`localhost:8765` n'était pas joignable depuis Chrome). Captures de la référence à environ 1,4 s, 4,3 s et 10,4 s après le clic (latence de capture comprise), puis défilement à 600, 1 500 et 3 000 px. Site local à 1 s, 4,1 s et 12 s, mêmes défilements. Aucun code de la référence n'est repris, seules des valeurs relevées.
+
+| Mesure | Référence | Site avant | Site après |
+|---|---|---|---|
+| Visibilité du bouton à 0 px | masqué (`visibility: hidden`, opacité 0, hors écran à x = −14 px) | opacité 0, fixe à x = 10 px | opacité 0, x = −14 px |
+| Apparition du bouton | seuil net entre 1 260 et 1 270 px à H = 1 311 (0,965 H) ; à H = 1 255 masqué à 1 200 px, visible à 1 500 px | progressive (lissage de 0,25 hero à hero + 0,6 H + 50) : 0,47 à 800 px, 0,90 à 1 200 px (H = 900) | marche à 0,965 H : masqué à 800 px, visible à 1 200 px (H = 900) |
+| Fondu et glissement | opacité 0,2 s, glissement de −24 px à 0 sur 0,25 s | aucun | opacité 0,2 s, translation −24 px à 0 sur 0,25 s |
+| Position du bouton | gauche 10 px, bas 24 px, 32 × 32 px | identique | identique |
+| Caméra en régime établi | non lisible dans le DOM | 30,2° sous l'horizontale, champ 45° | inchangé (acquis dans `fall26-camera.md`) |
+
+Écarts relevés et non corrigés :
+- À 3 000 px le sol du site local passe au violet (chapitre suivant) alors que la référence reste bleue : effet de la longueur des chapitres du CV, pas de la vue Expo.
+- Teinte du bleu du sol, épaisseur et opacité des traits, apparition des étoiles et des titres : comparés à l'œil sur les captures (mêmes familles de valeurs), sans écart mesurable à 1 px ou à 5 unités de couleur près ; les valeurs déjà relevées pour les étoiles et la caméra restent celles de `fall26-etoiles-expo.md` et `fall26-camera.md`.
+- Timing de la bascule : la référence est encore en transition à 1,4 s sur la capture, le site local est arrivé à 1 s en rendu logiciel. Les latences de capture des deux bancs ne sont pas comparables ; la durée programmée reste 800 ms.
+
+Fichiers modifiés : `index.html` (`positionExpoDock`, seuil net) et `refonte/hero-tuning.css` (fondu et glissement). `ciel-expo.js`, `hero-graph.js` et `moteur.js` n'ont pas de mesure qui justifie un changement. `node tools/test-modes.mjs` : PASS.
+
+### Fond de la scène Expo (relevé de pixels, 27 novembre 2026)
+
+Méthode : captures de la référence (Chrome, GPU réel) lues pixel par pixel, bandes latérales hors sol bleu (8 % de largeur de chaque côté, de 15 % à 85 % de hauteur), médiane de la couleur ; même découpe sur le site local à 1 400 × 900. La lecture directe du canevas de la référence est impossible (canevas WebGPU vidé à la lecture), les captures d'écran servent donc de source. Les captures de la référence sont réduites (739 × 586) : seules les couleurs de grandes surfaces sont comparées, pas les traits fins.
+
+| Relevé | Référence | Site avant | Site après |
+|---|---|---|---|
+| Fond autour du sol, médiane RGB (défilement 600, 1 500, 3 000 px) | 12, 12, 13 | 25, 25, 25 | 13, 13, 13 (`.cv-parity-stage`, `#0d0d0d`) |
+| Bleu du sol (au centre) | 4, 30, 169 | 5, 29, 170 | inchangé |
+| 10e centile de luminance des bandes latérales | 5 à 6 | 25 | 13 |
+
+Écart restant : le 10e centile de la référence (5 à 6) est plus bas que la médiane (12), ce qui laisse supposer un assombrissement local (bords ou bas de cadre) non reproduit ; non mesuré avec assez de précision sur des captures réduites. Les traits fins du fond (grille) paraissent plus lumineux sur le site (99e centile 101 à 108 contre 68 à 73), mais la réduction des captures de la référence atténue ses traits : écart non retenu. `test-modes` : PASS.
+
+### Fond en dégradé et en-tête (relevé pleine résolution, 27 novembre 2026)
+
+Captures de la référence à 1 204 × 996 (enregistrées par l'outil de capture), du site local à 1 400 × 900, défilement 600 px. Fond sombre : médiane de la luminance par rangée (8 rangées de haut en bas, 3 colonnes à gauche et 3 à droite, pixels sombres seulement).
+
+| Relevé | Référence | Site avant | Site après |
+|---|---|---|---|
+| Fond par rangée, haut vers bas | 15, 13, 12, 12, 11, 10, 9, 9 (identique à 1 500 px) | 16, 13, 13, 13, 13, 13, 13, 13 | 15, 14, 13, 12, 11, 10, 10, 9 (`linear-gradient(180deg, #0f0f0f, #080808)`) |
+| En-tête, couleur du sol sous le bandeau (0 à 40 px) | 5, 25, 144 (sol à 149 à 50 px : 96 %) | 15, 18, 38 (bandeau opaque) | 4, 27, 163 (sol à 170 : 96 %, fond `rgba(0, 0, 0, .04)`) |
+| Pixels plus sombres que le fond de plus de 3 unités (bandes latérales) | 30 % | 0 % | dégradé : environ 30 % |
+| Part de pixels plus clairs que le fond + 25 (traits) | 9,5 % | 5,9 % | non retenu (captures de la référence réduites) |
+
+Reste : le sol de la référence est lui aussi plus sombre en haut de l'écran (143 à 149 contre 170 plus bas), à cause de la perspective ; le site donne 170 partout sur la même zone, écart non traité. `test-modes` et `test-no-shopify --strict` : PASS.
+
+### Assombrissement du sol vers le haut de l'écran (27 novembre 2026)
+
+Bleu du sol (canal bleu, médiane de la colonne centrale, 40 à 60 % de la largeur, tranches de 5 % de hauteur d'écran, pixels de sol nus seulement), défilement 600 px ; la référence à 1 500 px donne les mêmes valeurs à 3 unités près.
+
+| Hauteur d'écran | 0 % | 5 % | 10 % | 20 % | 35 % | 50 % | 60 % et plus |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Référence | 145 | 150 | 154 | 159 | 164 | 167 | 169 |
+| Site avant | 163 | 170 | 170 | 170 | 170 | 170 | 170 |
+| Site après | 142 | 152 | 156 | 160 | 165 | 168 | 170 |
+
+Reprise : calque noir à opacité décroissante au-dessus de la grille et du sol et sous le contenu (`.cv-parity-stage::after`, 0,142 en haut, 0,059 à 20 %, 0,03 à 35 %, 0,012 à 50 %, nul à 60 %) ; le dégradé du fond sombre est relevé en haut pour que le fond mesuré reste à 15, 13, 12, 12, 11, 10, 9, 9 (site : 15, 14, 13, 11, 11, 10, 9, 9). Le rouge et le vert du sol baissent dans les mêmes proportions sur la référence (25 pour 30), cohérent avec un calque noir. Écart maximal restant : 3 unités de bleu. `test-modes` et `test-no-shopify --strict` : PASS.
+
+### Traits de la grille du fond (27 novembre 2026)
+
+Méthode : deux zooms de la référence (200 × 160 px d'écran, colonnes gauche et droite du fond, au défilement 1 500 px, enregistrés en PNG, 263 × 211 px) et deux découpes du site de la même taille relative, ramenées à 263 × 211 px par interpolation bilinéaire. Pixels sombres seulement (hors sol bleu, hors texte clair), luminance moyenne des trois canaux. Une seule paire de zones : mesure à confirmer sur d'autres défilements.
+
+| Relevé | Référence | Site avant | Site après |
+|---|---|---|---|
+| Fond (médiane) | 8 | 10 | 10 |
+| 90e centile | 24 à 25 | 21 | 25 |
+| 99e centile (grands traits) | 43 à 44 | 37 | 45 à 46 |
+| Part des pixels à plus de 6 unités du fond | 23,5 à 26,1 % | 21,5 à 21,7 % | 25,9 à 26,0 % |
+| Médiane de ces pixels | 24 | 21 | 24 |
+
+Reprise : traits secondaires à 0,14 (au lieu de 0,10) et traits principaux (tous les 10) à 0,34 (au lieu de 0,26), blanc (`drawFallbackGrid`, `index.html`). Les traits de la référence ont aussi une densité très proche (part des pixels de trait 23,5 à 26 % contre 21,6 %). L'épaisseur (0,85 px) n'est pas modifiée : la résolution des captures de la référence ne permet pas de la mesurer. Le relevé précédent sur bandes entières (traits plus lumineux sur le site) mélangeait annotations, arcs et règles ; il ne portait pas sur la grille seule. `test-modes` et `test-no-shopify --strict` : PASS.
+
+Confirmation des traits de grille à 600 px de défilement (zone gauche, même méthode) : référence fond 8, 90e centile 24, 99e centile 45, 24,6 % de pixels de trait, médiane 24 ; site après correction fond 10, 90e centile 26, 99e centile 47, 26,4 %, médiane 24. Écart maximal 2 unités. La zone droite à 3 000 px n'est pas exploitable (dessins isométriques dans le cadre).
+
+# Effacement de l'accueil au défilement (27 novembre 2026)
+
+Conditions : même Chrome que la référence, viewport 2498 × 1263 (ratio 1), site local servi sur `localhost:8765` (version allégée de la branche), référence `shopify.com/editions/fall2026`. Relevé visuel par captures aux mêmes défilements (0, 200, 350, 480, 600 px) ; aucune mesure de pixel. Les sondes `__cvParity` et `__cvStandardPath` ne sont pas exposées dans cette configuration : la caméra n'a donc pas été remesurée (la passe 1 reste valable).
+
+Constat à 600 px : la référence ne montre plus qu'un foyer et ses rayons (foyers pâles dès 350 px) ; le site gardait plusieurs foyers étiquetés (opacité de l'accueil 1,00 à 400 px, 0,78 à 600 px, 0,04 à 1 000 px).
+
+Reprise : fin de l'effacement plafonnée à 0,55 hauteur d'écran (`hero-graph.js`, `graphe-chapitres.js`), début à 25 % de la course au lieu de 45 %, et même plage pour l'entrée du graphe des chapitres (0,25 à 0,75).
+
+| Défilement | Opacité de l'accueil | Opacité du graphe des chapitres |
+|---|---|---|
+| 0 px | 1,00 | 0 |
+| 200 px | 0,92 | 0,08 |
+| 350 px | 0,49 | 0,51 |
+| 480 px | 0,12 | 0,88 |
+| 600 px | 0 | 1,00 |
+
+Après reprise, à 600 px, un seul foyer reste visible, comme sur la référence. Les temps réels de la référence entre 200 et 600 px n'ont pas été relevés au pas fin : les valeurs ci-dessus sont calées sur trois captures, pas sur une courbe mesurée.
+
+Tests : `test-modes` PASS, `test-graphe-chapitres` PASS. `test-defilement` : 1 échec (90 % de la course en 733 ms pour une cible de 230 ms), identique avant la reprise (817 ms) ; il vient du rendu logiciel. `test-chapitres` : PASS (21 contrôles, 0 échec, code de sortie 0), rendu logiciel, lancé avec un délai de 30 minutes après deux interruptions à 2 et 7 minutes ; aucune mesure sur GPU matériel.

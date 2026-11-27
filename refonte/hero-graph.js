@@ -1,5 +1,5 @@
 /* Graphe à plat. Les foyers et vignettes utilisent la même constellation que le chemin Expo. */
-import { CielExpo } from './ciel-expo.js?v=15';
+import { CielExpo } from './ciel-expo.js?v=17';
 import {surfaceGraph,brancheSpectrale,nœudSpectral} from './fall26-graph-adapter.js?v=1';
 
 const borne = t => Math.max(0, Math.min(1,t));
@@ -78,7 +78,10 @@ export function demarre(chapitres) {
   cv.style.cssText = 'position:absolute;top:0;left:0;height:100%;z-index:3;touch-action:pan-y';
   const graph=surfaceGraph('position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none');
   graph.canvas.dataset.cvSpectralGraph='';
-  zone.append(graph.canvas,cv); zone.querySelector('.hero-graph-spinner-track')?.remove();
+  /* sillage de glyphes sous le graphe (refonte/sillage.js, WebGL2, pointeur fin seulement), d'après les shaders de fluide de la référence */
+  const zs=document.createElement('div');zs.className='cv-sillage-zone';zs.style.cssText='position:absolute;inset:0;z-index:1;pointer-events:none';
+  zone.append(zs,graph.canvas,cv); zone.querySelector('.hero-graph-spinner-track')?.remove();
+  let sillage=null;import('./sillage.js?v=s5').then(m=>{sillage=m.monteSillage(zs);}).catch(()=>{});
   const ciel = new CielExpo(), souris = { x: -1e4, y: -1e4 };
   ciel.accueil(chapitres,'Mathieu Comtesse');
   const etiquette = document.createElement('span');
@@ -98,13 +101,14 @@ export function demarre(chapitres) {
   new ResizeObserver(taille).observe(zone); addEventListener('resize', taille); document.fonts?.ready.then(taille); taille();
   new IntersectionObserver(([e]) => { vu = e.isIntersecting; }).observe(zone);
   const local = (ev) => { const r = cv.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; };
-  cv.style.cursor = 'auto';
+  cv.style.cursor = 'auto'; let posePoigne = false;
   const va = (n) => { const cible = document.getElementById(n.handle) || document.getElementById(n.chapitre); if (cible) cible.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' }); };
   addEventListener('pointermove', ev => {
     [souris.x, souris.y] = local(ev);
-    ciel.tire(souris.x, souris.y);
+    ciel.tire(souris.x, souris.y); ciel.tireFoyer(souris.x, souris.y);
     const node = ev.pointerType==='mouse'&&dessus(ev)&&ciel.touche(souris.x,souris.y);
-    cv.style.cursor = node?'pointer':'auto';
+    const c = ciel.pris||ciel.prisF ? 'grabbing' : node ? 'pointer' : 'auto';   // référence : pointer sur un nœud ; main fermée pendant la saisie (propre au site)
+    cv.style.cursor = c; if (c === 'grabbing') { document.documentElement.style.cursor = c; posePoigne = true; } else if (posePoigne) { document.documentElement.style.cursor = ''; posePoigne = false; }   // n'efface que le curseur posé ici (l'Expo gère le sien)
     etiquette.toggleAttribute('data-visible',Boolean(node));
     if(node){
       etiquette.textContent=node.title;
@@ -115,17 +119,18 @@ export function demarre(chapitres) {
   cv.addEventListener('pointerleave', () => { if (!ciel.pris) souris.x = souris.y = -1e4; });
   /* écoute au niveau du document : d'autres calques de l'accueil passent au-dessus du canevas et recevraient l'appui à sa place */
   const dessus = (ev) => { const r = cv.getBoundingClientRect(); return !document.documentElement.classList.contains('cv-parity-active') && ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom && !ev.target.closest('a,button,input,select,textarea,.cv-site-nav'); };
-  document.addEventListener('pointerdown', (ev) => { if (ev.button !== 0 || !dessus(ev)) return; [souris.x, souris.y] = local(ev); ciel.saisit(souris.x, souris.y); }, { capture: true });
+  document.addEventListener('pointerdown', (ev) => { if (ev.button !== 0 || !dessus(ev)) return; [souris.x, souris.y] = local(ev); if (ciel.saisitFoyer(souris.x, souris.y) || ciel.saisit(souris.x, souris.y)) { cv.style.cursor = document.documentElement.style.cursor = 'grabbing'; posePoigne = true; } }, { capture: true });
   const fin = (annule) => { const r = ciel.lache(); if (r?.clic && !annule) va(r); };
-  document.addEventListener('pointerup', () => fin(false), { capture: true }); document.addEventListener('pointercancel', () => fin(true));
+  const finFoyer = (annule) => { const r = ciel.lacheFoyer(annule); if (r?.clic && !annule) va({ chapitre: r.chapitre }); };   // foyer : clic vers le chapitre, glisser pour le lancer
+  document.addEventListener('pointerup', () => { fin(false); finFoyer(false); if (posePoigne) { document.documentElement.style.cursor = ''; posePoigne = false; } }, { capture: true }); document.addEventListener('pointercancel', () => { fin(true); finFoyer(true); });
   function image(t) {
     requestAnimationFrame(image);
     if (!vu || document.hidden || W < 120 || H < 120 || t - dernier < 30 || document.documentElement.classList.contains('cv-parity-active')) return;
     const dt = Math.min(0.1, (t - dernier) / 1000); dernier = t;
     const proj = (x, y, h) => ({ x, y, z:2000-h });
     /* sortie de l'accueil : le graphe s'ouvre (les foyers s'écartent) et s'efface ; l'étoile du premier chapitre prend le relais */
-    const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + .8 * s * s;
-    cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
+    const fin = Math.min((document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, innerHeight * 0.55), s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + .8 * s * s;
+    cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.25) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
     const reveal=entree?.enCours()?lisse((t-arrivee)/1017):1;
     ciel.place('accueil',[W/2-(entree?.decalage()||0),H*.5,Math.min(H*.12,90)],Math.min(W,H)*.48,{
@@ -139,5 +144,5 @@ export function demarre(chapitres) {
     graph.canvas.style.opacity=cv.style.opacity;graph.render(W,H,dpr,edges,undefined,marks);
   }
   requestAnimationFrame(image);
-  window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };
+  window.__cvHeroGraph = { sillage: () => sillage, cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };
 }

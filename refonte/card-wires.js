@@ -1,4 +1,4 @@
-import { hache } from './moteur.js?v=m36';
+import { hache } from './moteur.js?v=project-face1';
 
 // Même tangente horizontale aux deux extrémités que dans le tracé des cartes Fall 26.
 export function pointBranche(a,b,t) {

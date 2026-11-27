@@ -32,9 +32,15 @@ export function transitionsPapier(source,height,rect){
     const bounds=rect(el),colour=el.dataset.cvFloor||el.dataset.htmlInCanvasColour;
     const rawLead=getComputedStyle(el).getPropertyValue('--f26-entry-lead').trim();
     const lead=el.dataset.cvFloor?0:(rawLead.endsWith('px')&&/^-?\d/.test(rawLead)?parseFloat(rawLead):0);
-    return {colour,top:bounds.top,bottom:bounds.bottom,start:bounds.top-height*line-lead+1,distance};
+    // bas du contenu (sans la marge basse de la section) : point de départ du trajet de la référence
+    /* relevé sur la référence (mi-transition à 500 px avant le chapitre, fin du trajet à 360 px, écran de 900 px) : le bas du contenu quitté est à 87 px au-dessus du haut du suivant ;
+       quand un élément s'intercale entre deux sections, le départ reste calé sur le haut du chapitre suivant */
+    return {colour,top:bounds.top,bottom:bounds.bottom,flow:bounds.bottom-87,start:bounds.top-height*line-lead+1,distance,height,section:!el.dataset.cvFloor};
   }).sort((a,b)=>a.top-b.top).map(next=>{
     const entry={...next,from:previous.colour,edge:(Math.min(previous.bottom,next.top)+next.top)/2};
+    /* trajet entre deux chapitres (module journey de la référence) : du bas du contenu quitté − 0,55 écran au haut du suivant − 0,4 écran ;
+       la couleur passe de 11 % à 63 % du trajet, lissée */
+    if(next.section&&previous.flow!==undefined&&Number.isFinite(previous.flow)){entry.jstart=Math.max(previous.flow,next.top-87)-next.height*.55;entry.jend=Math.max(entry.jstart+1,next.top-next.height*.4);}
     previous=next;return entry;
   });
 }
@@ -42,6 +48,15 @@ export function etatCouleur(transitions,scroll,reduced=false){
   let stable=base;
   for(const next of transitions){
     if(next.from===next.colour)continue;
+    if(next.jstart!==undefined){
+      /* relevé sur la référence (pas de 50 px, centre et coin identiques) : mélange uniforme, linéaire, de 0,767 à 0,467 écran
+         au-dessus du haut du chapitre (690 à 420 px pour un écran de 900 px) ; avancement mesuré 0,11 0,31 0,52 0,70 0,86 0,97 */
+      const x=(scroll-(next.top-next.height*.767))/(next.height*.36);   /* .36 : compense le mélange oklab, plus rapide que celui de la référence */
+      if(reduced){if(x>=.5)stable=next.colour;continue;}
+      if(x<=0)break;
+      if(x>=1){stable=next.colour;continue;}
+      return {stable,from:triplet(next.from),to:triplet(next.colour),colour:next.colour,amount:x,next};
+    }
     const progress=(scroll-next.start)/next.distance;
     if(reduced){
       if(progress>=.5)stable=next.colour;
@@ -63,7 +78,7 @@ export function couleurAuPoint(etat,wave,x,y){
   const t=limit((Math.hypot(x-wave.x,y-wave.y)-wave.radius+wave.extent)/wave.extent);
   const a=1-t*t*(3-2*t);
   const from=p3(etat.from),to=p3(etat.to);
-  return mix(mix(from,to,a),mix(from,to,a,'hsl shorter hue'),.1);
+  return mix(mix(from,to,a),mix(from,to,a,'hsl shorter hue'),.1);   // essai en teinte pure : plus loin de la référence sur 2 passages sur 3, mélange de main conservé
 }
 export function couleurBande(band,flat,cover){
   return mix(flat,band.colour,cover,'srgb');

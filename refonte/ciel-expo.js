@@ -1,4 +1,4 @@
-import { Ciel, hache } from './moteur.js?v=m36';
+import { Ciel, hache } from './moteur.js?v=project-face1';
 
 const angleOr = 2.399963, cercle = Math.PI * 2;
 const tons = ['25,122,220', '85,238,172', '105,131,251'];
@@ -55,7 +55,32 @@ function anneau(ctx,proj,x,y,r,alpha){
   ctx.stroke();
 }
 
+
+const hacheTexte=t=>{let h=2166136261;for(let i=0;i<t.length;i++)h=Math.imul(h^t.charCodeAt(i),16777619);return h>>>0;};
+/* poussée d'un foyer par la vitesse du pointeur (référence : portée 265, intérieur 24, seuil 24 px/s, vitesse max 1 800, élan 1,45, bouclier 1),
+   ressort de rappel ; en coordonnées monde (à plat, l'écran) */
+function pousseFoyer(e,Fb,m,pv,vit,dt,pace,q){
+  if(!Fb)return;e.dx=e.dx||0;e.dy=e.dy||0;e.vx=e.vx||0;e.vy=e.vy||0;
+  /* foyer saisi : il suit le pointeur, vitesse lissée 0,6 / 0,4 (référence) */
+  if(q&&q.e===e){if(q.mx!==undefined&&dt>0){const nx=q.mx-Fb.x,ny=q.my-Fb.y,ddx=nx-e.dx,ddy=ny-e.dy;if(ddx||ddy){e.vx=e.vx*.6+ddx/dt*.4;e.vy=e.vy*.6+ddy/dt*.4;q.tm=performance.now();}e.dx=nx;e.dy=ny;}return;}
+  e.recup=(e.recup||0)*Math.exp(-1.5*dt);const amort=6+14*e.recup;
+  const n=Math.max(1,Math.ceil(dt/(1/60))),h=Math.min(dt,.25)/n;
+  for(let i=0;i<n;i++){let ax=-e.dx*16,ay=-e.dy*16;
+    if(m&&vit>24){const px=Fb.x+e.dx,py=Fb.y+e.dy,T=px-m.x,P=py-m.y,d=Math.hypot(T,P),A=265,C=24;
+      if(d>C&&d<A){const y=Math.min(vit,1800),L=1-(d-C)/(A-C),Hh=(T*pv.x+P*pv.y)/(d*vit),J=1-Math.max(0,Hh),f=L*L*2*J*pace*1.5;
+        ax+=(T/d*y+pv.x/vit*y*1.45)*f;ay+=(P/d*y+pv.y/vit*y*1.45)*f;}}
+    e.vx=(e.vx+ax*h)*Math.exp(-h*amort);e.vy=(e.vy+ay*h)*Math.exp(-h*amort);e.dx+=e.vx*h;e.dy+=e.vy*h;}
+  const r=Math.hypot(e.dx,e.dy),lim=e.recup>.01?1e4:160;if(r>lim){e.dx*=lim/r;e.dy*=lim/r;}
+  if(Math.abs(e.dx)+Math.abs(e.dy)+Math.abs(e.vx)+Math.abs(e.vy)<.05)e.dx=e.dy=e.vx=e.vy=0;
+}
 export class CielExpo extends Ciel {
+  /* saisie et lancer d'un foyer (référence) : au lâcher, vitesse × 1,25 × exp(−max(0, arrêt − 80 ms) / 60 ms), plafonnée à 1 400 px/s ;
+     un clic (moins de 5 px parcourus) reste un clic */
+  saisitFoyer(x,y){let m=null,dm=12;for(const e of this.etoiles.values()){if(!e.parent||!e.ecran)continue;const d=Math.hypot(e.ecran.x-x,e.ecran.y-y);if(d<dm){dm=d;m=e;}}
+    if(!m)return false;this.prisF={e:m,ox:m.ecran.x-x,oy:m.ecran.y-y,x0:x,y0:y,trajet:0,t:performance.now()};m.vx=m.vy=0;return true;}
+  tireFoyer(x,y){const q=this.prisF;if(!q)return;q.trajet=Math.max(q.trajet,Math.hypot(x-q.x0,y-q.y0));q.mx=x+q.ox;q.my=y+q.oy;}
+  lacheFoyer(annule=false){const q=this.prisF;if(!q)return null;this.prisF=null;const e=q.e,k=annule?0:1.25*Math.exp(-Math.max(0,performance.now()-(q.tm||q.t)-80)/60);
+    e.vx=(e.vx||0)*k;e.vy=(e.vy||0)*k;const v=Math.hypot(e.vx,e.vy),lim=1400;if(v>lim){e.vx*=lim/v;e.vy*=lim/v;}e.recup=1;return{clic:q.trajet<5,chapitre:e.chapitre};}
   accueil(chapitres, label) {
     this.definit('accueil',{groupe:'accueil',racine:true,label});
     chapitres.forEach((c,i)=>this.definit('accueil:'+c.id,{
@@ -99,11 +124,20 @@ export class CielExpo extends Ciel {
     const masque=p=>covers.some(([a,b,c,d])=>
       Math.min(profondeurTriangle(p,a,b,c),profondeurTriangle(p,a,c,d))<p.z-2
     );
-    this.cibles=[];this.survol=null;
+    this.survol0=this.survol;this.cibles=[];this.survol=null;
     const prev=this.pointerExpo;
     this.pointerExpo=plat||t===null||souris.x<0?null:{x:souris.x,y:souris.y};
     const mouvement=prev&&this.pointerExpo?distance(prev,this.pointerExpo):0;
     let nearest=18;
+    /* lois du graphe de la référence, à plat (relevées dans son module renderer) : poussée des foyers par la vitesse du pointeur,
+       resserrement échelonné des rayons du foyer survolé, calme quand un contenu est survolé, lueur des points proches */
+    const libre=plat&&t!==null,actifP=libre&&souris.x>-1e3&&!this.pris,unite=Math.max(.4,Math.min(3,Math.min(W,H)/741));
+    const pv=this.pv||(this.pv={x:0,y:0,px:souris.x,py:souris.y,ok:false});
+    if(actifP&&pv.ok&&dt>0){const ex=(souris.x-pv.px)/dt,ey=(souris.y-pv.py)/dt;if(ex||ey){pv.x=ex;pv.y=ey;}else{pv.x*=Math.exp(-dt/.04);pv.y*=Math.exp(-dt/.04);}}else if(!actifP){pv.x=pv.y=0;}
+    pv.px=souris.x;pv.py=souris.y;pv.ok=actifP;const vit=Math.hypot(pv.x,pv.y);
+    let fs=this.prisF?this.prisF.e:null;if(actifP&&!fs){let dm=16;for(const e of this.etoiles.values()){if(!e.parent||!e.ecran)continue;const d=distance(e.ecran,souris);if(d<dm){dm=d;fs=e;}}}
+    const cibleCalme=libre&&!fs&&this.survol0?1:0;this.calme=libre?(this.calme||0)+(cibleCalme-(this.calme||0))*(1-Math.exp(-10*dt)):0;
+    const allure=1-.8*this.calme;this.foyerSurvol=fs;
     ctx.save();
     const foyers=[...this.etoiles.values()].filter(e=>e.parent&&e.centre);
     for(const [i,e] of foyers.entries()){
@@ -127,7 +161,9 @@ export class CielExpo extends Ciel {
       const relais=fondu&&e.chapitre===fondu.de?1-fondu.poids:fondu&&e.chapitre===fondu.vers?fondu.poids:1;
       const opacity=(title?titres*(.26+.74*relais):alpha)*ouverture;
       if(!e.centre||opacity<=.003)continue;
-      const [x,y,h]=e.centre,r=e.rayon,hub=proj(x,y,h);
+      if(libre&&e.parent)pousseFoyer(e,proj(...e.centre),actifP&&!fs?souris:null,pv,vit,dt,allure,this.prisF);else if(!libre){e.dx=e.dy=e.vx=e.vy=0;}
+      const [x0,y0,h]=e.centre,x=x0+(e.dx||0),y=y0+(e.dy||0),r=e.rayon,hub=proj(x,y,h);
+      e.tSurvol=e===fs?(e.tSurvol||0)+dt:0;if(libre&&!e.racine)e.ob=(e.ob||0)+.02*allure*(e.rang%2?-1:1)*dt;
       if(!hub||hub.x<-W/2||hub.x>1.5*W||hub.y<-H/2||hub.y>1.5*H)continue;
       e.ecran=hub;
       const palette=plat?tons:tonsVolume;
@@ -159,11 +195,13 @@ export class CielExpo extends Ciel {
       }
       const ombre=([c,row,haut])=>proj(c+lumiere[0]*haut*rise,row+lumiere[1]*haut*rise,0);
       const hubShadow=ombre(e.centre);
-      const orbit=title?0:(t??0)*.02*(e.rang%2?-1:1);
+      const orbit=title?0:libre?(e.ob||0):(t??0)*.02*(e.rang%2?-1:1);
       const co=Math.cos(orbit),si=Math.sin(orbit);
       const nodes=e.noeuds.map(n=>{
         const [nx,ny,nz]=n.at;
-        let wx=x+r*(co*nx-si*ny),wy=y+r*(si*nx+co*ny);
+        let rn=r;if(libre&&!title){const an=Math.atan2(si*nx+co*ny,co*nx-si*ny),dl=(((an+Math.PI/2)/(2*Math.PI))%1+1)%1*.15,on=e===fs&&e.tSurvol>=dl;
+          n.hg=(n.hg||0)+((on?1:0)-(n.hg||0))*(1-Math.exp(-(on?15:3)*dt));if(!on&&n.hg<1e-4)n.hg=0;rn=r*(1-.25*n.hg);}
+        let wx=x+rn*(co*nx-si*ny),wy=y+rn*(si*nx+co*ny);
         let hauteur=Math.max(12,h+(title?r*nz:n.hemisphere*.85*h*Math.sqrt(Math.max(0,1-nx*nx-ny*ny))));
         let p=proj(wx,wy,hauteur);
         if(!p)return null;
@@ -202,6 +240,10 @@ export class CielExpo extends Ciel {
           if(position)[wx,wy]=position;
         }
         const world=[wx,wy,hauteur];
+        if(libre){const rg=265*unite,dd=actifP?Math.hypot(p.x-souris.x,p.y-souris.y):rg,o=dd<rg?1-dd/rg:0,cib=o*o*(3-2*o),cur=n.lu||0,tt=t;
+          n.gs??=(hacheTexte(e.id+':'+n.at.join(','))%1000)/1000*.35;
+          if(cib>=cur){if(cib>0)n.tlu=tt;n.lu=cur+(cib-cur)*(1-Math.exp(-24*dt));}else if(tt-(n.tlu||0)>=n.gs)n.lu=cur+(cib-cur)*(1-Math.exp(-3*dt/.6));
+          if(Math.abs(n.lu-cib)<.002)n.lu=cib;}
         return {p,n,covered:masque(p),world,ground:ombre(world)};
       });
       for(const [a,b] of e.liens)if(nodes[a]&&nodes[b])trace(nodes[a].world,nodes[b].world,color,.09*opacity);
@@ -242,6 +284,7 @@ export class CielExpo extends Ciel {
           const rayon=n.at[2]>.35?2:1.25;
           if(pointPlat)pointPlat(p,color,.69*opacity,rayon);
           else{ctx.fillStyle='rgba('+color+',.69)';ctx.beginPath();ctx.arc(p.x,p.y,rayon,0,cercle);ctx.fill();}
+          if(n.lu>.02){ctx.save();ctx.globalAlpha=opacity*n.lu;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p.x,p.y,rayon,0,cercle);ctx.fill();ctx.restore();}   // lueur : mêlé de blanc
         }
       }
       if(masque(hub))continue;

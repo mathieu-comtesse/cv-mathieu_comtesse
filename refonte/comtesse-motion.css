@@ -26,7 +26,7 @@
   letter-spacing: -.01em;
 }
 
-.cv-parity-active .cv-site-nav { background: #111d; }
+.cv-parity-active .cv-site-nav { background: rgba(0, 0, 0, .04); }
 
 .cv-site-nav a { color: inherit; text-decoration: none; }
 
@@ -247,3 +247,28 @@
   .cv-site-nav :is(.cv-nav-control, .cv-nav-control svg, .cv-header-panel, .cv-header-chapters a),
   :is(.rf-post-body, .rf-d-text, .cv-related) a[href] { transition: none; }
 }
+
+/* Chapitres 1 à 7 : cartes de compétences (icône reprise de l'ancienne liste de « Parcours ») et renvoi depuis « Parcours » */
+.cv-skill-ico{display:inline-flex;align-items:center;gap:10px;color:inherit;opacity:.85}
+.cv-skill-ico .rf-exp-ico{width:28px;height:28px}
+.cv-skill-ico .cv-skill-b{display:inline-flex}.cv-skill-ico .cv-skill-b .rf-exp-ico{width:16px;height:16px}
+.rf-sk-liens{margin:0;font:400 14px/1.6 var(--rf-sans);color:var(--exp-fg)}
+.rf-sk-liens a{color:inherit;text-decoration:underline;text-underline-offset:4px}
+
+/* Mini-jeu de la sphère */
+.cv-jeu-bouton{position:fixed;right:16px;bottom:16px;z-index:502;display:none;align-items:center;gap:10px;padding:6px 18px 6px 10px;border-radius:999px;color:#fff;background:rgba(8,16,70,.55);border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font:12px "Shopify Inter",Inter,sans-serif;cursor:pointer;transition:background .25s cubic-bezier(.2,.7,.2,1),border-color .15s,transform .1s}
+html.cv-parity-active .cv-jeu-bouton{display:flex}html.cv-jeu-actif .cv-jeu-bouton,html.cv-jeu-actif .cv-parity-toggle{display:none!important}
+.cv-jeu-bouton:hover{background:rgba(255,255,255,.16);border-color:#fff}.cv-jeu-bouton:active{transform:scale(.96)}.cv-jeu-bouton:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.cv-jeu-ico{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#3aa8ff);box-shadow:0 0 10px #3aa8ff}
+.cv-jeu-cta{margin:48px 0 96px;font:400 14px/1.6 "JetBrains Mono",ui-monospace,monospace;color:inherit}.cv-jeu-cta button{background:none;border:0;color:inherit;font:inherit;cursor:pointer}
+.cv-jeu{position:fixed;inset:0;z-index:520;pointer-events:none;color:#fff;font:500 12px/1.3 "JetBrains Mono",ui-monospace,monospace;opacity:0;transition:opacity .6s cubic-bezier(.65,0,.35,1)}.cv-jeu.vu{opacity:1}.cv-jeu.sortie{opacity:0;transition:opacity .8s}
+.cv-jeu[hidden]{display:none}.cv-jeu button{pointer-events:auto;font:inherit;color:#fff;background:rgba(8,16,70,.6);border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:7px 16px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);touch-action:manipulation}.cv-jeu button:hover,.cv-jeu button.tenu{background:rgba(255,255,255,.2);border-color:#fff}.cv-jeu button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.cv-jeu-hud{position:absolute;left:16px;top:72px;max-width:calc(100vw - 230px);display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;padding:10px 16px;border-radius:14px;background:rgba(2,6,50,.46);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);text-shadow:0 0 12px rgb(2 6 50 / .9)}.cv-jeu-bloc b{display:block;font-size:26px;line-height:1}.cv-jeu-bloc span{opacity:.75;margin-right:6px}.cv-jeu-compte-objets{display:flex;gap:4px;align-items:baseline}.cv-jeu-compte-objets span:nth-child(even){margin-right:12px}.cv-jeu-compte-objets span:nth-child(odd){font-size:18px;opacity:1;margin:0}
+.cv-jeu-jauges{display:grid;gap:6px}.cv-jeu-jauges label{display:grid;grid-template-columns:62px 120px;align-items:center;opacity:.85}.cv-jeu-jauges i{display:block;height:6px;border:1px solid rgba(255,255,255,.5);position:relative}.cv-jeu-jauges i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--v,0%);background:#9ae6ff}.cv-jeu-combo{min-width:90px;font-size:18px;color:#ffe58a;transform-origin:left center}.cv-jeu-combo.pop{animation:cv-jeu-pop .28s cubic-bezier(.2,.8,.2,1)}@keyframes cv-jeu-pop{0%{transform:scale(1.7)}100%{transform:scale(1)}}
+.cv-jeu-piste{position:absolute;left:16px;right:16px;bottom:8px;height:3px;background:rgba(255,255,255,.2)}.cv-jeu-piste i{position:absolute;inset:0 auto 0 0;width:var(--v,0%);background:#fff}
+.cv-jeu-annonce{position:absolute;left:0;right:0;top:24%;text-align:center;font-size:clamp(20px,3.2vw,40px);font-weight:600;letter-spacing:.04em;opacity:0;transform:scale(.8);transition:opacity .2s,transform .3s cubic-bezier(.2,.7,.2,1);text-shadow:0 0 24px rgb(2 6 50 / .95)}.cv-jeu-annonce.vu{opacity:1;transform:scale(1)}.cv-jeu-annonce.grand{top:30%;font-size:clamp(44px,9vw,110px)}
+.cv-jeu-aide{position:absolute;left:50%;bottom:22px;margin:0;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);padding:6px 16px;border-radius:999px;background:rgba(2,6,50,.5);text-align:center;opacity:.9;transition:opacity 1.2s ease;text-shadow:0 0 10px rgb(2 6 50 / .95)}.cv-jeu-barre{position:absolute;right:16px;top:72px;display:flex;gap:8px}
+.cv-jeu.aide-masquee .cv-jeu-aide{opacity:0}.cv-jeu-tactile{display:none}
+@media(pointer:coarse){.cv-jeu-aide{display:none}.cv-jeu-tactile{display:flex;position:absolute;left:12px;right:12px;bottom:22px;justify-content:space-between;align-items:flex-end;gap:12px}.cv-jeu-glisse{pointer-events:auto;touch-action:none;position:relative;flex:1;max-width:240px;height:68px;border-radius:34px;border:1px solid rgba(255,255,255,.5);background:rgba(8,16,70,.5)}.cv-jeu-glisse span{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#3aa8ff);transition:transform .08s}.cv-jeu-glisse.tenu span{transition:none}.cv-jeu-boutons{display:flex;gap:8px}.cv-jeu-boutons button{width:64px;height:64px;padding:0;border-radius:50%}}
+.cv-jeu-fin{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:auto;width:min(520px,calc(100vw - 32px));padding:28px;background:rgba(5,12,70,.92);border:1px solid rgba(255,255,255,.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.cv-jeu-fin[hidden]{display:none}.cv-jeu-fin h2{margin:0 0 6px;font:600 28px/1.1 "Shopify Inter",Inter,sans-serif}.cv-jeu-note{margin:0 0 16px;color:#ffe58a}.cv-jeu-fin dl{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;margin:0 0 22px}.cv-jeu-fin dl div{display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.2);padding-bottom:4px}.cv-jeu-fin dt{opacity:.75}.cv-jeu-fin dd{margin:0}.cv-jeu-actions{display:flex;gap:10px;flex-wrap:wrap}
+@media(prefers-reduced-motion:reduce){.cv-jeu,.cv-jeu-annonce,.cv-jeu-glisse span{transition:none}}
