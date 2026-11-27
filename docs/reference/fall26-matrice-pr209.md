@@ -987,3 +987,16 @@ Méthode : captures de la référence (Chrome, GPU réel) lues pixel par pixel, 
 | 10e centile de luminance des bandes latérales | 5 à 6 | 25 | 13 |
 
 Écart restant : le 10e centile de la référence (5 à 6) est plus bas que la médiane (12), ce qui laisse supposer un assombrissement local (bords ou bas de cadre) non reproduit ; non mesuré avec assez de précision sur des captures réduites. Les traits fins du fond (grille) paraissent plus lumineux sur le site (99e centile 101 à 108 contre 68 à 73), mais la réduction des captures de la référence atténue ses traits : écart non retenu. `test-modes` : PASS.
+
+### Fond en dégradé et en-tête (relevé pleine résolution, 27 novembre 2026)
+
+Captures de la référence à 1 204 × 996 (enregistrées par l'outil de capture), du site local à 1 400 × 900, défilement 600 px. Fond sombre : médiane de la luminance par rangée (8 rangées de haut en bas, 3 colonnes à gauche et 3 à droite, pixels sombres seulement).
+
+| Relevé | Référence | Site avant | Site après |
+|---|---|---|---|
+| Fond par rangée, haut vers bas | 15, 13, 12, 12, 11, 10, 9, 9 (identique à 1 500 px) | 16, 13, 13, 13, 13, 13, 13, 13 | 15, 14, 13, 12, 11, 10, 10, 9 (`linear-gradient(180deg, #0f0f0f, #080808)`) |
+| En-tête, couleur du sol sous le bandeau (0 à 40 px) | 5, 25, 144 (sol à 149 à 50 px : 96 %) | 15, 18, 38 (bandeau opaque) | 4, 27, 163 (sol à 170 : 96 %, fond `rgba(0, 0, 0, .04)`) |
+| Pixels plus sombres que le fond de plus de 3 unités (bandes latérales) | 30 % | 0 % | dégradé : environ 30 % |
+| Part de pixels plus clairs que le fond + 25 (traits) | 9,5 % | 5,9 % | non retenu (captures de la référence réduites) |
+
+Reste : le sol de la référence est lui aussi plus sombre en haut de l'écran (143 à 149 contre 170 plus bas), à cause de la perspective ; le site donne 170 partout sur la même zone, écart non traité. `test-modes` et `test-no-shopify --strict` : PASS.

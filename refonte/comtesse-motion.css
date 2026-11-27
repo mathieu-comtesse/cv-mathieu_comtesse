@@ -26,7 +26,7 @@
   letter-spacing: -.01em;
 }
 
-.cv-parity-active .cv-site-nav { background: #111d; }
+.cv-parity-active .cv-site-nav { background: rgba(0, 0, 0, .04); }
 
 .cv-site-nav a { color: inherit; text-decoration: none; }
 
