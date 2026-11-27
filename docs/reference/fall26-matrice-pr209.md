@@ -1000,3 +1000,15 @@ Captures de la référence à 1 204 × 996 (enregistrées par l'outil de capture
 | Part de pixels plus clairs que le fond + 25 (traits) | 9,5 % | 5,9 % | non retenu (captures de la référence réduites) |
 
 Reste : le sol de la référence est lui aussi plus sombre en haut de l'écran (143 à 149 contre 170 plus bas), à cause de la perspective ; le site donne 170 partout sur la même zone, écart non traité. `test-modes` et `test-no-shopify --strict` : PASS.
+
+### Assombrissement du sol vers le haut de l'écran (27 novembre 2026)
+
+Bleu du sol (canal bleu, médiane de la colonne centrale, 40 à 60 % de la largeur, tranches de 5 % de hauteur d'écran, pixels de sol nus seulement), défilement 600 px ; la référence à 1 500 px donne les mêmes valeurs à 3 unités près.
+
+| Hauteur d'écran | 0 % | 5 % | 10 % | 20 % | 35 % | 50 % | 60 % et plus |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Référence | 145 | 150 | 154 | 159 | 164 | 167 | 169 |
+| Site avant | 163 | 170 | 170 | 170 | 170 | 170 | 170 |
+| Site après | 142 | 152 | 156 | 160 | 165 | 168 | 170 |
+
+Reprise : calque noir à opacité décroissante au-dessus de la grille et du sol et sous le contenu (`.cv-parity-stage::after`, 0,142 en haut, 0,059 à 20 %, 0,03 à 35 %, 0,012 à 50 %, nul à 60 %) ; le dégradé du fond sombre est relevé en haut pour que le fond mesuré reste à 15, 13, 12, 12, 11, 10, 9, 9 (site : 15, 14, 13, 11, 11, 10, 9, 9). Le rouge et le vert du sol baissent dans les mêmes proportions sur la référence (25 pour 30), cohérent avec un calque noir. Écart maximal restant : 3 unités de bleu. `test-modes` et `test-no-shopify --strict` : PASS.

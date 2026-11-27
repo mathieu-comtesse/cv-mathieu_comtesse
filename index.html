@@ -261,7 +261,9 @@ html.cv-parity-active canvas[data-cv-taken]{filter:opacity(0)}
 .rf-ruler--h::before{left:34px;top:0;width:152px;height:58px}
 @media (max-width:760px){.rf-ruler::before{width:50px}.rf-ruler--h::before{height:50px}}
 
-.cv-parity-stage{position:fixed;inset:0;background:linear-gradient(180deg,#0f0f0f,#080808);z-index:20;pointer-events:none;overflow:hidden}
+.cv-parity-stage{position:fixed;inset:0;background:linear-gradient(180deg,#111 0,#111 6%,#0e0e0e 19%,#0d0d0d 31%,#0c0c0c 44%,#0b0b0b 56%,#0a0a0a 69%,#090909 81%,#080808 100%);z-index:20;pointer-events:none;overflow:hidden}
+/* assombrissement du sol vers le haut de l'écran (relevé de la référence : bleu 145 en haut, 169 à partir de 60 % de la hauteur) ; au-dessus de la grille et du sol, sous le contenu */
+.cv-parity-stage::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.142),rgba(0,0,0,.112) 5%,rgba(0,0,0,.089) 10%,rgba(0,0,0,.059) 20%,rgba(0,0,0,.05) 30%,rgba(0,0,0,.03) 35%,rgba(0,0,0,.012) 50%,transparent 60%)}
 .cv-parity-stage[hidden]{display:none}
 .cv-parity-stage>canvas,.cv-parity-paper{position:absolute;inset:0;width:100%;height:100%}
 .cv-parity-paper{perspective:none;overflow:hidden;pointer-events:none;z-index:2;isolation:isolate}
