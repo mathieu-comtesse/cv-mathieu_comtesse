@@ -46,7 +46,7 @@ export function demarre(chapitres) {
     ciel.place('accueil', [W / 2, H * 0.5, 0], R0);
     for (const s of S) { const e = ciel.etoiles.get(s.id); e.rayon = R0 * 0.52; e.centre[2] = 0; }
     /* entrée : l'accueil s'efface (même courbe que son canevas), le graphe des chapitres le remplace et la caméra vient sur la première étoile */
-    const premier = S[0], finAccueil = premier.top - H * 0.8, sA = borne(scrollY / Math.max(200, finAccueil)), entree = plage(sA, 0.45, 0.95);
+    const premier = S[0], finAccueil = Math.min(premier.top - H * 0.8, H * 0.55), sA = borne(scrollY / Math.max(200, finAccueil)), entree = plage(sA, 0.25, 0.75);
     let de = premier, vers = null, k = { pan: 0, unfold: 0, isolate: 0, context: 0, progres: 0 }, deploieDe = entree;
     for (let i = 1; i < S.length; i++) { const j = trajet(scrollY, S[i - 1].flux, S[i].top, H); /* départ relevé en WebGPU : fin du flux de la section quittée − 0,55 hauteur d'écran */ if (j.actif) { de = S[i - 1]; vers = S[i]; k = j; break; } }
     if (!vers) { de = S[0]; for (const s of S) if (s.top - scrollY < H * 0.5) de = s; deploieDe = de === premier ? entree : 1; }

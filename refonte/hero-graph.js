@@ -129,8 +129,8 @@ export function demarre(chapitres) {
     const dt = Math.min(0.1, (t - dernier) / 1000); dernier = t;
     const proj = (x, y, h) => ({ x, y, z:2000-h });
     /* sortie de l'accueil : le graphe s'ouvre (les foyers s'écartent) et s'efface ; l'étoile du premier chapitre prend le relais */
-    const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + .8 * s * s;
-    cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
+    const fin = Math.min((document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, innerHeight * 0.55), s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + .8 * s * s;
+    cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.25) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
     const reveal=entree?.enCours()?lisse((t-arrivee)/1017):1;
     ciel.place('accueil',[W/2-(entree?.decalage()||0),H*.5,Math.min(H*.12,90)],Math.min(W,H)*.48,{
