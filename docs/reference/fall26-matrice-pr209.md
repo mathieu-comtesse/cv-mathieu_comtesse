@@ -1047,4 +1047,4 @@ Reprise : fin de l'effacement plafonnée à 0,55 hauteur d'écran (`hero-graph.j
 
 Après reprise, à 600 px, un seul foyer reste visible, comme sur la référence. Les temps réels de la référence entre 200 et 600 px n'ont pas été relevés au pas fin : les valeurs ci-dessus sont calées sur trois captures, pas sur une courbe mesurée.
 
-Tests : `test-modes` PASS, `test-graphe-chapitres` PASS. `test-defilement` : 1 échec (90 % de la course en 733 ms pour une cible de 230 ms), identique avant la reprise (817 ms) ; il vient du rendu logiciel. `test-chapitres` : interrompu après 7 minutes, sans verdict.
+Tests : `test-modes` PASS, `test-graphe-chapitres` PASS. `test-defilement` : 1 échec (90 % de la course en 733 ms pour une cible de 230 ms), identique avant la reprise (817 ms) ; il vient du rendu logiciel. `test-chapitres` : PASS (21 contrôles, 0 échec, code de sortie 0), rendu logiciel, lancé avec un délai de 30 minutes après deux interruptions à 2 et 7 minutes ; aucune mesure sur GPU matériel.
