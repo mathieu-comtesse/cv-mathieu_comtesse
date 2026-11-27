@@ -975,3 +975,15 @@ Conditions : référence dans le Chrome de l'utilisateur (GPU réel, API HTML-da
 - Timing de la bascule : la référence est encore en transition à 1,4 s sur la capture, le site local est arrivé à 1 s en rendu logiciel. Les latences de capture des deux bancs ne sont pas comparables ; la durée programmée reste 800 ms.
 
 Fichiers modifiés : `index.html` (`positionExpoDock`, seuil net) et `refonte/hero-tuning.css` (fondu et glissement). `ciel-expo.js`, `hero-graph.js` et `moteur.js` n'ont pas de mesure qui justifie un changement. `node tools/test-modes.mjs` : PASS.
+
+### Fond de la scène Expo (relevé de pixels, 27 novembre 2026)
+
+Méthode : captures de la référence (Chrome, GPU réel) lues pixel par pixel, bandes latérales hors sol bleu (8 % de largeur de chaque côté, de 15 % à 85 % de hauteur), médiane de la couleur ; même découpe sur le site local à 1 400 × 900. La lecture directe du canevas de la référence est impossible (canevas WebGPU vidé à la lecture), les captures d'écran servent donc de source. Les captures de la référence sont réduites (739 × 586) : seules les couleurs de grandes surfaces sont comparées, pas les traits fins.
+
+| Relevé | Référence | Site avant | Site après |
+|---|---|---|---|
+| Fond autour du sol, médiane RGB (défilement 600, 1 500, 3 000 px) | 12, 12, 13 | 25, 25, 25 | 13, 13, 13 (`.cv-parity-stage`, `#0d0d0d`) |
+| Bleu du sol (au centre) | 4, 30, 169 | 5, 29, 170 | inchangé |
+| 10e centile de luminance des bandes latérales | 5 à 6 | 25 | 13 |
+
+Écart restant : le 10e centile de la référence (5 à 6) est plus bas que la médiane (12), ce qui laisse supposer un assombrissement local (bords ou bas de cadre) non reproduit ; non mesuré avec assez de précision sur des captures réduites. Les traits fins du fond (grille) paraissent plus lumineux sur le site (99e centile 101 à 108 contre 68 à 73), mais la réduction des captures de la référence atténue ses traits : écart non retenu. `test-modes` : PASS.
