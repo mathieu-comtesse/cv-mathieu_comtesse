@@ -1026,3 +1026,5 @@ Méthode : deux zooms de la référence (200 × 160 px d'écran, colonnes gauche
 | Médiane de ces pixels | 24 | 21 | 24 |
 
 Reprise : traits secondaires à 0,14 (au lieu de 0,10) et traits principaux (tous les 10) à 0,34 (au lieu de 0,26), blanc (`drawFallbackGrid`, `index.html`). Les traits de la référence ont aussi une densité très proche (part des pixels de trait 23,5 à 26 % contre 21,6 %). L'épaisseur (0,85 px) n'est pas modifiée : la résolution des captures de la référence ne permet pas de la mesurer. Le relevé précédent sur bandes entières (traits plus lumineux sur le site) mélangeait annotations, arcs et règles ; il ne portait pas sur la grille seule. `test-modes` et `test-no-shopify --strict` : PASS.
+
+Confirmation des traits de grille à 600 px de défilement (zone gauche, même méthode) : référence fond 8, 90e centile 24, 99e centile 45, 24,6 % de pixels de trait, médiane 24 ; site après correction fond 10, 90e centile 26, 99e centile 47, 26,4 %, médiane 24. Écart maximal 2 unités. La zone droite à 3 000 px n'est pas exploitable (dessins isométriques dans le cadre).
