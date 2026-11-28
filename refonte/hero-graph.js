@@ -1,5 +1,5 @@
 /* Graphe à plat. Les foyers et vignettes utilisent la même constellation que le chemin Expo. */
-import { CielExpo } from './ciel-expo.js?v=17';
+import { CielExpo } from './ciel-expo.js?v=18';
 import {surfaceGraph,brancheSpectrale,nœudSpectral} from './fall26-graph-adapter.js?v=1';
 
 const borne = t => Math.max(0, Math.min(1,t));
@@ -101,28 +101,63 @@ export function demarre(chapitres) {
   new ResizeObserver(taille).observe(zone); addEventListener('resize', taille); document.fonts?.ready.then(taille); taille();
   new IntersectionObserver(([e]) => { vu = e.isIntersecting; }).observe(zone);
   const local = (ev) => { const r = cv.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; };
-  cv.style.cursor = 'auto';
-  const va = (n) => { const cible = document.getElementById(n.handle) || document.getElementById(n.chapitre); if (cible) cible.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' }); };
-  addEventListener('pointermove', ev => {
-    [souris.x, souris.y] = local(ev);
-    ciel.tire(souris.x, souris.y);
-    const node = ev.pointerType==='mouse'&&dessus(ev)&&ciel.touche(souris.x,souris.y);
-    cv.style.cursor = node?'pointer':'auto';
-    etiquette.toggleAttribute('data-visible',Boolean(node));
-    if(node){
-      etiquette.textContent=node.title;
-      etiquette.style.left=Math.max(12,Math.min(innerWidth-etiquette.offsetWidth-12,ev.clientX+14))+'px';
-      etiquette.style.top=Math.max(12,ev.clientY-28)+'px';
-    }
+  const racine = document.documentElement;
+  let pointeurActif = null;
+  const va = n => {
+    const cible = document.getElementById(n.handle) || document.getElementById(n.chapitre);
+    cible?.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' });
+  };
+  const dessus = ev => {
+    const rect = cv.getBoundingClientRect();
+    return !racine.classList.contains('cv-parity-active') &&
+      ev.clientX >= rect.left && ev.clientX <= rect.right && ev.clientY >= rect.top && ev.clientY <= rect.bottom &&
+      !ev.target.closest?.('a,button,input,select,textarea,.cv-site-nav');
+  };
+  function survol(ev) {
+    const node = ev && ev.pointerType === 'mouse' && dessus(ev) && ciel.touche(souris.x, souris.y);
+    cv.style.cursor = pointeurActif !== null ? 'grabbing' : node ? 'grab' : '';
+    etiquette.toggleAttribute('data-visible', Boolean(node) && pointeurActif === null);
+    if (!node || pointeurActif !== null) return;
+    etiquette.textContent = node.title;
+    etiquette.style.left = Math.max(12, Math.min(innerWidth - etiquette.offsetWidth - 12, ev.clientX + 14)) + 'px';
+    etiquette.style.top = Math.max(12, ev.clientY - 28) + 'px';
+  }
+  document.addEventListener('pointermove', ev => {
+    if (pointeurActif !== null && pointeurActif !== ev.pointerId) return;
+    if (racine.classList.contains('cv-parity-active')) return;
+    if (pointeurActif !== null || dessus(ev)) {
+      [souris.x, souris.y] = local(ev);
+      ciel.tire(souris.x, souris.y);
+    } else souris.x = souris.y = -1e4;
+    survol(ev);
   }, { passive: true });
-  cv.addEventListener('pointerleave', () => { if (!ciel.pris) souris.x = souris.y = -1e4; });
-  /* écoute au niveau du document : d'autres calques de l'accueil passent au-dessus du canevas et recevraient l'appui à sa place */
-  const dessus = (ev) => { const r = cv.getBoundingClientRect(); return !document.documentElement.classList.contains('cv-parity-active') && ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom && !ev.target.closest('a,button,input,select,textarea,.cv-site-nav'); };
-  document.addEventListener('pointerdown', (ev) => { if (ev.button !== 0 || !dessus(ev)) return; [souris.x, souris.y] = local(ev); ciel.saisit(souris.x, souris.y); }, { capture: true });
-  const fin = (annule) => { const r = ciel.lache(); if (r?.clic && !annule) va(r); };
-  document.addEventListener('pointerup', () => fin(false), { capture: true }); document.addEventListener('pointercancel', () => fin(true));
+  document.addEventListener('pointerdown', ev => {
+    if (pointeurActif !== null || ev.button !== 0 || !dessus(ev)) return;
+    [souris.x, souris.y] = local(ev);
+    if (!ciel.saisit(souris.x, souris.y)) return;
+    pointeurActif = ev.pointerId;
+    racine.classList.add('cv-hero-dragging');
+    survol(ev);
+  }, { capture: true });
+  function fin(ev, annule = false) {
+    if (pointeurActif === null || (ev && pointeurActif !== ev.pointerId)) return;
+    if (ev && !annule) ciel.tire(...local(ev));
+    const noeud = ciel.lache();
+    pointeurActif = null;
+    racine.classList.remove('cv-hero-dragging');
+    survol(annule ? null : ev);
+    if (noeud?.clic && !annule) va(noeud);
+  }
+  document.addEventListener('pointerup', ev => fin(ev), { capture: true });
+  document.addEventListener('pointercancel', ev => fin(ev, true));
+  addEventListener('blur', () => {
+    fin(null, true);
+    souris.x = souris.y = -1e4;
+    survol(null);
+  });
   function image(t) {
     requestAnimationFrame(image);
+    if (pointeurActif !== null && racine.classList.contains('cv-parity-active')) fin(null, true);
     if (!vu || document.hidden || W < 120 || H < 120 || t - dernier < 30 || document.documentElement.classList.contains('cv-parity-active')) return;
     const dt = Math.min(0.1, (t - dernier) / 1000); dernier = t;
     const proj = (x, y, h) => ({ x, y, z:2000-h });
