@@ -16,8 +16,8 @@
   /* colonne de gauche : trois cadres de même hauteur sous la liste des chapitres, comme chez Shopify
      (liste 10,8125 rem, écart 10 px, légende 4 4 7 px sur 16 px de ligne : règles d'origine, sans surcharge) */
   #hero .hero-tagline{
-    left:clamp(19px,2.85vh,28px);bottom:11.5%;margin:0;
-    font-size:clamp(10px,1.72vh,17px);line-height:1.15;
+    left:15px;bottom:12.1%;margin:0;
+    font-size:11px;line-height:15px;font-weight:300;
     rotate:none;transform:rotate(-90deg);transform-origin:left bottom;white-space:nowrap;
   }
 }

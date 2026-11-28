@@ -5,6 +5,12 @@ const tons = ['25,122,220', '85,238,172', '105,131,251'];
 const tonsVolume = tons.map(ton=>ton.split(',').map(v=>Math.round(.65*Number(v)+.35*255)).join(','));
 const densiteAccueil = [16,12,17,9,20,30,23,10,9,19,57];
 const placesAccueil = [[.02,-.47],[.23,.80],[-.41,-.68],[.34,.34],[-.74,-.31],[.8,.15],[-.46,.08],[.45,-.2],[-.65,.52],[.45,-.69],[-.15,.47]];
+// Centres mesurés dans le panneau 978 × 830 à 1 440 × 900. L'ordre est celui des onze chapitres.
+const foyersAccueilPlat = [
+  [473, 73], [600, 580], [153, 275], [918, 412], [165, 605], [598, 233],
+  [523, 768], [372, 247], [815, 591], [278, 435], [702, 404],
+].map(([x, y]) => [(x / 978 - .5) / .51, (y / 830 - .5) / .48]);
+
 const lumiere = [-Math.sin(-41*Math.PI/180)/Math.tan(35*Math.PI/180),-Math.cos(-41*Math.PI/180)/Math.tan(35*Math.PI/180)];
 const mix = (a,b,t) => a+(b-a)*t, phase = v => v-Math.floor(v);
 const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
@@ -82,15 +88,16 @@ export class CielExpo extends Ciel {
     });
     this.etoiles.set(id,{id,...spec,noeuds,liens:[...liens.values()],rang:this.etoiles.size-1,centre:null});
   }
-  place(id,centre,rayon,{largeur=rayon,hauteur=rayon,etalement=1,croissance=1}={}){
+  place(id,centre,rayon,{largeur=rayon,hauteur=rayon,etalement=1,croissance=1,profilPlat=false}={}){
     super.place(id,centre,rayon);
     if(id!=='accueil')return;
     for(const e of this.etoiles.values()){
       if(e.parent!==id)continue;
       if(!centre){e.centre=null;continue;}
-      const position=placesAccueil[e.rang] || [0,0];
+      const position=(profilPlat ? foyersAccueilPlat : placesAccueil)[e.rang] || [0,0];
       e.centre=[centre[0]+position[0]*largeur*etalement,centre[1]+position[1]*hauteur*etalement,centre[2]*.57];
-      e.rayon=Math.min(largeur,hauteur)*(.29+.10*Math.sqrt(e.noeuds.length/57))*Math.max(.001,croissance);
+      const rayon = (.29 + .10 * Math.sqrt(e.noeuds.length / 57)) * (profilPlat ? 1.45 : 1);
+      e.rayon = Math.min(largeur, hauteur) * rayon * Math.max(.001, croissance);
     }
   }
   vide(){super.vide();this.pris=null;}
@@ -252,12 +259,12 @@ export class CielExpo extends Ciel {
       else if(pointPlat)pointPlat(hub,'115,133,255',opacity,diam/2,1);
       else ctx.fillRect(hub.x-diam/2,hub.y-diam/2,diam,diam);
       if(plat&&e.sol){
-        const left=hub.x>W*.73;
         ctx.font=(W<520?'8':'11')+'px "Sohne Mono",monospace';
         const gros=ctx.font,effectif=String(e.editoriaux?.length ?? e.noeuds.length);
         ctx.font=(W<520?'6':'8')+'px "Sohne Mono",monospace';const largeurEffectif=ctx.measureText(effectif).width;ctx.font=gros;
-        ctx.textAlign=left?'right':'left';ctx.fillStyle='#fff';
         const largeurLibelle=ctx.measureText(e.label).width;
+        const left = hub.x > W * .73 || hub.x + 13 + largeurLibelle + largeurEffectif > W;
+        ctx.textAlign=left?'right':'left';ctx.fillStyle='#fff';
         /* l'effectif du foyer suit le libellé en exposant, comme sur la référence */
         const lx=left?hub.x-9-largeurEffectif-2:hub.x+9,ly=hub.y-9;
         ctx.fillText(e.label,lx,ly);

@@ -1,5 +1,5 @@
 /* Graphe à plat. Les foyers et vignettes utilisent la même constellation que le chemin Expo. */
-import { CielExpo } from './ciel-expo.js?v=19';
+import { CielExpo } from './ciel-expo.js?v=20';
 import {surfaceGraph,brancheSpectrale,nœudSpectral} from './fall26-graph-adapter.js?v=1';
 
 const borne = t => Math.max(0, Math.min(1,t));
@@ -171,7 +171,7 @@ export function demarre(chapitres) {
     const eclat=joue?lisse(ecoule/.3):1,jaillit=joue?1-(1-borne(ecoule/1.05))**3:1,croit=joue?lisse((ecoule-.55)/1.25):1;
     const reveal=eclat;
     ciel.place('accueil',[W/2-(entree?.decalage()||0),H*.5,Math.min(H*.12,90)],Math.min(W,H)*.48,{
-      largeur:W*.51,hauteur:H*.48,etalement:ouvre*jaillit,croissance:croit
+      largeur:W*.51,hauteur:H*.48,etalement:ouvre*jaillit,croissance:croit,profilPlat:W>=520
     });
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     const edges=[],marks=[],clip=[0,0,W,H];
