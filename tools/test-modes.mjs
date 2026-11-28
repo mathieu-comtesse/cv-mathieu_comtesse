@@ -96,7 +96,9 @@ const accueilMobile = await m.evaluate(() => {
   const chapitre = document.getElementById('shop');
   const hero = document.getElementById('hero');
   chapitre.scrollIntoView({ block: 'start', behavior: 'instant' });
-  const deplace = hero.getBoundingClientRect().bottom <= 50;
+  const basAccueil = hero.getBoundingClientRect().bottom;
+  const hautChapitre = chapitre.getBoundingClientRect().top;
+  const deplace = basAccueil <= hautChapitre + 1;
   scrollTo({ top: 0, behavior: 'instant' });
   return deplace;
 });
