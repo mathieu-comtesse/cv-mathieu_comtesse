@@ -93,7 +93,10 @@ export function demarre(chapitres) {
   const mesure = () => { const r = zone.getBoundingClientRect(); let x0 = 0;
     for (const c of document.querySelectorAll('#hero .hero-chrome')) { const q = c.getBoundingClientRect(); if (q.width && q.height && q.top < r.bottom - 40 && q.bottom > r.top + 40 && q.right > r.left) x0 = Math.max(x0, q.right - r.left); }
     if (x0 > r.width - 160) x0 = 0;
-    x0 = Math.max(0, x0); cv.style.left = x0 + 'px'; cv.style.width = (r.width - x0) + 'px'; W = Math.round(r.width - x0); H = Math.round(r.height); };
+    x0 = Math.max(0, x0); const largeur = r.width - x0;
+    /* Les branches WebGPU et les libellés 2D partagent exactement le même repère. */
+    for (const canvas of [cv, graph.canvas]) { canvas.style.left = x0 + 'px'; canvas.style.right = 'auto'; canvas.style.width = largeur + 'px'; }
+    W = Math.round(largeur); H = Math.round(r.height); };
   const taille = () => { mesure(); dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.max(1, Math.round(W * dpr)); cv.height = Math.max(1, Math.round(H * dpr)); };
   new ResizeObserver(taille).observe(zone); addEventListener('resize', taille); document.fonts?.ready.then(taille); taille();
   new IntersectionObserver(([e]) => { vu = e.isIntersecting; }).observe(zone);
