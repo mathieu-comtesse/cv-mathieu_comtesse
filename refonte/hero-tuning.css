@@ -25,25 +25,16 @@
 
 html.cv-hero-dragging, html.cv-hero-dragging * { cursor: grabbing !important; }
 
-.cv-legacy.cv-legacy .rf-sk-grp[data-cv-chapter] {
-  align-content: start;
-  gap: clamp(16px, 3vh, 32px);
-  min-block-size: clamp(18rem, 53svh, 36rem);
-  padding-block: clamp(24px, 5vh, 60px);
-  padding-inline: 0;
-  scroll-margin-top: 64px;
+.cv-skill-card > .cv-card-content {
+  padding: 24px;
 }
-[data-cv-chapter] .rf-sk-gh > svg { display: none; }
+
+.cv-skill-legend { margin-block: 16px 0; }
+[data-cv-skill] .rf-chipx { scroll-margin-top: 72px; }
 
 @media (min-width: 58.75rem) {
-  .cv-legacy.cv-legacy .rf-sk-grp[data-cv-chapter] {
-    grid-template-columns: repeat(16, minmax(0, 1fr));
-    column-gap: 1rem;
-  }
-
-  .rf-sk-grp[data-cv-chapter] > :is(.rf-sk-gh, .rf-sk-chips) {
-    grid-column: 3 / span 12;
-    min-width: 0;
+  html body [data-cv-skill] .product-card.cv-skill-card {
+    grid-column: 3 / span 12 !important;
   }
 }
 

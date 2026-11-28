@@ -75,14 +75,9 @@ const libelle = (a) => (a.querySelector('h3, h2, .rf-chipx > span')?.textContent
 
 function installe() {
   const cibles = [], chapitres = [];
-  for (const sec of document.querySelectorAll('[data-f26-page-section],[data-cv-chapter]')) {
-    if (sec.hasAttribute('data-cv-chapter')) {
-      const titre = sec.querySelector('[data-cv-chapter-title]');
-      if (titre) chapitres.push({section: sec, titre, fiches: [...sec.querySelectorAll('.rf-chipx')], nom: titre.textContent.trim()});
-      continue;
-    }
+  for (const sec of document.querySelectorAll('[data-f26-page-section]')) {
     const pin = sec.querySelector(':scope > .section-hero-pin'), h = pin?.querySelector('h2'); if (!h) continue;
-    let fiches = [...sec.querySelectorAll('article[data-cv-type], article.product-card')].filter((a) => libelle(a)||a.matches('.cv-unframed'));
+    let fiches = [...sec.querySelectorAll(sec.hasAttribute('data-cv-skill') ? '.rf-chipx' : 'article[data-cv-type], article.product-card')].filter((a) => libelle(a)||a.matches('.cv-unframed'));
     if (!fiches.length) fiches = [...sec.querySelectorAll('h3')].filter((x) => x.textContent.trim()).map((x) => x.closest('article, li, div') || x);
     chapitres.push({ section: sec, hote: pin, titre: h, fiches, nom: h.textContent.trim() });
   }
@@ -351,7 +346,7 @@ function scene(chapitres) {
       const preview=lienMenuSurvole(nav);
       arcMenu(ctx,nav,menuArc,libre?tt:null,preview);
       const focusId=preview?.hash.slice(1);
-      const focusSection=document.getElementById(focusId || '')?.closest('[data-f26-page-section],[data-cv-chapter]');
+      const focusSection=document.getElementById(focusId || '')?.closest('[data-f26-page-section]');
       const visited=new Set();
       const wireTime=libre?tt:null;
       function drawTrack(track,visible){

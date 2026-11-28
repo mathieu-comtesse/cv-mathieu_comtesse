@@ -93,7 +93,7 @@ await r.context().close();
 const m = await page({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 const gm = await m.evaluate(() => window.__cvHeroGraph.etat());
 const accueilMobile = await m.evaluate(() => {
-  const chapitre = document.getElementById('shop');
+  const chapitre = document.querySelector('main [data-f26-page-section]');
   const hero = document.getElementById('hero');
   chapitre.scrollIntoView({ block: 'start', behavior: 'instant' });
   const basAccueil = hero.getBoundingClientRect().bottom;
