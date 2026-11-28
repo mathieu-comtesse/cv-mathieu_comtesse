@@ -1,7 +1,7 @@
 import { Ciel, hache } from './moteur.js?v=m36';
 
 const angleOr = 2.399963, cercle = Math.PI * 2;
-const tons = ['72,209,192', '241,176,106', '149,174,244'];
+const tons = ['25,122,220', '85,238,172', '105,131,251'];
 const tonsVolume = tons.map(ton=>ton.split(',').map(v=>Math.round(.65*Number(v)+.35*255)).join(','));
 const densiteAccueil = [16,12,17,9,20,30,23,10,9,19,57];
 const placesAccueil = [[.02,-.47],[.23,.80],[-.41,-.68],[.34,.34],[-.74,-.31],[.8,.15],[-.46,.08],[.45,-.2],[-.65,.52],[.45,-.69],[-.15,.47]];
