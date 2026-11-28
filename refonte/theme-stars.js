@@ -34,7 +34,7 @@ html:not(.cv-parity-active) .cv-theme-heading.cv-star-host h2{color:#fff}
 html:not(.cv-parity-active) .cv-star-host h2{text-wrap:balance}
 .cv-star-scene{position:fixed;inset:0;width:100vw;height:100vh;z-index:2;pointer-events:none}
 html.cv-parity-active .cv-star-scene,html.cv-parity-active .cv-flat-nav{display:none}
-html:not(.cv-parity-active) .section-hero-pin h2{color:transparent!important;-webkit-text-stroke:1px rgb(255 255 255 / .62);background:linear-gradient(270deg,#fff calc(var(--cv-fill,1)*108% - 8%),rgb(255 255 255 / 0) calc(var(--cv-fill,1)*108%));-webkit-background-clip:text;background-clip:text;width:fit-content;max-width:100%}
+html:not(.cv-parity-active) :is(.section-hero-pin h2,[data-cv-chapter-title]){color:transparent!important;-webkit-text-stroke:1px rgb(255 255 255 / .62);background:linear-gradient(270deg,#fff calc(var(--cv-fill,1)*108% - 8%),rgb(255 255 255 / 0) calc(var(--cv-fill,1)*108%));-webkit-background-clip:text;background-clip:text;width:fit-content;max-width:100%}
 .cv-flat-nav{position:fixed;left:12px;top:calc(50% + 17px);transform:translateY(-50%);z-index:3;display:grid;max-width:min(164px,14vw);font:11px/1.2 "Sohne Mono",ui-monospace,monospace;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .35s}
 .cv-flat-nav.vu{opacity:1;visibility:visible;pointer-events:auto}
 .cv-flat-nav a{color:rgb(255 255 255 / .7);text-decoration:none;display:flex;align-items:center;gap:12px;justify-content:space-between;min-height:24px}
@@ -66,11 +66,16 @@ document.head.append(style);
 const hache = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0; };
 const alea = (g) => () => { g |= 0; g = g + 0x6D2B79F5 | 0; let t = Math.imul(g ^ g >>> 15, 1 | g); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const el = (nom, attrs = {}) => { const e = document.createElementNS(NS, nom); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
-const libelle = (a) => (a.querySelector('h3, h2')?.textContent || a.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ').slice(0, 60);
+const libelle = (a) => (a.querySelector('h3, h2, .rf-chipx > span')?.textContent || a.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ').slice(0, 60);
 
 function installe() {
   const cibles = [], chapitres = [];
-  for (const sec of document.querySelectorAll('section[data-f26-page-section]')) {
+  for (const sec of document.querySelectorAll('[data-f26-page-section],[data-cv-chapter]')) {
+    if (sec.hasAttribute('data-cv-chapter')) {
+      const titre = sec.querySelector('[data-cv-chapter-title]');
+      if (titre) chapitres.push({section: sec, titre, fiches: [...sec.querySelectorAll('.rf-chipx')], nom: titre.textContent.trim()});
+      continue;
+    }
     const pin = sec.querySelector(':scope > .section-hero-pin'), h = pin?.querySelector('h2'); if (!h) continue;
     let fiches = [...sec.querySelectorAll('article[data-cv-type], article.product-card')].filter((a) => libelle(a)||a.matches('.cv-unframed'));
     if (!fiches.length) fiches = [...sec.querySelectorAll('h3')].filter((x) => x.textContent.trim()).map((x) => x.closest('article, li, div') || x);
@@ -197,7 +202,6 @@ function scene(chapitres) {
     nav.append(a);
   }
   for (const c of chapitres) c.lien = liens.get(c.section.id);
-  const rubriques = [...liens.keys()].map(id => document.getElementById(id)).filter(el => el?.matches('.rf-sk-grp'));
   document.body.append(nav);
   const source=document.querySelector('[data-f26-page]');
   let paper=[];
@@ -319,11 +323,7 @@ function scene(chapitres) {
       ctx.restore();
     }
     nav.classList.toggle('vu', vuNav);
-    let idActif = actif?.section.id;
-    if (idActif === 'marketing') {
-      const rubrique = rubriques.findLast(el => el.getBoundingClientRect().top <= H * .5);
-      if (rubrique) idActif = rubrique.id;
-    }
+    const idActif = actif?.section.id;
     if (nav.dataset.activeChapter !== (idActif || '')) {
       nav.dataset.activeChapter = idActif || '';
       for (const [id, lien] of liens) {
@@ -341,7 +341,7 @@ function scene(chapitres) {
       const preview=lienMenuSurvole(nav);
       arcMenu(ctx,nav,menuArc,libre?tt:null,preview);
       const focusId=preview?.hash.slice(1);
-      const focusSection=document.getElementById(focusId || '')?.closest('[data-f26-page-section]');
+      const focusSection=document.getElementById(focusId || '')?.closest('[data-f26-page-section],[data-cv-chapter]');
       const visited=new Set();
       const wireTime=libre?tt:null;
       function drawTrack(track,visible){
@@ -360,11 +360,9 @@ function scene(chapitres) {
         if(c!==actif&&c.section!==focusSection)continue;
         const lien=c.section===focusSection ? preview : liens.get(idActif)||c.lien;
         if(!lien)continue;
-        const rubrique=document.getElementById(lien.hash.slice(1));
-        const cards=rubrique?.matches('.rf-sk-grp')?[rubrique]:c.fiches;
-        for(const [index,card] of cards.entries()){
+        for(const [index,card] of c.fiches.entries()){
           const marker=card.querySelector(':scope > [data-card-marker]');
-          const text=marker?null:card.querySelector('h2,h3,p');
+          const text=marker?null:card.querySelector('h2,h3,p,.rf-chipx > span');
           const dot=(marker||text)?.getBoundingClientRect();
           if(!dot?.width||dot.top<76||dot.top>H-48)continue;
           const b={x:marker?dot.left+dot.width/2:dot.left-10,y:dot.top+(marker?dot.height/2:Math.min(9,dot.height/2))};

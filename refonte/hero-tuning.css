@@ -24,3 +24,17 @@
 @media(max-width:58.74rem){.cv-inspector-card .cv-inspector{min-height:9rem}}
 
 html.cv-hero-dragging, html.cv-hero-dragging * { cursor: grabbing !important; }
+
+.cv-legacy.cv-legacy .rf-sk-grp[data-cv-chapter] {
+  align-content: start;
+  gap: clamp(16px, 3vh, 32px);
+  min-block-size: clamp(18rem, 53svh, 36rem);
+  padding: clamp(24px, 5vh, 60px) 8px;
+  scroll-margin-top: 64px;
+}
+.cv-legacy.cv-legacy .rf-sk-gh [data-cv-chapter-title] {
+  color: #fff;
+  font-size: clamp(28px, 4vw, 64px) !important;
+  line-height: 1.06;
+  text-wrap: balance;
+}
