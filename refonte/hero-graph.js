@@ -1,5 +1,5 @@
 /* Graphe à plat. Les foyers et vignettes utilisent la même constellation que le chemin Expo. */
-import { CielExpo } from './ciel-expo.js?v=15';
+import { CielExpo } from './ciel-expo.js?v=16';
 import {surfaceGraph,brancheSpectrale,nœudSpectral} from './fall26-graph-adapter.js?v=1';
 
 const borne = t => Math.max(0, Math.min(1,t));
@@ -127,15 +127,19 @@ export function demarre(chapitres) {
     const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + .8 * s * s;
     cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
-    const reveal=entree?.enCours()?lisse((t-arrivee)/1017):1;
+    /* ouverture relevée sur la référence : le graphe apparaît d'un coup, les foyers jaillissent du centre en gros carrés,
+       puis les rayons poussent pendant que la colonne de gauche entre */
+    const ecoule=entree?.enCours()?(t-arrivee)/1000:Infinity,joue=Number.isFinite(ecoule);
+    const eclat=joue?lisse(ecoule/.3):1,jaillit=joue?1-(1-borne(ecoule/1.05))**3:1,croit=joue?lisse((ecoule-.55)/1.25):1;
+    const reveal=eclat;
     ciel.place('accueil',[W/2-(entree?.decalage()||0),H*.5,Math.min(H*.12,90)],Math.min(W,H)*.48,{
-      largeur:W*.51,hauteur:H*.48,etalement:ouvre
+      largeur:W*.51,hauteur:H*.48,etalement:ouvre*jaillit,croissance:croit
     });
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     const edges=[],marks=[],clip=[0,0,W,H];
     const traitPlat=graph.active?(a,b,ink,alpha,width)=>brancheSpectrale(edges,a,b,ink,alpha,clip,width):undefined;
     const pointPlat=graph.active?(p,ink,alpha,radius,shape)=>nœudSpectral(marks,p,ink,alpha,clip,radius,shape):undefined;
-    ciel.dessine(ctx,proj,reduit.matches?null:t/1000,{souris,W,H,dt,plat:true,traitPlat,pointPlat,ouverture:reveal});
+    ciel.dessine(ctx,proj,reduit.matches?null:t/1000,{souris,W,H,dt,plat:true,traitPlat,pointPlat,ouverture:reveal,tailleFoyer:1+1.15*(1-croit)});
     graph.canvas.style.opacity=cv.style.opacity;graph.render(W,H,dpr,edges,undefined,marks);
   }
   requestAnimationFrame(image);

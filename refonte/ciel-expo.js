@@ -82,7 +82,7 @@ export class CielExpo extends Ciel {
     });
     this.etoiles.set(id,{id,...spec,noeuds,liens:[...liens.values()],rang:this.etoiles.size-1,centre:null});
   }
-  place(id,centre,rayon,{largeur=rayon,hauteur=rayon,etalement=1}={}){
+  place(id,centre,rayon,{largeur=rayon,hauteur=rayon,etalement=1,croissance=1}={}){
     super.place(id,centre,rayon);
     if(id!=='accueil')return;
     for(const e of this.etoiles.values()){
@@ -90,12 +90,12 @@ export class CielExpo extends Ciel {
       if(!centre){e.centre=null;continue;}
       const position=placesAccueil[e.rang] || [0,0];
       e.centre=[centre[0]+position[0]*largeur*etalement,centre[1]+position[1]*hauteur*etalement,centre[2]*.57];
-      e.rayon=Math.min(largeur,hauteur)*(.29+.10*Math.sqrt(e.noeuds.length/57));
+      e.rayon=Math.min(largeur,hauteur)*(.29+.10*Math.sqrt(e.noeuds.length/57))*Math.max(.001,croissance);
     }
   }
   vide(){super.vide();this.pris=null;}
 
-  dessine(ctx,proj,t,{covers=[],souris,W,H,dt,alpha=1,titres=1,rise=0,unproject,segment,traitPlat,pointPlat,plat=false,ouverture=1}){
+  dessine(ctx,proj,t,{covers=[],souris,W,H,dt,alpha=1,titres=1,rise=0,unproject,segment,traitPlat,pointPlat,plat=false,ouverture=1,tailleFoyer=1}){
     const masque=p=>covers.some(([a,b,c,d])=>
       Math.min(profondeurTriangle(p,a,b,c),profondeurTriangle(p,a,c,d))<p.z-2
     );
@@ -246,7 +246,7 @@ export class CielExpo extends Ciel {
       }
       if(masque(hub))continue;
       ctx.globalAlpha=opacity;
-      const diam=title?14:8;
+      const diam=title?14:8*tailleFoyer;
       ctx.fillStyle=title?'#e9efff':plat?'#7385ff':'#a1badc';
       if(e.racine){ctx.strokeStyle='#7281ff';ctx.beginPath();ctx.arc(hub.x,hub.y,4,0,cercle);ctx.stroke();}
       else if(pointPlat)pointPlat(hub,'115,133,255',opacity,diam/2,1);
@@ -254,8 +254,15 @@ export class CielExpo extends Ciel {
       if(plat&&e.sol){
         const left=hub.x>W*.73;
         ctx.font=(W<520?'8':'11')+'px "Sohne Mono",monospace';
+        const gros=ctx.font,effectif=String(e.noeuds.length);
+        ctx.font=(W<520?'6':'8')+'px "Sohne Mono",monospace';const largeurEffectif=ctx.measureText(effectif).width;ctx.font=gros;
         ctx.textAlign=left?'right':'left';ctx.fillStyle='#fff';
-        ctx.fillText(e.label,hub.x+(left?-9:9),hub.y-9);
+        const largeurLibelle=ctx.measureText(e.label).width;
+        /* l'effectif du foyer suit le libellé en exposant, comme sur la référence */
+        const lx=left?hub.x-9-largeurEffectif-2:hub.x+9,ly=hub.y-9;
+        ctx.fillText(e.label,lx,ly);
+        ctx.font=(W<520?'6':'8')+'px "Sohne Mono",monospace';ctx.fillStyle='rgba(255,255,255,.62)';ctx.textAlign='left';
+        ctx.fillText(effectif,left?hub.x-9-largeurEffectif:lx+largeurLibelle+2,ly-5);ctx.font=gros;
       }
       if(title){
         ctx.font='300 11px "Sohne Mono","JetBrains Mono",monospace';ctx.textAlign='right';ctx.fillStyle='#fff';
