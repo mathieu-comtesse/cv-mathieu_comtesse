@@ -254,7 +254,7 @@ export class CielExpo extends Ciel {
       if(plat&&e.sol){
         const left=hub.x>W*.73;
         ctx.font=(W<520?'8':'11')+'px "Sohne Mono",monospace';
-        const gros=ctx.font,effectif=String(e.noeuds.length);
+        const gros=ctx.font,effectif=String(e.editoriaux?.length ?? e.noeuds.length);
         ctx.font=(W<520?'6':'8')+'px "Sohne Mono",monospace';const largeurEffectif=ctx.measureText(effectif).width;ctx.font=gros;
         ctx.textAlign=left?'right':'left';ctx.fillStyle='#fff';
         const largeurLibelle=ctx.measureText(e.label).width;
