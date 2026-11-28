@@ -506,7 +506,7 @@ html:not(.cv-parity-active) .cv-legacy .pc-hublot{margin-block:56px 96px}
 <link rel="stylesheet" href="refonte/expo-typographie.css?v=1">
 <style>#work[data-no-piggy] .annual-pig-wrap{display:none!important}.cv-parity-part[data-cv-project-face] .cv-machine{background:transparent!important}</style>
 <link rel="stylesheet" href="refonte/mqse-inspector.css?v=4">
-<link rel="stylesheet" href="refonte/hero-tuning.css?v=2">
+<link rel="stylesheet" href="refonte/hero-tuning.css?v=3"><script type="module" src="refonte/protect-widget.js?v=1"></script>
 <link rel="stylesheet" href="refonte/project-editorial.css?v=2">
 <!-- seo:start -->
 <meta property="og:locale" content="fr_FR">
@@ -1008,7 +1008,7 @@ async function startOriginalComponents(){
  const timeline=q('#rf-tl'),rail=q('.rf-tl-rail',timeline||document),line=q('#rf-tl-line'),dot=q('#rf-tl-dot'),train=q('.rf-tl-train',timeline||document);
  if(timeline&&rail){let value=0,last=performance.now(),height=timeline.offsetHeight,seen=false,running=false;
   /* la frise ne s'anime que lorsqu'elle est proche de l'écran ; sa hauteur est mise en cache (plus de mise en page forcée à chaque image) */
-  const animate=now=>{if(!seen||document.hidden){running=false;return;}requestAnimationFrame(animate);const top=(window.__cvLayoutTop?window.__cvLayoutTop(timeline):timeline.getBoundingClientRect().top+scrollY)-scrollY,target=Math.max(0,Math.min(1,(innerHeight*.6-top)/Math.max(1,height))),dt=Math.min(.1,(now-last)/1000);last=now;value+=(target-value)*(1-Math.exp(-8*dt));if(line)line.style.transform='scaleY('+value+')';if(dot){dot.style.top=(value*100)+'%';dot.style.transform='none';}if(train){train.style.top=(value*100)+'%';train.style.transform='translateY(-50%)';}};
+  const animate=now=>{if(!seen||document.hidden){running=false;return;}requestAnimationFrame(animate);const top=(window.__cvLayoutTop?window.__cvLayoutTop(timeline):timeline.getBoundingClientRect().top+scrollY)-scrollY,target=Math.max(0,Math.min(1,(innerHeight*.6-top)/Math.max(1,height))),dt=Math.min(.1,(now-last)/1000);last=now;value+=(target-value)*(1-Math.exp(-8*dt));if(line)line.style.transform='scaleY('+value+')';if(dot){dot.style.top=(value*100)+'%';dot.style.transform='none';}};
   const wake=()=>{if(seen&&!running&&!document.hidden){running=true;last=performance.now();requestAnimationFrame(animate);}};
   if('ResizeObserver'in window)new ResizeObserver(()=>{height=timeline.offsetHeight;}).observe(timeline);
   if('IntersectionObserver'in window)new IntersectionObserver(e=>{seen=e[e.length-1].isIntersecting;wake();},{rootMargin:'300px 0px'}).observe(timeline);else{seen=true;}
@@ -1662,7 +1662,7 @@ async function startParityPath(){
   if(line&&prog>.001&&top+prog*len>lo){const c=getComputedStyle(line).backgroundColor;ctx.strokeStyle=c&&c!=='rgba(0, 0, 0, 0)'?c:'#fff';ctx.lineWidth=Math.max(1.5,2.4*k);trace(Math.max(top,lo),Math.min(top+prog*len,hi));}
   const at=(el,fixed)=>{const r=el.getBoundingClientRect();return{row:fixed?top+(r.top-(dr?dr.top:r.top))+r.height/2:top+prog*len,w:r.width,h:r.height};};
   if(dot){const d=at(dot,false),p=pt(d.row);if(p&&d.row>-100&&d.row<view.T+100){const c=getComputedStyle(dot).backgroundColor;ctx.fillStyle=c&&c!=='rgba(0, 0, 0, 0)'?c:'#fff';ctx.beginPath();ctx.arc(p.x,p.y,Math.max(3,d.w/2*sz(d.row)),0,6.2832);ctx.fill();}}
-  if(train){const d=at(train,false),p=pt(d.row);if(p&&d.row>-100&&d.row<view.T+100){const kk=Math.max(.4,sz(d.row)),w=Math.max(16,28*kk),h=Math.max(16,28*kk),c=getComputedStyle(train).backgroundColor;ctx.fillStyle=c&&c!=='rgba(0, 0, 0, 0)'?c:'#05080d';ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(p.x-w/2,p.y-h/2,w,h,w/3);ctx.fill();ctx.stroke();
+  if(train){const d=at(train,true),p=pt(d.row);if(p&&d.row>-100&&d.row<view.T+100){const kk=Math.max(.4,sz(d.row)),w=Math.max(16,28*kk),h=Math.max(16,28*kk),c=getComputedStyle(train).backgroundColor;ctx.fillStyle=c&&c!=='rgba(0, 0, 0, 0)'?c:'#05080d';ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(p.x-w/2,p.y-h/2,w,h,w/3);ctx.fill();ctx.stroke();
     const svg=q('svg',train);if(svg){const src='data:image/svg+xml;utf8,'+encodeURIComponent(svg.outerHTML.replace(/currentColor/g,'#fff').replace('<svg','<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"'));if(src!==railIconSrc){railIconSrc=src;railIcon.src=src;}if(railIcon.complete&&railIcon.naturalWidth){const size=w*.7;ctx.drawImage(railIcon,p.x-size/2,p.y-size/2,size,size);}}}}
   ctx.restore();}
  let slowFrames=0,frameAvg=16;

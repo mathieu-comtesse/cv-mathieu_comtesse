@@ -1,7 +1,4 @@
-/* Les deux illustrations occupent des fenêtres de même hauteur. */
-#hero .cv-inspector-card figcaption,.cv-parity-widget .cv-inspector-card figcaption{
-  padding:10px 9px 7px;
-}
+/* Les trois cadres occupent des fenêtres de même hauteur. */
 .cv-inspector-card .cv-inspector{
   min-height:0;
   aspect-ratio:auto;
@@ -16,10 +13,8 @@
 .cv-parity-toggle{opacity:var(--cv-expo-reveal,0);pointer-events:none}
 .cv-parity-toggle:not([inert]){pointer-events:auto}
 @media(min-width:58.75rem){
-  #hero .hero-sidebar{grid-template-rows:minmax(0,30.3fr) minmax(0,67.9fr);gap:clamp(8px,1.55vh,15px)}
-  #hero .hero-widgets{grid-template-rows:repeat(2,minmax(0,1fr));gap:clamp(8px,1.55vh,15px)}
-  #hero .hero-widgets figcaption{padding:clamp(7px,1.15vh,11px) 9px;line-height:1.28}
-  #hero .hero-widgets [data-cv-hero-gains]{display:none}
+  /* colonne de gauche : trois cadres de même hauteur sous la liste des chapitres, comme chez Shopify
+     (liste 10,8125 rem, écart 10 px, légende 4 4 7 px sur 16 px de ligne : règles d'origine, sans surcharge) */
   #hero .hero-tagline{
     left:clamp(19px,2.85vh,28px);bottom:11.5%;margin:0;
     font-size:clamp(10px,1.72vh,17px);line-height:1.15;
