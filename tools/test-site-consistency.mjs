@@ -33,7 +33,9 @@ for (const f of pages) {
 }
 // numérotation « N / M » : un seul total par famille, rangs 1..M sans trou ni doublon
 for (const [prefix, re] of [['projet-', /Projet professionnel · (\d+) \/ (\d+)/], ['article-', /Étude · (\d+) \/ (\d+)/]]) {
-  const found = pages.filter((f) => f.startsWith(prefix)).map((f) => (read(f).match(re) || []).slice(1).map(Number)).filter((x) => x.length);
+  const family = pages.filter((f) => f.startsWith(prefix));
+  if (!family.length) continue;
+  const found = family.map((f) => (read(f).match(re) || []).slice(1).map(Number)).filter((x) => x.length);
   const totals = new Set(found.map((x) => x[1]));
   if (totals.size !== 1) problems.push(`${prefix} : totaux différents ${[...totals]}`);
   else { const M = [...totals][0]; const ranks = found.map((x) => x[0]).sort((a, b) => a - b); if (ranks.join() !== Array.from({ length: M }, (_, i) => i + 1).join() || found.length !== M) problems.push(`${prefix} : rangs ${ranks} pour un total de ${M}`); }
