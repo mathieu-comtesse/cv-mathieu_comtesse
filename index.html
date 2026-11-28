@@ -297,7 +297,7 @@ html.cv-parity-active canvas[data-cv-taken]{filter:opacity(0)}
 @media(prefers-reduced-motion:reduce){.cv-graph-hover,.cv-pt-label{transition:none}}
 html.cv-parity-active .cv-graph-hover{display:none}
 html{background-color:#101338;scrollbar-width:thin;scrollbar-color:#ffffff70 #101338}
-@media(pointer:fine){html{scrollbar-gutter:stable}}
+@media(pointer:fine){html{scrollbar-gutter:stable;scrollbar-width:auto}}
 .cv-parity-toggle{position:fixed;left:10px;bottom:24px;z-index:502;display:grid;place-items:center;width:32px;height:32px;border:0;border-radius:50%;color:#fff;background:transparent;padding:0;cursor:pointer}
 .cv-parity-toggle:focus-visible{outline:2px solid #fff;outline-offset:4px}
 .cv-pt-icon{display:block;overflow:visible}
@@ -1118,6 +1118,7 @@ async function startParityPath(){
   a.textContent=destination.firstElementChild.textContent.trim();
   a.dataset.chapter=destination.hash.slice(1);nav.append(a);
  }
+ document.body.append(nav);
  const toggle=document.createElement('button');
  toggle.type='button';
  toggle.className='cv-parity-toggle';
@@ -1747,7 +1748,8 @@ async function startParityPath(){
   view.cube=[-0.285*view.W,-612-view.offset,0,140*view.H/1319];N.dessineDecor(ctx,view,{t:reduced.matches?0:now/1000});
   const graph=original.get(q('.hero-entrance-hold'));
   const plotLeft=innerWidth<700?14:Math.max(18,(graph?.left||0)*.08);
-  marquesExpo=graph?N.dessineCourbeAccueil(ctx,view,{x0:plotLeft,x1:innerWidth-18,row:graph.top+graph.height+220-view.offset,chapters:cvChapterRecords,souris,time:reduced.matches?null:now/1000}):[];
+  const bordAccueil = graph ? graph.top + graph.height + 220 - view.offset : null;
+  marquesExpo = graph ? N.dessineCourbeAccueil(ctx,view,{x0:plotLeft,x1:innerWidth-18,row:bordAccueil,chapters:cvChapterRecords,souris,time:reduced.matches?null:now/1000}) : [];
   state.heroPlot=marquesExpo.map(({x,y,chapter})=>({x,y,chapter}));
   N.dessineRegles(ctx,view,chapters.map(c=>({row:original.get(c.el).top-view.offset,name:c.name})));
   {const sv=N.dessineContours(ctx,view,boxes,souris);state.survol=sv?(sv.title||'cadre'):null;}
@@ -1776,8 +1778,11 @@ async function startParityPath(){
   renderer.autoClear=false;renderer.clearDepth();renderer.render(machineScene,camera);renderer.autoClear=true;
   state.railProgress=railProg;state.chapterStars=ciel.etat('titre');
   drawRail();
-  const sample=[innerWidth*.4,lead+innerHeight*.45,20],a=N.p(view,...sample),b=new T.Vector3(...bend(...sample)).project(camera);state.hero3D=visible.some(p=>p.hero)&&progress>0;nav.inert=!ciel.actif&&visible.some(p=>p.slab&&p.hero&&p.points?.some(q=>q.y>=50&&q.y<=innerHeight));
-  let currentChapter=ciel.actif||'';
+  const sample=[innerWidth*.4,lead+innerHeight*.45,20],a=N.p(view,...sample),b=new T.Vector3(...bend(...sample)).project(camera);state.hero3D=visible.some(p=>p.hero)&&progress>0;
+  const bordProjete = bordAccueil === null ? null : N.p(view, innerWidth / 2, bordAccueil);
+  const aQuitteAccueil = bordProjete && bordProjete.y <= innerHeight * .5;
+  nav.inert = !ciel.actif && !aQuitteAccueil;
+  let currentChapter = ciel.actif || (aQuitteAccueil ? chapters[0]?.id : '') || '';
   if(currentChapter==='marketing'){
     const readingLine=scrollY+innerHeight*.48;
     for(const link of qa('[data-chapter]',nav)){

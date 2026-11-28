@@ -44,6 +44,12 @@ verifie(inter.length >= 1 && entree.every((e, i) => !i || e[0] >= entree[i - 1][
 { const d = entree.find((e) => Number.isFinite(e[2])); verifie(d && (Math.abs(d[2] - 90) < 12 || d[0] > 0.05) && entree.some((e) => e[2] > 31 && e[2] < 89), `la caméra part de la verticale et descend (${entree.filter((e) => Number.isFinite(e[2])).map((e) => e[2]).filter((v, i, l) => !i || v !== l[i - 1]).join('° → ')}°)`); }
 verifie(expo.actif && Math.abs(expo.p - 1) < 1e-3 && Math.abs(expo.pitch - 30.2) < 0.3, `arrivée : progression ${expo.p}, visée à ${expo.pitch.toFixed(1)}° sous l'horizontale`);
 verifie(Math.abs(expo.y - avant.y) < 2, `la position de lecture est conservée (${avant.y} → ${expo.y} px)`);
+const navigationExpo = await p.evaluate(() => {
+  const nav = document.querySelector('.cv-parity-nav');
+  return nav && !nav.hidden && !nav.inert && nav.querySelectorAll('a[data-chapter]').length === 11 &&
+    !!nav.querySelector('[aria-current="location"]');
+});
+verifie(navigationExpo, 'le menu Expo affiche les onze chapitres et indique le chapitre actif');
 /* sortie, interrompue puis reprise */
 await p.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await p.waitForTimeout(300);
 const mi = await p.evaluate(() => [window.__cvStandardPath.progress, window.__cvStandardPath.cible]);
