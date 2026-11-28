@@ -120,8 +120,9 @@ if (frames.length) {
       const top = st.card.getBoundingClientRect().top;
       const reveal = clamp((innerHeight * .98 - top) / (innerHeight * .22), 0, 1);
       const opacity = (reveal * reveal * (3 - 2 * reveal)).toFixed(3);
-      if (opacity !== st.opacity) {
-        st.opacity = opacity;
+      // Le mode Expo réécrit le style en déplaçant la carte. La valeur de la carte
+      // reste la source de vérité au retour sur le parcours à plat.
+      if (st.card.style.getPropertyValue('--cv-copy-progress') !== opacity) {
         st.card.style.setProperty('--cv-copy-progress', opacity);
       }
     }

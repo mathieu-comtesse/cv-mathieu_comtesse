@@ -178,7 +178,6 @@ html body .cv-pf-main[data-fiche] > .cv-machine {
 }
 
 @media (min-width: 58.75rem) {
-  html body #shop > .grid-layout { padding-inline: 8px; }
   html body #shop [data-card-group] {
     grid-column: 3 / span 12 !important;
   }

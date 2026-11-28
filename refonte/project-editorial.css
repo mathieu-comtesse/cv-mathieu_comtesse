@@ -1,31 +1,46 @@
 /* Les mêmes cartes éditoriales sont utilisées sur la page et sur les cadres Expo. */
-html body :is(.cv-pf-main[data-fiche],.cv-card-content.cv-game-card){
+html body .cv-card-content.cv-game-card{
   --project-padding:clamp(18px,2.1vw,34px);
   box-sizing:border-box;
   padding:var(--project-padding);
   min-width:0;
   gap:clamp(18px,2.2vw,36px);
 }
-html body :is(.cv-pf-main .cv-pf-text,.cv-game-card .cv-game-copy){
+html body .cv-game-card .cv-game-copy{
   max-width:41ch;
   display:block;
   margin:0;
   opacity:1;
   transform:none;
 }
-html body :is(.cv-pf-main .cv-pf-text,.cv-game-card .cv-game-copy) h3{
+html body .cv-game-card .cv-game-copy h3{
   font:580 clamp(20px,1.75vw,31px)/1.1 var(--expo-sans,system-ui)!important;
   letter-spacing:-.032em;
   margin:0 0 .44em;
   color:#fff;
 }
-html body :is(.cv-pf-main .cv-pf-text,.cv-game-card .cv-game-copy) p{
+html body .cv-game-card .cv-game-copy p{
   font:450 clamp(16px,1.2vw,21px)/1.34 var(--expo-sans,system-ui)!important;
   letter-spacing:-.016em;
   max-width:37ch;
   margin:0 0 14px;
   color:#e2e7fb;
 }
+html body .cv-card-content.cv-pf-main[data-fiche] {
+  padding: 24px;
+}
+html body .cv-pf-main[data-fiche] > .cv-pf-text {
+  width: min(100%, 400px);
+  min-width: 0;
+}
+html body .cv-pf-main[data-fiche] > .cv-pf-text > :is(h3, p) {
+  font: 500 var(--expo-body)/var(--expo-leading) var(--expo-sans, system-ui) !important;
+  letter-spacing: .01em;
+}
+html body .cv-pf-main[data-fiche] .cv-pf-visual .cv-pf-note.sc-note {
+  font: 400 12px/16px var(--expo-sans, system-ui) !important;
+}
+
 html body .cv-game-card .cv-game-copy .cv-pf-link{margin-top:0}
 html body .cv-game-card .cv-game-cover{display:block;min-width:0;margin:0;overflow:hidden;border-radius:9px}
 html body .cv-game-card .cv-game-cover .cv-game-icon{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;object-position:center}
@@ -44,7 +59,6 @@ html body .cv-project-index :is(a,span){font-size:clamp(14px,1.05vw,18px);line-h
 @media(min-width:940px){
   html body #fulfillment .product-card:is(#cv-9-0-thaleolithic,#cv-9-13-la-ville-pliee){grid-column:span 12 / span 12!important}
   html body .cv-card-content.cv-game-card[data-featured-game]{grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr);align-items:start}
-  html body .cv-pf-main[data-fiche]:not([data-fiche="projet-finance"],[data-fiche="projet-vmvre"])[data-card-variant="horizontal"]{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
 }
 @media(max-width:820px){
   html body .cv-pf-main[data-fiche] .sc-mec-path{gap:24px}
