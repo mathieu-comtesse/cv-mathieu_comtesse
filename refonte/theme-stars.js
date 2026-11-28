@@ -34,7 +34,12 @@ html:not(.cv-parity-active) .cv-theme-heading.cv-star-host h2{color:#fff}
 html:not(.cv-parity-active) .cv-star-host h2{text-wrap:balance}
 .cv-star-scene{position:fixed;inset:0;width:100vw;height:100vh;z-index:2;pointer-events:none}
 html.cv-parity-active .cv-star-scene,html.cv-parity-active .cv-flat-nav{display:none}
+@media (min-width:58.75rem){
 html:not(.cv-parity-active) :is(.section-hero-pin h2,[data-cv-chapter-title]){color:transparent!important;-webkit-text-stroke:1px rgb(255 255 255 / .62);background:linear-gradient(270deg,#fff calc(var(--cv-fill,1)*108% - 8%),rgb(255 255 255 / 0) calc(var(--cv-fill,1)*108%));-webkit-background-clip:text;background-clip:text;width:fit-content;max-width:100%}
+}
+@media (max-width:58.74rem){
+html:not(.cv-parity-active) :is(.section-hero-pin h2,[data-cv-chapter-title]){color:#fff}
+}
 .cv-flat-nav{position:fixed;left:12px;top:calc(50% + 17px);transform:translateY(-50%);z-index:3;display:grid;max-width:min(164px,14vw);font:11px/1.2 "Sohne Mono",ui-monospace,monospace;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .35s}
 .cv-flat-nav.vu{opacity:1;visibility:visible;pointer-events:auto}
 .cv-flat-nav a{color:rgb(255 255 255 / .7);text-decoration:none;display:flex;align-items:center;gap:12px;justify-content:space-between;min-height:24px}
@@ -182,6 +187,8 @@ function scene(chapitres) {
   document.body.append(fil.canvas,cv);
   const lisse = (x, a, b) => { x = Math.max(0, Math.min(1, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
   const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false, ancienneCouleur = '', liensLus = 0;
+  const bureau = matchMedia('(min-width:58.75rem)');
+  const centreBureau = () => ({ x: W / 2, y: H / 2 - 4 });
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
   addEventListener('resize', taille); taille();
   for (const c of chapitres) {
@@ -241,8 +248,8 @@ function scene(chapitres) {
     let painted=false;
     if(etat.next){
       // La transition part du foyer visible de l’étoile du chapitre entrant.
-      const originY=H*.56;
-      const wave=radialCouleur(etat,W*.6,originY,W,H);
+      const origine = centreBureau();
+      const wave = radialCouleur(etat, origine.x, origine.y, W, H);
       painted=shader.draw(etat,wave,W,H,dpr);
       couleur=couleurAuPoint(etat,wave,W*.5,25);
       if(!painted){
@@ -263,7 +270,7 @@ function scene(chapitres) {
     for (const c of chapitres) {
       const S = c.section.getBoundingClientRect(); if (S.top < H * 0.5 && S.bottom > H * 0.5) actif = c; if (S.top < H * 1.4) vuNav = true;
       const T = c.titre.getBoundingClientRect(), u = (H - T.top) / H;
-      const plein = libre ? lisse(u, 0.02, 0.34) : 1;
+      const plein = libre && bureau.matches ? lisse(u, 0.02, 0.34) : 1;
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
       // Le foyer et ses branches entrent avec le titre, jamais sur le chapitre précédent.
       const g = libre ? lisse(u, 0.06, 0.37) : Number(u >= 0.06);
@@ -271,7 +278,10 @@ function scene(chapitres) {
       const alpha = g * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8) * (.26+.74*relais);
       if (alpha <= 0.004) continue;
       const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
-      const hx = W < 760 ? W * 0.5 : W * 0.6, hy = H * 0.56 - Math.max(0, u - 0.62) * H, R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g);
+      const centre = centreBureau();
+      const hx = bureau.matches ? centre.x : Math.min(W - 18, L.right + 20);
+      const hy = bureau.matches ? centre.y - Math.max(0, u - 0.62) * H : L.top + L.height * .45;
+      const R = (bureau.matches ? Math.max(W, H) : W) * .62 * (.55 + .45 * g);
       ctx.save(); ctx.globalAlpha = alpha; ctx.lineCap = 'round';
       /* les branches passent derrière les fiches : la zone des fiches visibles est retirée du tracé */
       if (u > 0.15) { ctx.beginPath(); ctx.rect(0, 0, W, H); for (const f of c.fiches) { const q = f.getBoundingClientRect(); if (q.bottom > 0 && q.top < H) ctx.rect(q.left, q.top, q.width, q.height); } ctx.clip('evenodd'); }

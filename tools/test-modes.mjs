@@ -92,6 +92,15 @@ await r.context().close();
 /* ---- mobile ---- */
 const m = await page({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 const gm = await m.evaluate(() => window.__cvHeroGraph.etat());
+const accueilMobile = await m.evaluate(() => {
+  const chapitre = document.getElementById('shop');
+  const hero = document.getElementById('hero');
+  chapitre.scrollIntoView({ block: 'start', behavior: 'instant' });
+  const deplace = hero.getBoundingClientRect().bottom <= 50;
+  scrollTo({ top: 0, behavior: 'instant' });
+  return deplace;
+});
+verifie(accueilMobile, 'mobile : l’accueil sort de l’écran avant le premier chapitre');
 await m.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await m.waitForFunction(() => { const s = window.__cvStandardPath; return s.active && Math.abs(s.progress - 1) < 1e-3; }, null, { timeout: 60000 });
 const em = await m.evaluate(() => [window.__cvStandardPath.active, window.__cvStandardPath.progress]);
 verifie(gm.foyers >= 12 && em[0] && Math.abs(em[1] - 1) < 1e-3 && m.erreurs.length === 0, `mobile 390 × 844 : graphe ${gm.foyers} foyers dans ${gm.largeur} × ${gm.hauteur} px, expo actif, ${m.erreurs.length} erreur`);
