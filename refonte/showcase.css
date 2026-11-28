@@ -178,7 +178,6 @@ html body .cv-pf-main[data-fiche] > .cv-machine {
 }
 
 @media (min-width: 58.75rem) {
-  html body #shop > .grid-layout { padding-inline: 8px; }
   html body #shop [data-card-group] {
     grid-column: 3 / span 12 !important;
   }
@@ -281,17 +280,22 @@ html body .cv-pf-main .sc-mec-path p{margin:0 0 10px!important;color:#e2e8ff;fon
 }
 @media(prefers-reduced-motion:reduce){.sc-mec-window{transition:none}}
 
-/* Le rail fixe reste visuellement indépendant des cadres dans les deux modes. */
-@media(min-width:940px){
-  html body :is(.cv-flat-nav,.cv-parity-nav){
-    left:clamp(16px,1.55vw,30px);
-    width:clamp(104px,8.75vw,164px);
-    max-width:none;
-    font-size:clamp(11px,.91vw,17px);
+/* Le rail des chapitres reprend les dimensions relevées à plat et en Expo. */
+@media (min-width: 58.75rem) {
+  html body :is(.cv-flat-nav, .cv-parity-nav) {
+    left: 16px;
+    width: 110px;
+    max-width: none;
+    font: 300 11px/15px var(--expo-mono, monospace);
   }
-  html body :is(.cv-flat-nav,.cv-parity-nav) a{min-height:clamp(25px,1.95vw,36px);gap:7px}
-  html body :is(.cv-flat-nav,.cv-parity-nav) a[data-chapter]::after,
-  html body .cv-flat-nav a::after{width:6px;height:6px}
+  html body :is(.cv-flat-nav, .cv-parity-nav) a {
+    min-height: 24px;
+    gap: 7px;
+  }
+  html body :is(.cv-parity-nav a[data-chapter], .cv-flat-nav a)::after {
+    width: 4px;
+    height: 4px;
+  }
 }
 
 .cv-vre-flow{display:grid;place-items:center;padding:9px;background:#fff;border-radius:0 0 11px 11px}

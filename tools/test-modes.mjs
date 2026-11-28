@@ -24,7 +24,7 @@ const c0 = (await p.evaluate(() => window.__cvHeroGraph.cibles())).find((c) => c
 await p.mouse.move(c0.x, c0.y); await p.waitForTimeout(300);
 const curseurSurvol = await p.evaluate(() => document.documentElement.style.cursor || getComputedStyle(document.querySelector('.cv-hero-graph')).cursor);
 await p.mouse.down(); await p.mouse.move(c0.x + 60, c0.y + 30, { steps: 6 }); await p.waitForTimeout(500);
-const tenu = await p.evaluate((h) => ({ c: window.__cvHeroGraph.cibles().find((c) => c.handle === h), curseur: document.documentElement.style.cursor, y: scrollY }), c0.handle);
+const tenu = await p.evaluate((h) => ({ c: window.__cvHeroGraph.cibles().find((c) => c.handle === h), curseur: getComputedStyle(document.documentElement).cursor, y: scrollY }), c0.handle);
 verifie(curseurSurvol === 'grab' && tenu.curseur === 'grabbing', `curseur : « ${curseurSurvol} » au survol d'un nœud, « ${tenu.curseur} » pendant la saisie`);
 verifie(Math.hypot(tenu.c.x - (c0.x + 60), tenu.c.y - (c0.y + 30)) < 6, `le nœud saisi suit le pointeur (écart ${Math.hypot(tenu.c.x - (c0.x + 60), tenu.c.y - (c0.y + 30)).toFixed(1)} px)`);
 await p.mouse.up(); const retour = []; for (let i = 0; i < 6; i++) { await p.waitForTimeout(350); const c = await p.evaluate((h) => window.__cvHeroGraph.cibles().find((c) => c.handle === h), c0.handle); retour.push(Math.hypot(c.x - c0.x, c.y - c0.y)); }
@@ -44,6 +44,12 @@ verifie(inter.length >= 1 && entree.every((e, i) => !i || e[0] >= entree[i - 1][
 { const d = entree.find((e) => Number.isFinite(e[2])); verifie(d && (Math.abs(d[2] - 90) < 12 || d[0] > 0.05) && entree.some((e) => e[2] > 31 && e[2] < 89), `la caméra part de la verticale et descend (${entree.filter((e) => Number.isFinite(e[2])).map((e) => e[2]).filter((v, i, l) => !i || v !== l[i - 1]).join('° → ')}°)`); }
 verifie(expo.actif && Math.abs(expo.p - 1) < 1e-3 && Math.abs(expo.pitch - 30.2) < 0.3, `arrivée : progression ${expo.p}, visée à ${expo.pitch.toFixed(1)}° sous l'horizontale`);
 verifie(Math.abs(expo.y - avant.y) < 2, `la position de lecture est conservée (${avant.y} → ${expo.y} px)`);
+const navigationExpo = await p.evaluate(() => {
+  const nav = document.querySelector('.cv-parity-nav');
+  return nav && !nav.hidden && !nav.inert && nav.querySelectorAll('a[data-chapter]').length === 11 &&
+    !!nav.querySelector('[aria-current="location"]');
+});
+verifie(navigationExpo, 'le menu Expo affiche les onze chapitres et indique le chapitre actif');
 /* sortie, interrompue puis reprise */
 await p.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await p.waitForTimeout(300);
 const mi = await p.evaluate(() => [window.__cvStandardPath.progress, window.__cvStandardPath.cible]);
@@ -86,6 +92,17 @@ await r.context().close();
 /* ---- mobile ---- */
 const m = await page({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 const gm = await m.evaluate(() => window.__cvHeroGraph.etat());
+const accueilMobile = await m.evaluate(() => {
+  const chapitre = document.querySelector('main [data-f26-page-section]');
+  const hero = document.getElementById('hero');
+  chapitre.scrollIntoView({ block: 'start', behavior: 'instant' });
+  const basAccueil = hero.getBoundingClientRect().bottom;
+  const hautChapitre = chapitre.getBoundingClientRect().top;
+  const deplace = basAccueil <= hautChapitre + 1;
+  scrollTo({ top: 0, behavior: 'instant' });
+  return deplace;
+});
+verifie(accueilMobile, 'mobile : l’accueil sort de l’écran avant le premier chapitre');
 await m.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await m.waitForFunction(() => { const s = window.__cvStandardPath; return s.active && Math.abs(s.progress - 1) < 1e-3; }, null, { timeout: 60000 });
 const em = await m.evaluate(() => [window.__cvStandardPath.active, window.__cvStandardPath.progress]);
 verifie(gm.foyers >= 12 && em[0] && Math.abs(em[1] - 1) < 1e-3 && m.erreurs.length === 0, `mobile 390 × 844 : graphe ${gm.foyers} foyers dans ${gm.largeur} × ${gm.hauteur} px, expo actif, ${m.erreurs.length} erreur`);

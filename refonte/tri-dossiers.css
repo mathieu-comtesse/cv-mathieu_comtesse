@@ -1,0 +1,96 @@
+html body .cv-finale-card {
+  grid-column: 1 / -1 !important;
+  margin-block: 64px 96px;
+}
+
+html body .cv-tri[data-cv-tri] {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: clamp(20px, 4vw, 48px);
+  border: 1px solid #ffffff52;
+  background: #151b2e !important;
+  color: #f2f5ff;
+}
+
+.cv-tri-board {
+  display: grid;
+  grid-template-rows: auto minmax(3.4em, auto) minmax(3em, auto);
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1px solid #89a1ff66;
+  background: #091027;
+}
+
+.cv-tri-board p { margin: 0; }
+
+.cv-tri-progress, .cv-tri-status {
+  font: 400 13px/1.5 var(--expo-mono, monospace);
+  color: #c7d3ff;
+}
+
+.cv-tri-dossier {
+  font: 500 clamp(17px, 2.2vw, 26px)/1.25 var(--expo-sans, system-ui);
+}
+
+.cv-tri-choix {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cv-tri-choix[hidden], .cv-tri button[hidden] {
+  visibility: hidden;
+}
+.cv-tri-choix[hidden] { display: grid; }
+.cv-tri button[hidden] { display: inline-block; }
+
+html body .cv-tri button {
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid #9cacff;
+  border-radius: 4px;
+  background: #24366d;
+  color: white;
+  font: 500 14px/1.3 var(--expo-sans, system-ui);
+}
+html body .cv-tri button:not(:disabled) { cursor: pointer; }
+.cv-tri button:is(:hover, :focus-visible) { outline: 2px solid #f5bf70; outline-offset: -3px; }
+.cv-tri button[data-tri-demarrer] { justify-self: start; }
+.cv-tri kbd { margin-right: 5px; color: #c7d3ff; }
+
+@media (min-width: 58.75rem) {
+  html body .cv-finale-card { grid-column: 3 / span 12 !important; }
+}
+
+@media (max-width: 32rem) {
+  .cv-tri-choix { grid-template-columns: 1fr; }
+  .cv-tri-board { grid-template-rows: auto minmax(4.5em, auto) minmax(4.5em, auto); }
+}
+
+.cv-tri-status[data-resultat="juste"] { color: #b8f6dc; }
+.cv-tri-status[data-resultat="erreur"] { color: #ffd29e; }
+
+.cv-parity-part[data-cv-finale] {
+  position: fixed;
+  z-index: 6;
+  inset: 60px 12px 62px;
+  width: auto !important;
+  max-width: 840px;
+  height: fit-content !important;
+  max-height: calc(100dvh - 122px);
+  margin: auto;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.cv-parity-part[data-cv-finale] .cv-tri[data-cv-tri] {
+  background: #151b2e !important;
+  width: 100% !important;
+  height: auto !important;
+}

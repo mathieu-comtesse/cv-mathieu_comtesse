@@ -1,5 +1,5 @@
 /* Graphe à plat. Les foyers et vignettes utilisent la même constellation que le chemin Expo. */
-import { CielExpo } from './ciel-expo.js?v=15';
+import { CielExpo } from './ciel-expo.js?v=20';
 import {surfaceGraph,brancheSpectrale,nœudSpectral} from './fall26-graph-adapter.js?v=1';
 
 const borne = t => Math.max(0, Math.min(1,t));
@@ -93,33 +93,71 @@ export function demarre(chapitres) {
   const mesure = () => { const r = zone.getBoundingClientRect(); let x0 = 0;
     for (const c of document.querySelectorAll('#hero .hero-chrome')) { const q = c.getBoundingClientRect(); if (q.width && q.height && q.top < r.bottom - 40 && q.bottom > r.top + 40 && q.right > r.left) x0 = Math.max(x0, q.right - r.left); }
     if (x0 > r.width - 160) x0 = 0;
-    x0 = Math.max(0, x0); cv.style.left = x0 + 'px'; cv.style.width = (r.width - x0) + 'px'; W = Math.round(r.width - x0); H = Math.round(r.height); };
+    x0 = Math.max(0, x0); const largeur = r.width - x0;
+    /* Les branches WebGPU et les libellés 2D partagent exactement le même repère. */
+    for (const canvas of [cv, graph.canvas]) { canvas.style.left = x0 + 'px'; canvas.style.right = 'auto'; canvas.style.width = largeur + 'px'; }
+    W = Math.round(largeur); H = Math.round(r.height); };
   const taille = () => { mesure(); dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.max(1, Math.round(W * dpr)); cv.height = Math.max(1, Math.round(H * dpr)); };
   new ResizeObserver(taille).observe(zone); addEventListener('resize', taille); document.fonts?.ready.then(taille); taille();
   new IntersectionObserver(([e]) => { vu = e.isIntersecting; }).observe(zone);
   const local = (ev) => { const r = cv.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; };
-  cv.style.cursor = 'auto';
-  const va = (n) => { const cible = document.getElementById(n.handle) || document.getElementById(n.chapitre); if (cible) cible.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' }); };
-  addEventListener('pointermove', ev => {
-    [souris.x, souris.y] = local(ev);
-    ciel.tire(souris.x, souris.y);
-    const node = ev.pointerType==='mouse'&&dessus(ev)&&ciel.touche(souris.x,souris.y);
-    cv.style.cursor = node?'pointer':'auto';
-    etiquette.toggleAttribute('data-visible',Boolean(node));
-    if(node){
-      etiquette.textContent=node.title;
-      etiquette.style.left=Math.max(12,Math.min(innerWidth-etiquette.offsetWidth-12,ev.clientX+14))+'px';
-      etiquette.style.top=Math.max(12,ev.clientY-28)+'px';
-    }
+  const racine = document.documentElement;
+  let pointeurActif = null;
+  const va = n => {
+    const cible = document.getElementById(n.handle) || document.getElementById(n.chapitre);
+    cible?.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' });
+  };
+  const dessus = ev => {
+    const rect = cv.getBoundingClientRect();
+    return !racine.classList.contains('cv-parity-active') &&
+      ev.clientX >= rect.left && ev.clientX <= rect.right && ev.clientY >= rect.top && ev.clientY <= rect.bottom &&
+      !ev.target.closest?.('a,button,input,select,textarea,.cv-site-nav');
+  };
+  function survol(ev) {
+    const node = ev && ev.pointerType === 'mouse' && dessus(ev) && ciel.touche(souris.x, souris.y);
+    cv.style.cursor = pointeurActif !== null ? 'grabbing' : node ? 'grab' : '';
+    etiquette.toggleAttribute('data-visible', Boolean(node) && pointeurActif === null);
+    if (!node || pointeurActif !== null) return;
+    etiquette.textContent = node.title;
+    etiquette.style.left = Math.max(12, Math.min(innerWidth - etiquette.offsetWidth - 12, ev.clientX + 14)) + 'px';
+    etiquette.style.top = Math.max(12, ev.clientY - 28) + 'px';
+  }
+  document.addEventListener('pointermove', ev => {
+    if (pointeurActif !== null && pointeurActif !== ev.pointerId) return;
+    if (racine.classList.contains('cv-parity-active')) return;
+    if (pointeurActif !== null || dessus(ev)) {
+      [souris.x, souris.y] = local(ev);
+      ciel.tire(souris.x, souris.y);
+    } else souris.x = souris.y = -1e4;
+    survol(ev);
   }, { passive: true });
-  cv.addEventListener('pointerleave', () => { if (!ciel.pris) souris.x = souris.y = -1e4; });
-  /* écoute au niveau du document : d'autres calques de l'accueil passent au-dessus du canevas et recevraient l'appui à sa place */
-  const dessus = (ev) => { const r = cv.getBoundingClientRect(); return !document.documentElement.classList.contains('cv-parity-active') && ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom && !ev.target.closest('a,button,input,select,textarea,.cv-site-nav'); };
-  document.addEventListener('pointerdown', (ev) => { if (ev.button !== 0 || !dessus(ev)) return; [souris.x, souris.y] = local(ev); ciel.saisit(souris.x, souris.y); }, { capture: true });
-  const fin = (annule) => { const r = ciel.lache(); if (r?.clic && !annule) va(r); };
-  document.addEventListener('pointerup', () => fin(false), { capture: true }); document.addEventListener('pointercancel', () => fin(true));
+  document.addEventListener('pointerdown', ev => {
+    if (pointeurActif !== null || ev.button !== 0 || !dessus(ev)) return;
+    [souris.x, souris.y] = local(ev);
+    if (!ciel.saisit(souris.x, souris.y)) return;
+    pointeurActif = ev.pointerId;
+    racine.classList.add('cv-hero-dragging');
+    survol(ev);
+  }, { capture: true });
+  function fin(ev, annule = false) {
+    if (pointeurActif === null || (ev && pointeurActif !== ev.pointerId)) return;
+    if (ev && !annule) ciel.tire(...local(ev));
+    const noeud = ciel.lache();
+    pointeurActif = null;
+    racine.classList.remove('cv-hero-dragging');
+    survol(annule ? null : ev);
+    if (noeud?.clic && !annule) va(noeud);
+  }
+  document.addEventListener('pointerup', ev => fin(ev), { capture: true });
+  document.addEventListener('pointercancel', ev => fin(ev, true));
+  addEventListener('blur', () => {
+    fin(null, true);
+    souris.x = souris.y = -1e4;
+    survol(null);
+  });
   function image(t) {
     requestAnimationFrame(image);
+    if (pointeurActif !== null && racine.classList.contains('cv-parity-active')) fin(null, true);
     if (!vu || document.hidden || W < 120 || H < 120 || t - dernier < 30 || document.documentElement.classList.contains('cv-parity-active')) return;
     const dt = Math.min(0.1, (t - dernier) / 1000); dernier = t;
     const proj = (x, y, h) => ({ x, y, z:2000-h });
@@ -127,15 +165,19 @@ export function demarre(chapitres) {
     const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + .8 * s * s;
     cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
-    const reveal=entree?.enCours()?lisse((t-arrivee)/1017):1;
+    /* ouverture relevée sur la référence : le graphe apparaît d'un coup, les foyers jaillissent du centre en gros carrés,
+       puis les rayons poussent pendant que la colonne de gauche entre */
+    const ecoule=entree?.enCours()?(t-arrivee)/1000:Infinity,joue=Number.isFinite(ecoule);
+    const eclat=joue?lisse(ecoule/.3):1,jaillit=joue?1-(1-borne(ecoule/1.05))**3:1,croit=joue?lisse((ecoule-.55)/1.25):1;
+    const reveal=eclat;
     ciel.place('accueil',[W/2-(entree?.decalage()||0),H*.5,Math.min(H*.12,90)],Math.min(W,H)*.48,{
-      largeur:W*.51,hauteur:H*.48,etalement:ouvre
+      largeur:W*.51,hauteur:H*.48,etalement:ouvre*jaillit,croissance:croit,profilPlat:W>=520
     });
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     const edges=[],marks=[],clip=[0,0,W,H];
     const traitPlat=graph.active?(a,b,ink,alpha,width)=>brancheSpectrale(edges,a,b,ink,alpha,clip,width):undefined;
     const pointPlat=graph.active?(p,ink,alpha,radius,shape)=>nœudSpectral(marks,p,ink,alpha,clip,radius,shape):undefined;
-    ciel.dessine(ctx,proj,reduit.matches?null:t/1000,{souris,W,H,dt,plat:true,traitPlat,pointPlat,ouverture:reveal});
+    ciel.dessine(ctx,proj,reduit.matches?null:t/1000,{souris,W,H,dt,plat:true,traitPlat,pointPlat,ouverture:reveal,tailleFoyer:1+1.15*(1-croit)});
     graph.canvas.style.opacity=cv.style.opacity;graph.render(W,H,dpr,edges,undefined,marks);
   }
   requestAnimationFrame(image);

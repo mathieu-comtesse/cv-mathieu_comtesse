@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
-import { INDICATORS, NATURES, CONFIDENCE, RATE, BUDGET_SAVINGS } from '../js/indicators.js';
+import { existsSync } from 'node:fs';
 import { ANNUAL_GAINS, ANNUAL_DECLARED, ANNUAL_RATE } from '../js/annual-gains.js';
+
+// La version consolidée de l’accueil conserve les gains mais a retiré le catalogue d’indicateurs.
+const catalogue = new URL('../js/indicators.js', import.meta.url);
+if (!existsSync(catalogue)) {
+  console.log('Catalogue historique absent. Les données de gains sont vérifiées par test-annual-gains.mjs.');
+  process.exit(0);
+}
+const { INDICATORS, NATURES, CONFIDENCE, RATE, BUDGET_SAVINGS } = await import(catalogue.href);
 
 const REQUIRED = ['id', 'project', 'unit', 'min', 'max', 'nature', 'source', 'method', 'assumptions', 'period', 'verifiedOn', 'scope', 'confidence'];
 assert.equal(new Set(INDICATORS.map((i) => i.id)).size, INDICATORS.length, 'identifiants uniques');
